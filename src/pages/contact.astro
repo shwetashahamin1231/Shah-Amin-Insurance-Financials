@@ -132,6 +132,10 @@ const maps = mapLinks();
 </BaseLayout>
 
 <script>
+  import '../scripts/open-status';
+</script>
+
+<script>
   // Load the Google map only when the visitor asks for it.
   document.querySelector<HTMLButtonElement>('[data-map-load]')?.addEventListener('click', (e) => {
     const btn = e.currentTarget as HTMLButtonElement;
