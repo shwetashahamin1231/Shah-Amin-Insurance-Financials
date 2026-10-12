@@ -1,0 +1,395 @@
+---
+/**
+ * ════════════════════════════════════════════════════════════════════
+ *  RSVP FORM — sends event RSVPs to the "RSVPs" Google Sheet
+ * ════════════════════════════════════════════════════════════════════
+ *    <RsvpForm events={EVENTS} selected="member-appreciation-breakfast-2026" idPrefix="rsvp" />
+ *
+ *  • events    — pass the event list; only events still taking RSVPs are offered.
+ *  • selected  — slug of the event to preselect (event pages). If that event
+ *                has closed, an "RSVP closed" message shows instead of the form.
+ *  • idPrefix  — makes element ids unique when a page has more than one form.
+ *  • compact   — single column, tighter spacing (dialogs, side columns).
+ *
+ *  Which events are open is checked again in the browser, so RSVPs close
+ *  on time even if the site hasn't been rebuilt. Fields sent to the Apps
+ *  Script: name, email, phone, guests, event, eventDate, eventSlug, notes,
+ *  website (spam trap) and page.
+ * ════════════════════════════════════════════════════════════════════
+ */
+import type { EventItem } from '../../data/events';
+import { formatEventDate, formatEventTime, formatVenue, isRsvpOpen } from '../../lib/events';
+import { formatDateShort, zonedParts } from '../../lib/time';
+import { ADVISOR_LIST } from '../../config/site';
+import Icon from '../ui/Icon.astro';
+import Button from '../ui/Button.astro';
+import TextField from './TextField.astro';
+import Select from './Select.astro';
+import Textarea from './Textarea.astro';
+import GuestsStepper from './GuestsStepper.astro';
+import ErrorSummary from './ErrorSummary.astro';
+import FormStatus from './FormStatus.astro';
+import Honeypot from './Honeypot.astro';
+import SubmitButton from './SubmitButton.astro';
+
+interface Props {
+  events: EventItem[];
+  /** Slug of the event to preselect. */
+  selected?: string;
+  /** Prefix for element ids, e.g. "rsvp" or "rsvp-dialog". */
+  idPrefix: string;
+  compact?: boolean;
+  /** Heading level for the result panels and error box (default 3, i.e. under the section's h2). */
+  headingLevel?: 2 | 3 | 4;
+}
+
+const { events, selected, idPrefix: p, compact = false, headingLevel = 3 } = Astro.props;
+
+const now = Date.now();
+const openEvents = events.filter((e) => isRsvpOpen(e, now)).sort((a, b) => Date.parse(a.start) - Date.parse(b.start));
+const selectedEvent = selected ? events.find((e) => e.slug === selected) : undefined;
+const selectedIsOpen = !!selectedEvent && openEvents.includes(selectedEvent);
+const startsClosed = selected ? !selectedIsOpen : openEvents.length === 0;
+const preselected = selectedIsOpen ? selectedEvent : openEvents.length === 1 ? openEvents[0] : undefined;
+
+/** "Monday, October 19, 2026 · 10:00 AM ET" — sent as eventDate and shown in the confirmation. */
+const dateLabel = (e: EventItem) => `${formatEventDate(e)} · ${formatEventTime(e)}`;
+const venueText = (e: EventItem) => {
+  const v = formatVenue(e.venue);
+  return v ? [v.name, v.address].filter(Boolean).join(', ') : '';
+};
+
+// Just what the browser needs to re-check RSVP status and build calendar files.
+const clientEvents = openEvents.map((e) => ({
+  slug: e.slug,
+  title: e.title,
+  start: e.start,
+  end: e.end,
+  rsvp: e.rsvp,
+  rsvpCloses: e.rsvpCloses,
+  maxGuests: e.maxGuests ?? 6,
+  timeTBA: !!e.timeTBA,
+  dateLabel: dateLabel(e),
+  venue: venueText(e),
+  summary: e.summary,
+}));
+
+const eventOptions = openEvents.map((e) => ({
+  value: e.title,
+  label: `${e.title} — ${formatDateShort(zonedParts(new Date(e.start)).date)}`,
+  selected: e === preselected,
+  data: { slug: e.slug },
+}));
+
+const closedMessage = selectedEvent
+  ? `RSVPs for ${selectedEvent.title} are closed.`
+  : 'There are no events taking RSVPs right now.';
+const maxGuests = preselected?.maxGuests ?? 6;
+---
+
+<div class:list={['rsvp-form', { 'rsvp-form--compact': compact }]} data-rsvp-root data-events={JSON.stringify(clientEvents)} data-selected={selected}>
+  <div class="rsvp-form__closed" data-rsvp-closed hidden={!startsClosed}>
+    <Icon name="calendar-blank" class="rsvp-form__closed-icon" />
+    <div>
+      <p class="rsvp-form__closed-title" data-closed-text>{closedMessage}</p>
+      <p>
+        Questions? Call
+        {
+          ADVISOR_LIST.map((a, i) => (
+            <>
+              {i > 0 && ' or '}
+              <a class="text-link" href={`tel:${a.phoneHref}`}>
+                {a.firstName} <span class="num">{a.phone}</span>
+              </a>
+            </>
+          ))
+        }.
+      </p>
+    </div>
+  </div>
+
+  <form class="rsvp-form__form" data-rsvp-form novalidate hidden={startsClosed}>
+    <ErrorSummary id={`${p}-errors`} headingLevel={headingLevel} />
+
+    <div class="rsvp-form__grid">
+      <Select
+        id={`${p}-event`}
+        name="event"
+        label="Event"
+        placeholder="Choose an event"
+        options={eventOptions}
+        required
+        requiredMessage="Please choose an event."
+        class="rsvp-form__wide"
+      />
+      <TextField id={`${p}-name`} name="name" label="Full name" autocomplete="name" autocapitalize="words" spellcheck={false} validate="name" required />
+      <TextField id={`${p}-email`} name="email" type="email" label="Email" autocomplete="email" inputmode="email" spellcheck={false} validate="email" required hint="We’ll send any event updates here." />
+      <TextField id={`${p}-phone`} name="phone" type="tel" label="Phone" autocomplete="tel" inputmode="tel" validate="phone" format="phone" hint="In case plans change." />
+      <GuestsStepper id={`${p}-guests`} name="guests" label="Number attending (including you)" max={maxGuests} value={1} />
+      <Textarea id={`${p}-notes`} name="notes" label="Dietary needs or questions" rows={compact ? 3 : 4} class="rsvp-form__wide" />
+    </div>
+
+    <input type="hidden" name="eventSlug" value={preselected?.slug ?? ''} />
+    <input type="hidden" name="eventDate" value={preselected ? dateLabel(preselected) : ''} />
+    <input type="hidden" name="page" value="" />
+    <Honeypot id={`${p}-website`} />
+
+    <FormStatus type="error" id={`${p}-problem`} headingLevel={headingLevel} />
+
+    <div class="rsvp-form__actions">
+      <SubmitButton label="Send my RSVP" />
+      <p class="rsvp-form__call small">
+        Prefer to call?
+        {
+          ADVISOR_LIST.map((a, i) => (
+            <>
+              {i > 0 && ' · '}
+              <a class="text-link nowrap" href={`tel:${a.phoneHref}`}>
+                {a.firstName} <span class="num">{a.phone}</span>
+              </a>
+            </>
+          ))
+        }
+      </p>
+    </div>
+    <p class="visually-hidden" aria-live="polite" data-form-live></p>
+  </form>
+
+  <FormStatus type="success" id={`${p}-done`} title="Thank you — you’re on the list" headingLevel={headingLevel}>
+    <p data-success-text>We’ve received your RSVP.</p>
+    <div class="rsvp-form__calendar" data-success-calendar hidden>
+      <Button variant="outline" size="s" icon="download" iconPosition="start" data-ics>Add to my calendar</Button>
+      <a class="text-link rsvp-form__gcal" data-gcal href="https://calendar.google.com/" target="_blank" rel="noopener">
+        Google Calendar<span class="visually-hidden"> (opens in a new tab)</span>
+        <Icon name="arrow-up-right" />
+      </a>
+    </div>
+    <p class="small muted">Need to change anything? Just give us a call.</p>
+  </FormStatus>
+</div>
+
+<script>
+  import { createFormEngine } from '../../scripts/forms/engine';
+  import { revealPanel } from '../../scripts/forms/status';
+  import { isRsvpOpen } from '../../lib/events';
+  import type { EventItem } from '../../data/events';
+  import { buildIcs, downloadIcs, googleCalendarUrl, type CalendarEvent } from '../../lib/ics';
+  import { firstName } from '../../lib/validation';
+  import { url } from '../../lib/url';
+  import { ADVISOR_LIST } from '../../config/site';
+
+  interface RsvpEvent {
+    slug: string;
+    title: string;
+    start: string;
+    end?: string;
+    rsvp: boolean;
+    rsvpCloses?: string;
+    maxGuests: number;
+    timeTBA: boolean;
+    dateLabel: string;
+    venue: string;
+    summary: string;
+  }
+
+  // isRsvpOpen only reads rsvp/start/end/rsvpCloses, which RsvpEvent has.
+  const isOpen = (e: RsvpEvent) => isRsvpOpen(e as unknown as EventItem);
+
+  function calendarEntry(e: RsvpEvent): CalendarEvent {
+    const start = new Date(e.start);
+    const end = e.end ? new Date(e.end) : new Date(start.getTime() + 2 * 60 * 60 * 1000);
+    const phones = ADVISOR_LIST.map((a) => `${a.firstName} ${a.phone}`).join(' or ');
+    return {
+      uid: `${e.slug}@${location.hostname || 'shahaminfinancial.com'}`,
+      title: e.title,
+      start,
+      end,
+      location: e.venue || undefined,
+      description: `${e.summary}\n\nQuestions? Call ${phones}.`,
+      url: new URL(url(`/events/${e.slug}/`), location.origin).href,
+    };
+  }
+
+  function initRsvp(root: HTMLElement) {
+    const events: RsvpEvent[] = JSON.parse(root.dataset.events || '[]');
+    const form = root.querySelector<HTMLFormElement>('form[data-rsvp-form]');
+    const select = form?.querySelector<HTMLSelectElement>('select[name="event"]');
+    const slugInput = form?.querySelector<HTMLInputElement>('input[name="eventSlug"]');
+    const dateInput = form?.querySelector<HTMLInputElement>('input[name="eventDate"]');
+    const pageInput = form?.querySelector<HTMLInputElement>('input[name="page"]');
+    const guests = form?.querySelector<HTMLInputElement>('input[name="guests"]');
+    const closedBox = root.querySelector<HTMLElement>('[data-rsvp-closed]');
+    const closedText = root.querySelector<HTMLElement>('[data-closed-text]');
+    const success = root.querySelector<HTMLElement>('[data-form-success]');
+    if (!form || !select || !slugInput || !dateInput || !pageInput || !guests || !closedBox || !success) return;
+
+    const bySlug = (slug?: string) => events.find((e) => e.slug === slug);
+    const current = () => bySlug(select.selectedOptions[0]?.dataset.slug);
+
+    const showClosed = (message: string) => {
+      if (closedText) closedText.textContent = message;
+      closedBox.hidden = false;
+      form.hidden = true;
+    };
+
+    // The page may have been built days ago: drop events that have stopped taking RSVPs.
+    const refreshOpen = (): boolean => {
+      Array.from(select.options).forEach((opt) => {
+        if (!opt.dataset.slug) return;
+        const e = bySlug(opt.dataset.slug);
+        if (!e || !isOpen(e)) opt.remove();
+      });
+      const wanted = root.dataset.selected;
+      if (wanted) {
+        const e = bySlug(wanted);
+        if (!e || !isOpen(e)) {
+          showClosed(`RSVPs for ${e?.title ?? 'this event'} are closed.`);
+          return false;
+        }
+      }
+      const remaining = Array.from(select.options).filter((o) => o.dataset.slug);
+      if (!remaining.length) {
+        showClosed('There are no events taking RSVPs right now.');
+        return false;
+      }
+      if (remaining.length === 1 && !select.value) remaining[0].selected = true;
+      return true;
+    };
+
+    // Keep the hidden fields and the party-size limit in step with the chosen event.
+    const syncEvent = () => {
+      const e = current();
+      slugInput.value = e?.slug ?? '';
+      dateInput.value = e?.dateLabel ?? '';
+      const max = e?.maxGuests ?? 6;
+      guests.max = String(max);
+      const field = guests.closest<HTMLElement>('[data-field]');
+      if (field) field.dataset.max = String(max);
+      if (Number(guests.value) > max) guests.value = String(max);
+      guests.closest('[data-field]')?.querySelector('[data-stepper]')?.dispatchEvent(new Event('stepper:sync'));
+    };
+
+    if (!refreshOpen()) return;
+    syncEvent();
+    select.addEventListener('change', syncEvent);
+
+    createFormEngine(form, {
+      kind: 'rsvp',
+      prepare() {
+        syncEvent();
+        pageInput.value = location.href.split('#')[0];
+      },
+      beforeSend() {
+        const e = current();
+        return e && !isOpen(e) ? `Sorry — RSVPs for ${e.title} have just closed. Please give us a call if you’d still like to come.` : null;
+      },
+      onSuccess(data) {
+        const e = current() ?? bySlug(String(data.get('eventSlug') ?? ''));
+        const name = firstName(String(data.get('name') ?? ''));
+        const count = Number(data.get('guests')) || 1;
+        const text = success.querySelector<HTMLElement>('[data-success-text]');
+        if (text && e) {
+          const who = count === 1 ? 'you' : `your party of ${count}`;
+          const extra = e.timeTBA ? ' We’ll be in touch with the time and place.' : ' We look forward to seeing you.';
+          text.textContent = `Thank you${name ? `, ${name}` : ''}. We’ve added ${who} to the guest list for ${e.title} — ${e.dateLabel}.${extra}`;
+        }
+        const cal = success.querySelector<HTMLElement>('[data-success-calendar]');
+        if (cal && e && !e.timeTBA) {
+          const entry = calendarEntry(e);
+          cal.hidden = false;
+          const gcal = cal.querySelector<HTMLAnchorElement>('[data-gcal]');
+          if (gcal) gcal.href = googleCalendarUrl(entry);
+          cal.querySelector('[data-ics]')?.addEventListener('click', () => downloadIcs(`${e.slug}.ics`, buildIcs(entry)));
+        }
+        form.hidden = true;
+        revealPanel(success);
+      },
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-rsvp-root]').forEach(initRsvp);
+</script>
+
+<style>
+  .rsvp-form__form {
+    display: grid;
+    gap: var(--space-l);
+  }
+  .rsvp-form__grid {
+    display: grid;
+    gap: var(--space-m) var(--space-l);
+  }
+  @media (min-width: 40rem) {
+    .rsvp-form:not(.rsvp-form--compact) .rsvp-form__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .rsvp-form__grid :global(.rsvp-form__wide) {
+      grid-column: 1 / -1;
+    }
+  }
+  .rsvp-form--compact .rsvp-form__form {
+    gap: var(--space-m);
+  }
+  .rsvp-form--compact .rsvp-form__grid {
+    gap: var(--space-s);
+  }
+
+  .rsvp-form__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-s) var(--space-l);
+    padding-block-start: var(--space-2xs);
+  }
+  .rsvp-form__call {
+    color: var(--text-muted);
+  }
+  .rsvp-form__call a {
+    color: var(--text);
+  }
+
+  .rsvp-form__closed {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: var(--space-m);
+    background-color: var(--bg-raised);
+    border: 1px solid var(--rule-strong);
+  }
+  .rsvp-form__closed[hidden] {
+    display: none;
+  }
+  .rsvp-form__closed :global(.rsvp-form__closed-icon) {
+    flex: none;
+    margin-block-start: 0.15rem;
+    font-size: 1.6rem;
+    color: var(--accent);
+  }
+  .rsvp-form__closed > div > * + * {
+    margin-block-start: 0.35rem;
+  }
+  .rsvp-form__closed-title {
+    font-family: var(--ff-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--heading);
+  }
+
+  .rsvp-form__calendar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+  }
+  .rsvp-form__calendar[hidden] {
+    display: none;
+  }
+  .rsvp-form__gcal {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-block-size: 44px;
+    font-weight: 500;
+  }
+</style>

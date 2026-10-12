@@ -6,7 +6,7 @@
 title: 'Annuities'
 order: 2
 lead: 'An annuity is a contract with an insurance company that can turn part of your savings into dependable income — helping protect you from the risk of outliving your money.'
-description: 'Fixed, fixed indexed and income annuities explained clearly. We help New Jersey retirees weigh growth, protection and lifetime income options with care.'
+description: 'Fixed, fixed indexed and income annuities explained clearly. We help retirees weigh growth, protection and lifetime income options with care.'
 whoItsFor:
   - 'You are nearing or in retirement and want income you can count on'
   - 'You worry about outliving your savings'

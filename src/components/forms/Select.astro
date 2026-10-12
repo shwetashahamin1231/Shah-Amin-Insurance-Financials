@@ -1,0 +1,95 @@
+---
+/**
+ * Drop-down menu with label, hint and error (see Field.astro).
+ *   <Select id="book-topic" name="topic" label="What would you like to talk about?"
+ *           placeholder="Choose a topic" options={['Life Insurance', 'Annuities']} required />
+ * Options can be plain strings or { value, label, selected?, data? } —
+ * `data` becomes data-* attributes on the <option> (used by the RSVP form).
+ */
+import Field from './Field.astro';
+import Icon from '../ui/Icon.astro';
+
+export interface SelectOption {
+  value: string;
+  label?: string;
+  selected?: boolean;
+  disabled?: boolean;
+  /** Extra data-* attributes, e.g. { slug: 'member-breakfast' } → data-slug="member-breakfast" */
+  data?: Record<string, string | number | undefined>;
+}
+
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  options: (string | SelectOption)[];
+  /** First, empty choice such as "Choose a topic". Omit to start on the first option. */
+  placeholder?: string;
+  hint?: string;
+  required?: boolean;
+  optional?: boolean;
+  validate?: string;
+  requiredMessage?: string;
+  /** Value to preselect. */
+  value?: string;
+  autocomplete?: string;
+  class?: string;
+}
+
+const {
+  id,
+  name,
+  label,
+  options,
+  placeholder,
+  hint,
+  required = false,
+  optional = !required,
+  validate = 'choice',
+  requiredMessage,
+  value,
+  autocomplete,
+  class: className,
+} = Astro.props;
+
+const list: SelectOption[] = options.map((o) => (typeof o === 'string' ? { value: o } : o));
+const dataAttrs = (data?: SelectOption['data']) =>
+  Object.fromEntries(Object.entries(data ?? {}).filter(([, v]) => v !== undefined).map(([k, v]) => [`data-${k}`, String(v)]));
+const hasSelection = list.some((o) => o.selected || (value !== undefined && o.value === value));
+---
+
+<Field id={id} label={label} hint={hint} optional={optional} validate={validate} required={required} requiredMessage={requiredMessage} class={className}>
+  <div class="select">
+    <select class="control select__control" id={id} name={name} required={required} autocomplete={autocomplete} aria-describedby={hint ? `${id}-hint` : undefined}>
+      {placeholder && <option value="" selected={!hasSelection}>{placeholder}</option>}
+      {
+        list.map((o) => (
+          <option value={o.value} selected={o.selected || (value !== undefined && o.value === value)} disabled={o.disabled} {...dataAttrs(o.data)}>
+            {o.label ?? o.value}
+          </option>
+        ))
+      }
+    </select>
+    <Icon name="caret-down" class="select__icon" />
+  </div>
+</Field>
+
+<style>
+  .select {
+    position: relative;
+  }
+  .select__control {
+    padding-inline-end: 3rem;
+    cursor: pointer;
+    text-overflow: ellipsis;
+  }
+  .select :global(.select__icon) {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-end: 1rem;
+    translate: 0 -50%;
+    font-size: 1.25rem;
+    color: var(--accent);
+    pointer-events: none;
+  }
+</style>

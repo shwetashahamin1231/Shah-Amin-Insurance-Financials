@@ -6,7 +6,7 @@
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/ui/PageHero.astro';
-import { ADVISOR_LIST, COMPLIANCE, SITE } from '../config/site';
+import { ADVISOR_LIST, COMPLIANCE, SITE, licensedStatesText } from '../config/site';
 ---
 
 <BaseLayout title="Disclaimers & Licenses" description="Licensing information, Medicare marketing disclaimers and our accessibility commitment at Shah & Amin Financial Services.">
@@ -15,6 +15,7 @@ import { ADVISOR_LIST, COMPLIANCE, SITE } from '../config/site';
   <section class="section surface-paper">
     <div class="container--narrow prose legal">
       <h2>Licenses</h2>
+      <p>We are licensed to sell insurance in {licensedStatesText()}. The products and plans available to you depend on the state where you live.</p>
       <ul>
         {
           COMPLIANCE.licenses.map((l) => (

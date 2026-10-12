@@ -68,8 +68,16 @@ export async function playIntro({ lenis, playHeroSplit, markRevealed }: IntroDep
   place();
   window.addEventListener('resize', place);
 
-  // Split the headline into words while the curtain still hides it (fonts must be ready).
-  await afterFontsAndPaint();
+  // Fetch (or reuse the head script's early fetch of) the gold line art, then
+  // split the headline into words while the curtain still hides it.
+  const artPromise: Promise<string> =
+    (window as Window & { __saLineart?: Promise<string> }).__saLineart ??
+    (lineart?.dataset.src ? fetch(lineart.dataset.src).then((r) => r.text()) : Promise.resolve(''));
+  const [art] = await Promise.all([artPromise.catch(() => ''), afterFontsAndPaint()]);
+  if (lineart && art) {
+    const doc = new DOMParser().parseFromString(art, 'image/svg+xml');
+    lineart.replaceChildren(...Array.from(doc.documentElement.childNodes).map((n) => document.importNode(n, true)));
+  }
   place();
   let titleTween: gsap.core.Tween | null = null;
   if (title) {

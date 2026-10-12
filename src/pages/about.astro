@@ -10,7 +10,7 @@ import Portrait from '../components/team/Portrait.astro';
 import Button from '../components/ui/Button.astro';
 import Icon from '../components/ui/Icon.astro';
 import Ornament from '../components/ui/Ornament.astro';
-import { ADVISORS, SITE, yearsInBusiness } from '../config/site';
+import { ADVISORS, SITE, licensedStatesText, yearsInBusiness } from '../config/site';
 import { url } from '../lib/url';
 
 const team = (await getCollection('team')).sort((a, b) => a.data.order - b.data.order);
@@ -60,7 +60,7 @@ const values = [
           </p>
           <p>
             Today Gautam and Shweta Shah Amin carry that idea forward together, helping individuals and families with life insurance, annuities, IRAs and 401(k)s, health
-            insurance, Medicare plans, long-term care and disability income insurance.
+            insurance, Medicare plans, long-term care, disability income and travel insurance — licensed in {licensedStatesText()}.
           </p>
           <p>We are open seven days a week, because the questions that matter most rarely wait for a convenient time.</p>
         </div>

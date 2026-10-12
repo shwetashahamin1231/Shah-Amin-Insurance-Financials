@@ -39,6 +39,7 @@ const Tag = mode === 'link' ? 'a' : mode === 'lightbox' ? 'button' : 'div';
       widths={[320, 480, 640, 800, poster.image.width]}
       sizes={sizes}
       formats={['avif', 'webp']}
+      fallbackFormat="jpg"
       class="poster-frame__img"
       priority={priority}
     />

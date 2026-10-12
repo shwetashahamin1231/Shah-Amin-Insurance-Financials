@@ -1,0 +1,211 @@
+---
+/**
+ * Time choices for the booking scheduler (step 1), grouped Morning /
+ * Afternoon / Evening. Times are Eastern; when the visitor's own clock
+ * differs, their local time is shown underneath each one.
+ * The browser builds the list from src/lib/slots.ts using the two
+ * <template>s below; each time is a radio button named "time" whose
+ * value is what the form sends, e.g. "11:30 AM ET".
+ */
+import Field from './Field.astro';
+import Icon from '../ui/Icon.astro';
+
+interface Props {
+  idPrefix: string;
+}
+const { idPrefix: p } = Astro.props;
+---
+
+<div class="slots">
+  <Field as="fieldset" id={`${p}-time`} label="Choose a time" validate="time" required hint="All times are Eastern Time (New York)." data-slots-field>
+    <p class="slots__date" data-slots-date hidden></p>
+    <p class="slots__local-note" data-local-note hidden></p>
+    <p class="slots__prompt" data-slots-prompt>
+      <Icon name="calendar-blank" />
+      <span>Choose a date on the calendar to see the available times.</span>
+    </p>
+    <p class="slots__empty" data-slots-empty hidden></p>
+    <div class="slots__body" data-slots-body></div>
+  </Field>
+
+  <template data-group-template>
+    <div class="slots__group" role="group">
+      <p class="slots__period"></p>
+      <div class="slots__list"></div>
+    </div>
+  </template>
+
+  <template data-slot-template>
+    <label class="slot">
+      <input class="slot__input" type="radio" name="time" value="" />
+      <span class="slot__box">
+        <span class="slot__times">
+          <span class="slot__et"><span data-et></span><span class="visually-hidden"> Eastern</span></span>
+          <span class="slot__local" data-local hidden><span data-local-text></span><span class="visually-hidden"> your time</span></span>
+        </span>
+        <Icon name="check" class="slot__check" />
+      </span>
+    </label>
+  </template>
+</div>
+
+<style>
+  .slots {
+    --sel-bg: var(--gold-400);
+    --sel-fg: var(--green-900);
+    --sel-ring: rgb(255 247 225 / 0.45);
+  }
+  :global(:is(.surface-paper, .surface-ivory)) .slots {
+    --sel-bg: var(--green-800);
+    --sel-fg: var(--ivory-50);
+    --sel-ring: var(--gold-600);
+  }
+  /* "Choose a time" reads as a small heading. */
+  .slots :global(legend.field__label) {
+    font-family: var(--ff-display);
+    font-size: 1.625rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .slots__date {
+    margin-block-start: -0.3rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .slots__local-note {
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+  }
+  .slots__prompt,
+  .slots__empty {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 1rem 1.1rem;
+    color: var(--text-muted);
+    border: 1px dashed var(--rule-strong);
+    border-radius: var(--radius-s);
+  }
+  .slots__prompt :global(.icon) {
+    flex: none;
+    margin-block-start: 0.15rem;
+    font-size: 1.3rem;
+    color: var(--accent);
+  }
+  .slots__prompt[hidden],
+  .slots__empty[hidden] {
+    display: none;
+  }
+
+  .slots__body {
+    display: grid;
+    gap: 1.1rem;
+  }
+  /* Everything below is cloned from the <template>s by the script, so it is styled with :global()
+     under the scoped .slots wrapper. */
+  .slots :global(.slots__group) {
+    display: grid;
+    gap: 0.55rem;
+  }
+  .slots :global(.slots__period) {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .slots :global(.slots__period)::after {
+    content: '';
+    flex: 1;
+    block-size: 1px;
+    background: var(--rule);
+  }
+  .slots :global(.slots__list) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.25rem), 1fr));
+    gap: 0.5rem;
+  }
+
+  .slots :global(.slot) {
+    position: relative;
+    display: block;
+    cursor: pointer;
+  }
+  /* The real radio covers the tile invisibly: taps, clicks and arrow keys all work natively. */
+  .slots :global(.slot__input) {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .slots :global(.slot__box) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-block-size: 3.25rem;
+    padding: 0.55rem 0.8rem;
+    color: var(--text);
+    background-color: var(--field-bg);
+    border: 1px solid var(--field-border);
+    border-block-end-color: var(--rule-strong);
+    border-radius: var(--radius-s);
+    transition:
+      background-color var(--dur-hover) var(--ease-out),
+      border-color var(--dur-hover) var(--ease-out),
+      color var(--dur-hover) var(--ease-out);
+  }
+  .slots :global(.slot:hover .slot__box) {
+    border-color: var(--rule-strong);
+  }
+  .slots :global(.slot__times) {
+    display: grid;
+    line-height: 1.25;
+  }
+  .slots :global(.slot__et) {
+    font-size: 1.0625rem;
+    font-weight: 500;
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+  .slots :global(.slot__local) {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+  .slots :global(.slot__check) {
+    flex: none;
+    font-size: 1.1rem;
+    opacity: 0;
+    transform: scale(calc(1 - 0.4 * var(--motion)));
+    transition:
+      opacity var(--dur-hover) var(--ease-out),
+      transform var(--dur-ui) var(--ease-silk);
+  }
+  .slots :global(.slot__input:focus-visible + .slot__box) {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .slots :global(.slot__input:checked + .slot__box) {
+    color: var(--sel-fg);
+    background-color: var(--sel-bg);
+    border-color: var(--sel-bg);
+    box-shadow: inset 0 0 0 1px var(--sel-ring);
+  }
+  .slots :global(.slot__input:checked + .slot__box .slot__local) {
+    color: inherit;
+  }
+  .slots :global(.slot__input:checked + .slot__box .slot__check) {
+    opacity: 1;
+    transform: none;
+  }
+  @media (forced-colors: active) {
+    .slots :global(.slot__input:checked + .slot__box) {
+      outline: 3px solid Highlight;
+    }
+  }
+</style>

@@ -1,0 +1,279 @@
+---
+/**
+ * Month calendar for the booking scheduler (step 1). The browser fills in
+ * the days, availability and holiday closures — see
+ * src/scripts/forms/calendar.ts for keyboard support and behaviour.
+ * The chosen day is stored in the hidden input name="date" (YYYY-MM-DD).
+ */
+import Field from './Field.astro';
+import Icon from '../ui/Icon.astro';
+import { formatMonthYear, parseDate, todayET } from '../../lib/time';
+import { monthMatrix } from '../../lib/slots';
+
+interface Props {
+  idPrefix: string;
+}
+const { idPrefix: p } = Astro.props;
+
+// Month at build time — the browser redraws it for the visitor's "today" straight away.
+const { year, month } = parseDate(todayET());
+const weeks = monthMatrix(year, month);
+const weekdays = [
+  ['Sun', 'Sunday'],
+  ['Mon', 'Monday'],
+  ['Tue', 'Tuesday'],
+  ['Wed', 'Wednesday'],
+  ['Thu', 'Thursday'],
+  ['Fri', 'Friday'],
+  ['Sat', 'Saturday'],
+];
+---
+
+<div class="cal" data-cal>
+  <Field id={`${p}-date`} label="Date" labelAs="p" labelHidden validate="date" required describeId={`${p}-cal-grid`}>
+    <div class="cal__head">
+      <button type="button" class="cal__nav" data-cal-prev aria-controls={`${p}-cal-grid`} aria-disabled="true">
+        <Icon name="caret-left" />
+        <span class="visually-hidden">Previous month</span>
+      </button>
+      <p class="cal__month" id={`${p}-cal-month`} aria-live="polite" data-cal-month>{formatMonthYear(year, month)}</p>
+      <button type="button" class="cal__nav" data-cal-next aria-controls={`${p}-cal-grid`}>
+        <Icon name="caret-right" />
+        <span class="visually-hidden">Next month</span>
+      </button>
+    </div>
+
+    <table class="cal__grid" role="grid" id={`${p}-cal-grid`} aria-labelledby={`${p}-date-label ${p}-cal-month`} data-cal-grid>
+      <thead>
+        <tr>
+          {
+            weekdays.map(([short, long]) => (
+              <th scope="col" class="cal__wd">
+                <span aria-hidden="true">{short}</span>
+                <span class="visually-hidden">{long}</span>
+              </th>
+            ))
+          }
+        </tr>
+      </thead>
+      <tbody>
+        {
+          weeks.map((week) => (
+            <tr>
+              {week.map((date) => (
+                <td class:list={['cal__day', { 'is-blank': !date }]}>{date ? parseDate(date).day : ''}</td>
+              ))}
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+    <input type="hidden" name="date" value="" />
+
+    <ul class="cal__legend" role="list" aria-label="Calendar key">
+      <li><span class="cal__key cal__key--open" aria-hidden="true"></span>Open</li>
+      <li><span class="cal__key cal__key--today" aria-hidden="true"></span>Today</li>
+      <li><span class="cal__key cal__key--selected" aria-hidden="true"></span>Your choice</li>
+      <li><span class="cal__key cal__key--closed" aria-hidden="true"></span>Closed or unavailable</li>
+    </ul>
+    <p class="cal__closures" data-cal-closures hidden></p>
+  </Field>
+</div>
+
+<style>
+  .cal {
+    /* Selected-day colours: logo green on paper/ivory, gold on green surfaces. */
+    --sel-bg: var(--gold-400);
+    --sel-fg: var(--green-900);
+    --sel-ring: rgb(255 247 225 / 0.45);
+    --gap: 0.25rem;
+  }
+  :global(:is(.surface-paper, .surface-ivory)) .cal {
+    --sel-bg: var(--green-800);
+    --sel-fg: var(--ivory-50);
+    --sel-ring: var(--gold-600);
+  }
+  @media (max-width: 26rem) {
+    .cal {
+      --gap: 0.125rem;
+    }
+  }
+
+  .cal__head {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .cal__month {
+    font-family: var(--ff-display);
+    font-size: 1.625rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    color: var(--heading);
+  }
+  .cal__nav {
+    display: grid;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    border-radius: var(--radius-round);
+    font-size: 1.25rem;
+    color: var(--heading);
+    box-shadow: inset 0 0 0 1px var(--rule-strong);
+    transition:
+      background-color var(--dur-hover) var(--ease-out),
+      color var(--dur-hover) var(--ease-out);
+  }
+  .cal__nav:hover {
+    color: var(--accent);
+    background-color: color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+  .cal__nav[aria-disabled='true'] {
+    color: var(--text-muted);
+    box-shadow: inset 0 0 0 1px var(--rule);
+    background: none;
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .cal__grid {
+    inline-size: calc(100% + 2 * var(--gap));
+    margin-inline: calc(-1 * var(--gap));
+    border-collapse: separate;
+    border-spacing: var(--gap);
+    table-layout: fixed;
+  }
+  .cal__wd {
+    padding-block: 0.4rem 0.2rem;
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--text-muted);
+  }
+
+  /* Day cells (classes are set by src/scripts/forms/calendar.ts). */
+  .cal__day {
+    position: relative;
+    block-size: 2.875rem; /* ≥ 44px tap target */
+    padding: 0;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 1.0625rem;
+    font-variant-numeric: lining-nums tabular-nums;
+    color: var(--text);
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    /* Open days carry a hairline box, so they differ from closed days by shape, not just colour. */
+    box-shadow: inset 0 0 0 1px var(--rule);
+    transition:
+      background-color var(--dur-hover) var(--ease-out),
+      color var(--dur-hover) var(--ease-out),
+      box-shadow var(--dur-hover) var(--ease-out);
+  }
+  .cal__day.is-blank {
+    box-shadow: none;
+    cursor: default;
+  }
+  .cal__day:not(.is-blank, .is-unavailable, .is-selected):hover {
+    background-color: color-mix(in srgb, var(--accent) 12%, transparent);
+    box-shadow: inset 0 0 0 1px var(--rule-strong);
+  }
+  .cal__day:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    z-index: 1;
+  }
+  .cal__day.is-unavailable {
+    color: var(--text-muted);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+  /* Holidays: a fine diagonal strike through the day. */
+  .cal__day.is-holiday {
+    background-image: linear-gradient(to top right, transparent calc(50% - 0.5px), var(--rule-strong) calc(50% - 0.5px), var(--rule-strong) calc(50% + 0.5px), transparent calc(50% + 0.5px));
+    background-size: 60% 60%;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  .cal__day.is-today {
+    font-weight: 600;
+  }
+  /* Today: a small gold diamond under the number. */
+  .cal__day.is-today::after {
+    content: '';
+    position: absolute;
+    inset-inline-start: 50%;
+    inset-block-end: 0.3rem;
+    inline-size: 0.3rem;
+    block-size: 0.3rem;
+    background: var(--accent);
+    transform: translateX(-50%) rotate(45deg);
+  }
+  .cal__day.is-selected {
+    color: var(--sel-fg);
+    background-color: var(--sel-bg);
+    box-shadow:
+      inset 0 0 0 1px var(--sel-bg),
+      inset 0 0 0 3px var(--sel-ring);
+    font-weight: 600;
+  }
+  .cal__day.is-selected::after {
+    background: var(--sel-fg);
+  }
+
+  .cal__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.1rem;
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+  }
+  .cal__legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .cal__key {
+    position: relative;
+    inline-size: 1rem;
+    block-size: 1rem;
+    border-radius: var(--radius-s);
+  }
+  .cal__key--open {
+    box-shadow: inset 0 0 0 1px var(--rule-strong);
+  }
+  .cal__key--today::after {
+    content: '';
+    position: absolute;
+    inset: 0.32rem;
+    background: var(--accent);
+    transform: rotate(45deg);
+  }
+  .cal__key--selected {
+    background: var(--sel-bg);
+    box-shadow: inset 0 0 0 2px var(--sel-ring);
+  }
+  .cal__key--closed {
+    background-image: linear-gradient(to top right, transparent calc(50% - 0.5px), var(--rule-strong) calc(50% - 0.5px), var(--rule-strong) calc(50% + 0.5px), transparent calc(50% + 0.5px));
+  }
+  .cal__closures {
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+  }
+
+  @media (forced-colors: active) {
+    .cal__day.is-selected {
+      outline: 3px solid Highlight;
+      outline-offset: -3px;
+    }
+    .cal__day.is-unavailable {
+      color: GrayText;
+    }
+  }
+</style>

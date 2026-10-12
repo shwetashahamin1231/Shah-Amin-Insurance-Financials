@@ -6,7 +6,7 @@
 title: 'Life Insurance'
 order: 1
 lead: 'Life insurance is a promise to the people you love: if something happens to you, they can keep their home, their plans and their peace of mind. We help you choose the type and amount that fit — without the jargon.'
-description: 'Term, whole and universal life insurance explained in plain English. Shah & Amin helps New Jersey families choose coverage that fits their budget and goals.'
+description: 'Term, whole and universal life insurance explained in plain English. Shah & Amin helps families choose coverage that fits their budget and goals.'
 whoItsFor:
   - 'A spouse, children or someone else depends on your income'
   - 'You carry a mortgage or other debts you would not want to leave behind'

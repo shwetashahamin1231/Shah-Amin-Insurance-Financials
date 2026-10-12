@@ -41,7 +41,7 @@ const agency: Record<string, unknown> = {
   ...(SITE.emailIsPlaceholder ? {} : { email: SITE.email }),
   foundingDate: String(SITE.foundedYear),
   founder: { '@type': 'Person', name: SITE.founder },
-  areaServed: { '@type': 'State', name: SITE.areaServed },
+  areaServed: SITE.licensedStates.map((st) => ({ '@type': 'State', name: st.name })),
   knowsAbout: SERVICES.map((s) => s.name),
   openingHoursSpecification: [
     {

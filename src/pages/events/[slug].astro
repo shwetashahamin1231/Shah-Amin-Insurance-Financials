@@ -10,10 +10,12 @@ import Lightbox from '../../components/ui/Lightbox.astro';
 import Button from '../../components/ui/Button.astro';
 import Icon from '../../components/ui/Icon.astro';
 import Ornament from '../../components/ui/Ornament.astro';
+import RsvpForm from '../../components/forms/RsvpForm.astro';
 import { EVENTS, type EventItem } from '../../data/events';
 import { ADVISOR_LIST, SITE } from '../../config/site';
 import { dateParts, eventStatus, eventTimes, formatEventDate, formatEventTime, formatVenue, isRsvpOpen, venueMapUrl } from '../../lib/events';
 import { url } from '../../lib/url';
+import { googleCalendarUrl } from '../../lib/ics';
 
 export function getStaticPaths() {
   return EVENTS.map((event) => ({ params: { slug: event.slug }, props: { event } }));
@@ -31,13 +33,21 @@ const d = dateParts(event);
 const times = eventTimes(event);
 const statusLabel = { upcoming: 'Upcoming', today: 'Today', past: 'Past Event' }[status];
 
-// Google Calendar link (an .ics download sits beside it once the calendar helper is wired in).
-const gcalDate = (ms: number) => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
-const endForCalendar = event.end ? times.end : times.start + 2 * 60 * 60 * 1000;
-const gcal = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${gcalDate(times.start)}/${gcalDate(endForCalendar)}&details=${encodeURIComponent(`${event.summary}\n\nShah & Amin Financial Services — ${ADVISOR_LIST.map((a) => `${a.firstName}: ${a.phone}`).join(' · ')}`)}&location=${encodeURIComponent(venue ? `${venue.name}, ${venue.address}` : '')}`;
-
 const site = Astro.site ?? new URL(SITE.url);
 const abs = (p: string) => new URL(url(p), site).toString();
+
+// Calendar entry (.ics download + Google Calendar). Without an end time, assume two hours.
+const endForCalendar = event.end ? times.end : times.start + 2 * 60 * 60 * 1000;
+const calendar = {
+  uid: `${event.slug}@shahaminfinancial.com`,
+  title: event.title,
+  start: new Date(times.start).toISOString(),
+  end: new Date(endForCalendar).toISOString(),
+  location: venue ? [venue.name, venue.address].filter(Boolean).join(', ') : undefined,
+  description: `${event.summary}\n\nQuestions? ${ADVISOR_LIST.map((a) => `${a.firstName}: ${a.phone}`).join(' · ')}`,
+  url: abs(`/events/${event.slug}/`),
+};
+const gcal = googleCalendarUrl({ ...calendar, start: new Date(calendar.start), end: new Date(calendar.end) });
 const schema = [
   {
     '@type': 'Event',
@@ -96,7 +106,8 @@ const schema = [
       </ul>
       <div class="event-hero__actions" data-reveal>
         <span data-rsvp-action hidden={!rsvpOpen}><Button href="#rsvp" icon="arrow-right" magnetic>RSVP now</Button></span>
-        <Button href={gcal} variant="outline" icon="calendar-check" iconPosition="start">Add to Google Calendar</Button>
+        {!event.timeTBA && <Button variant="outline" icon="calendar-check" iconPosition="start" data-ics={JSON.stringify(calendar)}>Add to calendar</Button>}
+        {!event.timeTBA && <Button href={gcal} variant="ghost" icon="arrow-up-right">Google Calendar</Button>}
       </div>
     </div>
   </section>
@@ -189,20 +200,13 @@ const schema = [
     <div class="container--narrow rsvp__inner">
       <p class="eyebrow eyebrow--rule" data-reveal>Reserve your place</p>
       <h2 id="rsvp-title" data-split>RSVP for <em>{event.title}</em></h2>
-      <div class="rsvp__open" data-rsvp-action hidden={!rsvpOpen}>
-        <!-- RSVP_FORM_SLOT: replaced with <RsvpForm> once the forms module is integrated -->
-        <p class="rsvp__lead">Let us know you are coming — call or text either advisor and we will save your seat.</p>
-        <div class="cluster">
-          {ADVISOR_LIST.map((a) => (
-            <Button href={`tel:${a.phoneHref}`} variant="outline" icon="phone" iconPosition="start">
-              {a.firstName} · {a.phone}
-            </Button>
-          ))}
-        </div>
-      </div>
-      <div class="rsvp__closed" data-rsvp-closed hidden={rsvpOpen || !event.rsvp}>
-        <p class="rsvp__lead">RSVPs for this event are closed. Thank you to everyone who joined us — see our <a class="text-link" href={url('/events/')}>upcoming events</a>.</p>
-      </div>
+      {
+        event.rsvp && (
+          <div class="rsvp__form" data-reveal>
+            <RsvpForm events={EVENTS} selected={event.slug} idPrefix="rsvp" />
+          </div>
+        )
+      }
       {
         !event.rsvp && (
           <p class="rsvp__lead">
@@ -218,6 +222,15 @@ const schema = [
 
 <script>
   import '../../scripts/event-status';
+  import { buildIcs, downloadIcs } from '../../lib/ics';
+
+  // "Add to calendar": build the .ics file in the browser from the button's data.
+  document.querySelectorAll<HTMLButtonElement>('[data-ics]').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      const ev = JSON.parse(btn.dataset.ics ?? '{}');
+      downloadIcs(`${ev.uid.split('@')[0]}.ics`, buildIcs({ ...ev, start: new Date(ev.start), end: new Date(ev.end) }));
+    }),
+  );
 </script>
 
 <style>
@@ -405,7 +418,12 @@ const schema = [
     font-size: var(--fs-lead);
     color: var(--text-muted);
   }
-  .rsvp__open > * + * {
-    margin-block-start: var(--space-m);
+  .rsvp__form {
+    padding: clamp(1.5rem, 1rem + 2vw, 2.75rem);
+    background: var(--ivory-50);
+    border: 1px solid rgb(141 97 39 / 0.45);
+    outline: 1px solid rgb(141 97 39 / 0.25);
+    outline-offset: -9px;
+    box-shadow: var(--shadow-m);
   }
 </style>

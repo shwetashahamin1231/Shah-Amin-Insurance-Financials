@@ -12,7 +12,7 @@
     z-index: var(--z-grain);
     pointer-events: none;
     background-image: url('../assets/textures/grain.webp');
-    background-size: 192px 192px;
+    background-size: 128px 128px;
     opacity: 0.075;
     view-transition-name: grain;
   }

@@ -1,0 +1,593 @@
+---
+/**
+ * ════════════════════════════════════════════════════════════════════
+ *  BOOKING SCHEDULER — "Book an Appointment" in three calm steps
+ * ════════════════════════════════════════════════════════════════════
+ *    I  Choose a date   — calendar + times (Eastern; visitor's local time added)
+ *    II Your details    — name, email, phone, advisor, topic, meeting type, message
+ *    III Review         — everything at a glance, with "Change" links
+ *    → "Request received" + add to calendar (.ics / Google)
+ *
+ *  It's an appointment REQUEST: the team confirms by phone or email.
+ *  Sends to the "Bookings" Google Sheet (URL in src/config/forms.ts).
+ *  Behaviour: src/scripts/forms/scheduler.ts (+ calendar.ts, engine.ts).
+ *  Links can preselect: /book/?advisor=gautam · ?advisor=shweta · ?topic=<service slug>
+ * ════════════════════════════════════════════════════════════════════
+ */
+import Icon from '../ui/Icon.astro';
+import Button from '../ui/Button.astro';
+import TextField from './TextField.astro';
+import Select from './Select.astro';
+import Textarea from './Textarea.astro';
+import RadioGroup from './RadioGroup.astro';
+import ErrorSummary from './ErrorSummary.astro';
+import FormStatus from './FormStatus.astro';
+import Honeypot from './Honeypot.astro';
+import SubmitButton from './SubmitButton.astro';
+import BookingCalendar from './BookingCalendar.astro';
+import TimeSlots from './TimeSlots.astro';
+import { ADVISOR_LIST, HOURS } from '../../config/site';
+import { NOTICE_TEXT } from '../../config/forms';
+import { SERVICES } from '../../data/services';
+import { url } from '../../lib/url';
+import type { RadioOption } from './RadioGroup.astro';
+
+interface Props {
+  /** Prefix for element ids (only change it if a page ever holds two schedulers). */
+  idPrefix?: string;
+}
+const { idPrefix: p = 'book' } = Astro.props;
+
+const steps = [
+  { n: 1, numeral: 'I', name: 'Choose a date' },
+  { n: 2, numeral: 'II', name: 'Your details' },
+  { n: 3, numeral: 'III', name: 'Review' },
+];
+
+// Topic menu: every service, plus two extra choices. data-slug lets links preselect (?topic=annuities).
+const topicOptions = [
+  ...SERVICES.map((s) => ({ value: s.name, data: { slug: s.slug } })),
+  { value: 'Medicare review', data: { slug: 'medicare-review' } },
+  { value: 'Something else', data: { slug: 'other' } },
+];
+const advisorOptions: RadioOption[] = [...ADVISOR_LIST.map((a) => ({ value: a.name, icon: 'user-circle' as const })), { value: 'No preference', icon: 'users-three' }];
+const meetingOptions: RadioOption[] = [
+  { value: 'In person', icon: 'map-pin' },
+  { value: 'Phone', icon: 'phone' },
+  { value: 'Video', icon: 'video' },
+];
+
+// Review rows: label · which value to show · where "Change" goes (step + field to focus).
+const reviewRows = [
+  { label: 'Date and time', key: 'when', step: 1, focus: 'date', hidden: 'date and time' },
+  { label: 'Name', key: 'name', step: 2, focus: `${p}-name`, hidden: 'name' },
+  { label: 'Email', key: 'email', step: 2, focus: `${p}-email`, hidden: 'email' },
+  { label: 'Phone', key: 'phone', step: 2, focus: `${p}-phone`, hidden: 'phone number' },
+  { label: 'Advisor', key: 'advisor', step: 2, focus: `${p}-advisor-0`, hidden: 'advisor' },
+  { label: 'Topic', key: 'topic', step: 2, focus: `${p}-topic`, hidden: 'topic' },
+  { label: 'Meeting', key: 'meetingType', step: 2, focus: `${p}-meeting-0`, hidden: 'meeting type' },
+  { label: 'Message', key: 'message', step: 2, focus: `${p}-message`, hidden: 'message' },
+];
+---
+
+<div class="scheduler" data-scheduler data-id-prefix={p}>
+  <!-- Shown only when JavaScript is off (the scheduler needs it). -->
+  <div class="scheduler__nojs">
+    <p class="scheduler__nojs-title">Online booking needs JavaScript</p>
+    <p>
+      It looks like JavaScript is turned off in your browser. Please call us and we’ll find a time together:
+      {
+        ADVISOR_LIST.map((a, i) => (
+          <>
+            {i > 0 && ' or '}
+            <a class="text-link nowrap" href={`tel:${a.phoneHref}`}>
+              {a.firstName} <span class="num">{a.phone}</span>
+            </a>
+          </>
+        ))
+      }.
+    </p>
+  </div>
+
+  <ol class="progress" role="list" aria-label="Booking steps" data-progress>
+    {
+      steps.map((s) => (
+        <li class:list={['progress__step', { 'is-current': s.n === 1 }]} data-progress-step={s.n} aria-current={s.n === 1 ? 'step' : undefined}>
+          <span class="progress__mark" aria-hidden="true">
+            <span class="progress__numeral">{s.numeral}</span>
+            <Icon name="check" class="progress__check" />
+          </span>
+          <span class="progress__label">
+            <span class="visually-hidden">Step {s.n} of 3: </span>
+            {s.name}
+            <span class="visually-hidden" data-progress-state />
+          </span>
+        </li>
+      ))
+    }
+  </ol>
+
+  <form class="scheduler__form" data-scheduler-form novalidate aria-label="Appointment request">
+    <ErrorSummary id={`${p}-errors`} headingLevel={3} />
+
+    <!-- ───────── Step 1 · Choose a date ───────── -->
+    <section class="step" data-step="1" aria-labelledby={`${p}-step1-title`}>
+      <header class="step__head">
+        <p class="step__count">Step 1 of 3</p>
+        <h2 class="step__title" id={`${p}-step1-title`} tabindex="-1" data-step-heading>Choose a date</h2>
+        <p class="step__lead">
+          Pick a day, then a time that suits you. {HOURS.summary}. {HOURS.holidayNote}. Need a time within the next {NOTICE_TEXT}? Please call us.
+        </p>
+      </header>
+      <div class="step1">
+        <div class="step1__cal"><BookingCalendar idPrefix={p} /></div>
+        <div class="step1__times"><TimeSlots idPrefix={p} /></div>
+      </div>
+      <p class="step__selection" data-selection-wrap hidden>
+        <Icon name="calendar-check" />
+        <span>Your choice: <strong data-selection></strong></span>
+      </p>
+      <div class="step__nav">
+        <Button type="button" size="l" icon="arrow-right" data-next><span data-continue-label>Continue</span></Button>
+      </div>
+    </section>
+
+    <!-- ───────── Step 2 · Your details ───────── -->
+    <section class="step" data-step="2" aria-labelledby={`${p}-step2-title`} hidden>
+      <header class="step__head">
+        <p class="step__count">Step 2 of 3</p>
+        <h2 class="step__title" id={`${p}-step2-title`} tabindex="-1" data-step-heading>Your details</h2>
+        <p class="step__lead">How can we reach you, and what would you like to talk about?</p>
+      </header>
+      <div class="details">
+        <TextField id={`${p}-name`} name="name" label="Full name" autocomplete="name" autocapitalize="words" spellcheck={false} validate="name" required class="details__wide" />
+        <TextField id={`${p}-email`} name="email" type="email" label="Email" autocomplete="email" inputmode="email" spellcheck={false} validate="email" required hint="We’ll email you to confirm." />
+        <TextField id={`${p}-phone`} name="phone" type="tel" label="Phone" autocomplete="tel" inputmode="tel" validate="phone" format="phone" required hint="We may call to confirm your time." />
+        <RadioGroup id={`${p}-advisor`} name="advisor" legend="Who would you like to meet?" options={advisorOptions} value="No preference" required class="details__wide" />
+        <Select
+          id={`${p}-topic`}
+          name="topic"
+          label="What would you like to talk about?"
+          placeholder="Choose a topic"
+          options={topicOptions}
+          required
+          requiredMessage="Please choose a topic."
+          class="details__wide"
+        />
+        <RadioGroup
+          id={`${p}-meeting`}
+          name="meetingType"
+          legend="How would you like to meet?"
+          options={meetingOptions}
+          required
+          requiredMessage="Please choose how you’d like to meet."
+          hint="We’ll confirm the place, phone call or video link with you."
+          class="details__wide"
+        />
+        <Textarea
+          id={`${p}-message`}
+          name="message"
+          label="Anything you’d like us to know?"
+          hint="For example, questions you have or policies you’d like us to look at. Please don’t include Social Security or account numbers."
+          class="details__wide"
+        />
+      </div>
+      <div class="step__nav">
+        <Button type="button" variant="outline" size="l" icon="arrow-left" iconPosition="start" data-back>Back</Button>
+        <Button type="button" size="l" icon="arrow-right" data-next><span data-continue-label>Continue</span></Button>
+      </div>
+    </section>
+
+    <!-- ───────── Step 3 · Review ───────── -->
+    <section class="step" data-step="3" aria-labelledby={`${p}-step3-title`} hidden>
+      <header class="step__head">
+        <p class="step__count">Step 3 of 3</p>
+        <h2 class="step__title" id={`${p}-step3-title`} tabindex="-1" data-step-heading>Review</h2>
+        <p class="step__lead">Please check your request. Nothing is booked until we confirm it with you by phone or email.</p>
+      </header>
+      <dl class="review">
+        {
+          reviewRows.map((row) => (
+            <div class="review__row">
+              <dt>{row.label}</dt>
+              <dd class="review__value">
+                <span data-review={row.key} />
+                {row.key === 'when' && <span class="review__sub" data-review="local" hidden />}
+              </dd>
+              <dd class="review__change">
+                <button type="button" class="review__btn" data-edit-step={row.step} data-edit-focus={row.focus}>
+                  Change<span class="visually-hidden"> {row.hidden}</span>
+                </button>
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+
+      <input type="hidden" name="page" value="" />
+      <Honeypot id={`${p}-website`} />
+      <FormStatus type="error" id={`${p}-problem`} headingLevel={3} class="step__problem" />
+
+      <div class="step__nav">
+        <Button type="button" variant="outline" size="l" icon="arrow-left" iconPosition="start" data-back>Back</Button>
+        <SubmitButton label="Send request" busyLabel="Sending your request…" />
+      </div>
+    </section>
+
+    <p class="visually-hidden" aria-live="polite" data-form-live></p>
+  </form>
+
+  <!-- ───────── Done ───────── -->
+  <FormStatus type="success" id={`${p}-done`} title="Request received" headingLevel={2}>
+    <p class="confirm__lead" data-confirm="thanks">Thank you. We’ve received your request.</p>
+    <p data-confirm="next">We’ll call or email you to confirm.</p>
+    <dl class="confirm__details">
+      <div><dt>Meeting</dt><dd data-confirm="meeting"></dd></div>
+      <div><dt>Topic</dt><dd data-confirm="topic"></dd></div>
+      <div><dt>Advisor</dt><dd data-confirm="advisor"></dd></div>
+    </dl>
+    <div class="confirm__calendar">
+      <Button variant="outline" size="s" icon="download" iconPosition="start" data-ics>Add to my calendar</Button>
+      <a class="text-link confirm__gcal" data-gcal href="https://calendar.google.com/" target="_blank" rel="noopener">
+        Google Calendar<span class="visually-hidden"> (opens in a new tab)</span>
+        <Icon name="arrow-up-right" />
+      </a>
+    </div>
+    <p class="small muted">
+      The calendar entry is marked as a request until we confirm. Need to change something? Call
+      {
+        ADVISOR_LIST.map((a, i) => (
+          <>
+            {i > 0 && ' or '}
+            <a class="text-link nowrap" href={`tel:${a.phoneHref}`}>
+              {a.firstName} <span class="num">{a.phone}</span>
+            </a>
+          </>
+        ))
+      }.
+    </p>
+    <p><a class="text-link" href={url('/')}>Return to the home page</a></p>
+  </FormStatus>
+</div>
+
+<script>
+  import { initScheduler } from '../../scripts/forms/scheduler';
+
+  document.querySelectorAll<HTMLElement>('[data-scheduler]').forEach(initScheduler);
+</script>
+
+<style>
+  .scheduler {
+    /* Step layouts respond to the scheduler's own width, not the window's. */
+    container: scheduler / inline-size;
+    --sel-bg: var(--gold-400);
+    --sel-fg: var(--green-900);
+    --mark: 3rem;
+    display: grid;
+    gap: var(--space-xl);
+  }
+  :global(:is(.surface-paper, .surface-ivory)) .scheduler {
+    --sel-bg: var(--green-800);
+    --sel-fg: var(--gold-300);
+  }
+
+  /* ── No JavaScript ── */
+  .scheduler__nojs {
+    display: none;
+  }
+  :global(html.no-js) .scheduler__nojs {
+    display: grid;
+    gap: var(--space-s);
+  }
+  :global(html.no-js) .progress,
+  :global(html.no-js) .scheduler__form {
+    display: none;
+  }
+  .scheduler__nojs-title {
+    font-family: var(--ff-display);
+    font-size: var(--fs-h4);
+    font-weight: 600;
+    color: var(--heading);
+  }
+
+  /* ── Progress: I ◆ — II ◇ — III ◇ ── */
+  .progress {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+  .progress[hidden] {
+    display: none;
+  }
+  .progress__step {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 0.6rem;
+    text-align: center;
+  }
+  /* Hairline from each marker to the next. */
+  .progress__step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    inset-block-start: calc(var(--mark) / 2);
+    inset-inline-start: calc(50% + var(--mark) / 2 + 0.375rem);
+    inline-size: calc(100% + 0.5rem - var(--mark) - 0.75rem);
+    block-size: 1px;
+    background: var(--rule);
+  }
+  .progress__step.is-done::after {
+    background: var(--rule-strong);
+  }
+  .progress__mark {
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: var(--mark);
+    block-size: var(--mark);
+    color: var(--text-muted);
+  }
+  /* The diamond (the ◆ of the site's ornaments). */
+  .progress__mark::before {
+    content: '';
+    position: absolute;
+    inset: 0.45rem;
+    border: 1px solid var(--rule-strong);
+    background-color: transparent;
+    transform: rotate(45deg);
+    transition:
+      background-color var(--dur-ui) var(--ease-out),
+      border-color var(--dur-ui) var(--ease-out);
+  }
+  .progress__numeral {
+    position: relative;
+    font-family: var(--ff-display);
+    font-size: 1.375rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .progress__mark :global(.progress__check) {
+    position: relative;
+    display: none;
+    font-size: 1.25rem;
+    color: var(--accent);
+  }
+  .progress__label {
+    font-size: var(--fs-label);
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .progress__step.is-current .progress__mark {
+    color: var(--sel-fg);
+  }
+  .progress__step.is-current .progress__mark::before {
+    background-color: var(--sel-bg);
+    border-color: var(--sel-bg);
+    box-shadow: inset 0 0 0 2px var(--gold-600);
+  }
+  .progress__step.is-current .progress__label {
+    color: var(--heading);
+  }
+  .progress__step.is-done .progress__numeral {
+    display: none;
+  }
+  .progress__step.is-done .progress__mark :global(.progress__check) {
+    display: block;
+  }
+  .progress__step.is-done .progress__label {
+    color: var(--text);
+  }
+
+  /* ── Steps ── */
+  .scheduler__form {
+    display: grid;
+    gap: var(--space-l);
+  }
+  .step__head {
+    display: grid;
+    gap: 0.5rem;
+    margin-block-end: var(--space-l);
+  }
+  .step__count {
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .step__title {
+    font-size: var(--fs-h3);
+    font-weight: 600;
+  }
+  .step__title:focus {
+    outline: none;
+  }
+  .step__title:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+  }
+  .step__lead {
+    max-width: 62ch;
+    color: var(--text-muted);
+  }
+
+  .step1 {
+    display: grid;
+    gap: var(--space-xl);
+  }
+  .step1__cal {
+    max-inline-size: 30rem;
+  }
+  @container scheduler (min-width: 42rem) {
+    .step1 {
+      grid-template-columns: minmax(19rem, 1.1fr) minmax(0, 1fr);
+      align-items: start;
+      gap: var(--space-xl);
+    }
+    .step1__cal {
+      max-inline-size: none;
+    }
+  }
+
+  .step__selection {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-block-start: var(--space-l);
+    padding: 0.85rem 1.1rem;
+    border-inline-start: 2px solid var(--rule-strong);
+    background-color: color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+  .step__selection[hidden] {
+    display: none;
+  }
+  .step__selection :global(.icon) {
+    flex: none;
+    font-size: 1.3rem;
+    color: var(--accent);
+  }
+  .step__selection strong {
+    color: var(--heading);
+  }
+
+  .step__nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+    margin-block-start: var(--space-xl);
+    padding-block-start: var(--space-l);
+    border-block-start: 1px solid var(--rule);
+  }
+  .step__nav > :global(:only-child) {
+    margin-inline-start: auto;
+  }
+  .step :global(.step__problem) {
+    margin-block-start: var(--space-l);
+  }
+
+  /* ── Step 2 fields ── */
+  .details {
+    display: grid;
+    gap: var(--space-l);
+  }
+  @container scheduler (min-width: 36rem) {
+    .details {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .details :global(.details__wide) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  /* ── Step 3 review ── */
+  .review {
+    border-block-start: 1px solid var(--rule);
+  }
+  .review__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 0.2rem 1.5rem;
+    padding-block: 0.9rem;
+    border-block-end: 1px solid var(--rule);
+  }
+  .review__row dt {
+    grid-column: 1 / -1;
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  @container scheduler (min-width: 36rem) {
+    .review__row {
+      grid-template-columns: 10.5rem minmax(0, 1fr) auto;
+    }
+    .review__row dt {
+      grid-column: auto;
+    }
+  }
+  .review__row dd {
+    margin: 0;
+  }
+  .review__value {
+    font-weight: 500;
+    color: var(--heading);
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+  }
+  .review__sub {
+    display: block;
+    font-size: var(--fs-small);
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+  .review__sub[hidden] {
+    display: none;
+  }
+  .review__btn {
+    min-block-size: 44px;
+    padding-inline: 0.25rem;
+    font-weight: 500;
+    color: var(--heading);
+    text-decoration: underline;
+    text-decoration-color: var(--rule-strong);
+    text-underline-offset: 0.22em;
+    transition: color var(--dur-hover) var(--ease-out);
+  }
+  .review__btn:hover {
+    color: var(--accent);
+    text-decoration-thickness: 2px;
+  }
+
+  /* ── Confirmation ── */
+  .confirm__lead {
+    font-size: var(--fs-lead);
+    line-height: 1.5;
+    color: var(--heading);
+  }
+  .confirm__details {
+    display: grid;
+    gap: 0.4rem;
+    padding-block: 0.9rem;
+    border-block: 1px solid var(--rule);
+  }
+  .confirm__details div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1rem;
+  }
+  .confirm__details dt {
+    min-inline-size: 6rem;
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    line-height: 1.9;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .confirm__details dd {
+    margin: 0;
+    font-weight: 500;
+    color: var(--heading);
+  }
+  .confirm__calendar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+  }
+  .confirm__gcal {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-block-size: 44px;
+    font-weight: 500;
+  }
+</style>

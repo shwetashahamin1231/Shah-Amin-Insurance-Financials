@@ -17,7 +17,7 @@
  *  Phone numbers and hours are filled in from src/config/site.ts.
  * ════════════════════════════════════════════════════════════════════
  */
-import { ADVISORS, HOURS, SITE } from '../config/site';
+import { ADVISORS, HOURS, SITE, licensedStatesText } from '../config/site';
 
 export interface Faq {
   id: string;
@@ -45,7 +45,7 @@ export const FAQ_CATEGORIES: FaqCategory[] = [
       {
         id: 'faq-who-we-are',
         q: 'Who are Shah & Amin Financial Services?',
-        a: `We are a family-owned insurance and financial services practice that has been helping families since ${SITE.foundedYear}. Founder ${G.name} and ${S.name} help with life insurance, annuities, IRAs, 401(k) rollovers, health insurance, Medicare plans, long-term care and disability income insurance.`,
+        a: `We are a family-owned insurance and financial services practice that has been helping families since ${SITE.foundedYear}. Founder ${G.name} and ${S.name} help with life insurance, annuities, IRAs, 401(k) rollovers, health insurance, Medicare plans, long-term care, disability income and travel insurance. We are licensed in ${licensedStatesText()}.`,
       },
       {
         id: 'faq-get-started',
@@ -156,7 +156,7 @@ export const FAQ_CATEGORIES: FaqCategory[] = [
       {
         id: 'faq-retire-before-65',
         q: 'I am retiring before 65. How do I get health insurance?',
-        a: 'Options include continuing your employer coverage through COBRA, joining a spouse’s plan, or buying an individual plan — for example through Get Covered New Jersey, the state’s marketplace. We compare costs and networks with you and plan your move to Medicare at 65. <a href="/services/health-insurance/">Read more about health insurance</a>.',
+        a: 'Options include continuing your employer coverage through COBRA, joining a spouse’s plan, or buying an individual plan through your state’s marketplace (in New Jersey, that is Get Covered New Jersey). We compare costs and networks with you and plan your move to Medicare at 65. <a href="/services/health-insurance/">Read more about health insurance</a>.',
       },
       {
         id: 'faq-doctor-network',
@@ -167,6 +167,11 @@ export const FAQ_CATEGORIES: FaqCategory[] = [
         id: 'faq-every-plan',
         q: 'Do you offer every Medicare plan in my area?',
         a: 'No. We represent a number of insurance companies, but not every plan available in your area. For information on all of your options, contact Medicare.gov, 1-800-MEDICARE (TTY 1-877-486-2048), or your local State Health Insurance Assistance Program (SHIP).',
+      },
+      {
+        id: 'faq-travel-abroad',
+        q: 'Am I covered when I travel outside the U.S.?',
+        a: 'Often not fully. Original Medicare generally does not pay for care outside the U.S., and many health plans offer limited coverage abroad. Travel medical insurance can help with emergency care and evacuation, and trip cancellation coverage protects the prepaid cost of your trip. <a href="/services/travel-insurance/">Read more about travel insurance</a>.',
       },
     ],
   },

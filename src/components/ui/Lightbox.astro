@@ -45,7 +45,7 @@ const multi = images.length > 1;
     {
       images.map((img, i) => (
         <figure class="lightbox__figure" data-lightbox-slide hidden={i !== 0}>
-          <Picture src={img.src} alt={img.alt} widths={[640, 1024, img.src.width]} sizes="92vw" formats={['avif', 'webp']} loading="lazy" class="lightbox__img" />
+          <Picture src={img.src} alt={img.alt} widths={[640, 1024, img.src.width]} sizes="92vw" formats={['avif', 'webp']} fallbackFormat="jpg" loading="lazy" class="lightbox__img" />
           {img.caption && <figcaption class="lightbox__caption">{img.caption}</figcaption>}
         </figure>
       ))

@@ -10,7 +10,7 @@ import PageHero from '../components/ui/PageHero.astro';
 import Button from '../components/ui/Button.astro';
 import Icon from '../components/ui/Icon.astro';
 import Ornament from '../components/ui/Ornament.astro';
-import { ADVISOR_LIST, HOURS, SITE, formattedAddress, mapLinks } from '../config/site';
+import { ADVISOR_LIST, HOURS, SITE, formattedAddress, licensedStatesText, mapLinks } from '../config/site';
 
 const address = formattedAddress();
 const maps = mapLinks();
@@ -94,6 +94,11 @@ const maps = mapLinks();
             <span class="muted">{HOURS.holidayNote}</span>
           </p>
           <p class="office__status" data-open-status hidden></p>
+        </div>
+
+        <div class="office__block" data-reveal>
+          <h3 class="office__label"><Icon name="certificate" /> Licensed in</h3>
+          <p class="office__value">{licensedStatesText()}. Meetings in person, by phone or by video.</p>
         </div>
 
         <div class="office__block" data-reveal>

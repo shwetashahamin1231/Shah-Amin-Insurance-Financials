@@ -44,7 +44,7 @@ export const SITE = {
 
   /** Used for search results and link previews when a page has no description of its own. */
   description:
-    'Family-owned insurance and retirement planning since 2000. Life insurance, annuities, IRAs, 401(k) rollovers, health insurance, Medicare plans, long-term care and disability income insurance.',
+    'Family-owned insurance and retirement planning since 2000. Life insurance, annuities, IRAs, 401(k) rollovers, health insurance, Medicare plans, long-term care, disability income and travel insurance.',
 
   /** Main business email (also used on the contact page and in the footer). TODO */
   email: 'info@shahaminfinancial.com',
@@ -59,8 +59,21 @@ export const SITE = {
     country: 'US',
   },
 
-  /** Region you serve — shown to search engines. */
-  areaServed: 'New Jersey',
+  /** States where we are licensed (shown in the footer, contact and disclaimers, and to search engines). */
+  licensedStates: [
+    { name: 'New Jersey', code: 'NJ' },
+    { name: 'New York', code: 'NY' },
+    { name: 'Pennsylvania', code: 'PA' },
+    { name: 'Maryland', code: 'MD' },
+    { name: 'Maine', code: 'ME' },
+    { name: 'North Carolina', code: 'NC' },
+    { name: 'Georgia', code: 'GA' },
+    { name: 'Tennessee', code: 'TN' },
+    { name: 'Florida', code: 'FL' },
+    { name: 'Texas', code: 'TX' },
+  ],
+  /** Home base (the office is in this state). */
+  homeState: 'New Jersey',
 
   /** Google review link for the "Leave us a review" buttons. TODO: paste the link from your Google Business Profile. */
   googleReviewUrl: '',
@@ -128,8 +141,8 @@ export const HOURS = {
  */
 export const COMPLIANCE = {
   licenses: [
-    { name: 'Gautam Shah', detail: 'New Jersey insurance producer license #[TODO] · NPN [TODO]' },
-    { name: 'Shweta Shah Amin', detail: 'New Jersey insurance producer license #[TODO] · NPN [TODO]' },
+    { name: 'Gautam Shah', detail: 'Insurance producer · NPN [TODO] · resident license #[TODO]' },
+    { name: 'Shweta Shah Amin', detail: 'Insurance producer · NPN [TODO] · resident license #[TODO]' },
   ],
   /** CMS-required Third-Party Marketing Organization (TPMO) disclaimer. Replace the [#] counts. */
   medicareDisclaimer:
@@ -141,6 +154,12 @@ export const COMPLIANCE = {
   /** Leave empty unless you offer securities through a broker-dealer. TODO: confirm. */
   securitiesDisclaimer: '',
 } as const;
+
+/** "New Jersey, New York, … and Texas" */
+export function licensedStatesText(): string {
+  const names = SITE.licensedStates.map((s) => s.name);
+  return names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0] ?? '';
+}
 
 /** Years in business, calculated from the founding year so it never goes stale. */
 export function yearsInBusiness(now: Date = new Date()): number {
@@ -156,7 +175,7 @@ export function formattedAddress(): string {
 
 /** Google Maps links built from the address (no API key needed). */
 export function mapLinks() {
-  const q = encodeURIComponent(formattedAddress() || `${SITE.name}, ${SITE.areaServed}`);
+  const q = encodeURIComponent(formattedAddress() || `${SITE.name}, ${SITE.homeState}`);
   return {
     view: `https://www.google.com/maps/search/?api=1&query=${q}`,
     embed: `https://www.google.com/maps?q=${q}&output=embed`,

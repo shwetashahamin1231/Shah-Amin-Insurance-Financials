@@ -14,6 +14,8 @@ import Header from '../components/layout/Header.astro';
 import Footer from '../components/layout/Footer.astro';
 import MobileMenu from '../components/layout/MobileMenu.astro';
 import CallFab from '../components/layout/CallFab.astro';
+import Peacock from '../components/Peacock.astro';
+import lineartUrl from '../assets/brand/logo-lineart.svg?url';
 
 interface Props {
   title: string;
@@ -50,12 +52,12 @@ const speculationRules = JSON.stringify({
 ---
 
 <!doctype html>
-<html lang="en" class="no-js" data-intro={intro ? '' : undefined}>
+<html lang="en" class="no-js" data-intro={intro ? lineartUrl : undefined}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <HeadScripts />
-    <Font cssVariable="--font-display" preload={[{ weight: 500, style: 'normal', subset: 'latin' }]} />
+    <Font cssVariable="--font-display" preload={[{ weight: 500, style: 'normal', subset: 'latin' }, { weight: 500, style: 'italic', subset: 'latin' }]} />
     <Font cssVariable="--font-body" preload={[{ weight: 400, style: 'normal', subset: 'latin' }]} />
     <Seo title={title} description={description} image={image} imageAlt={imageAlt} noindex={noindex} schema={schema} />
     <script is:inline type="speculationrules" set:html={speculationRules} />
@@ -71,7 +73,7 @@ const speculationRules = JSON.stringify({
     <MobileMenu />
     <CallFab />
     <slot name="overlay" />
-    <div id="peacock-root" data-peacock-root></div>
+    <Peacock />
     <div class="grain" aria-hidden="true"></div>
 
     <script>

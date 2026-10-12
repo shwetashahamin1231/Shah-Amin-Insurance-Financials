@@ -1,0 +1,75 @@
+---
+/**
+ * "Please check the following" box. Hidden until a Send / Continue finds
+ * problems; then the form engine lists them as links (each jumps to its
+ * field) and moves keyboard focus here so screen readers announce it.
+ */
+import Icon from '../ui/Icon.astro';
+import { FORM_MESSAGES } from '../../config/forms';
+
+interface Props {
+  id: string;
+  title?: string;
+  /** Heading level that fits where the form sits on the page. */
+  headingLevel?: 2 | 3 | 4;
+}
+
+const { id, title = FORM_MESSAGES.summaryTitle, headingLevel = 3 } = Astro.props;
+const H = `h${headingLevel}` as 'h2' | 'h3' | 'h4';
+---
+
+<div class="error-summary" id={id} data-error-summary tabindex="-1" hidden>
+  <div role="alert">
+    <H class="error-summary__title">
+      <Icon name="warning-circle" class="error-summary__icon" />
+      <span>{title}</span>
+    </H>
+    <ul class="error-summary__list" role="list" data-error-list></ul>
+  </div>
+</div>
+
+<style>
+  .error-summary {
+    padding: 1.25rem 1.5rem 1.35rem;
+    border: 1px solid var(--error);
+    box-shadow: inset 4px 0 0 var(--error);
+    background-color: color-mix(in srgb, var(--error) 7%, transparent);
+  }
+  .error-summary:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+  .error-summary__title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--ff-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--heading);
+  }
+  .error-summary__title :global(.error-summary__icon) {
+    flex: none;
+    font-size: 1.6rem;
+    color: var(--error);
+  }
+  .error-summary__list {
+    display: grid;
+    gap: 0.35rem;
+    margin-block-start: 0.75rem;
+    padding-inline-start: 2.2rem;
+  }
+  .error-summary__list :global(a) {
+    display: inline-block;
+    padding-block: 0.3rem;
+    font-weight: 500;
+    color: var(--error);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+  }
+  .error-summary__list :global(a:hover) {
+    text-decoration-thickness: 2px;
+  }
+</style>

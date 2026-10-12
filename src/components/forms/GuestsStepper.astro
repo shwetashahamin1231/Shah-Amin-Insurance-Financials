@@ -1,0 +1,163 @@
+---
+/**
+ * Party-size picker:  [ − ]  2  [ + ]
+ * A normal number box (type a number, or use the arrow keys) with large
+ * − / + buttons. The limit can change later (e.g. per event): set the
+ * input's `max` and dispatch a 'stepper:sync' event on [data-stepper].
+ */
+import Field from './Field.astro';
+import Icon from '../ui/Icon.astro';
+
+interface Props {
+  id: string;
+  name?: string;
+  label?: string;
+  hint?: string;
+  min?: number;
+  max?: number;
+  value?: number;
+  class?: string;
+}
+
+const { id, name = 'guests', label = 'Number attending (including you)', hint, min = 1, max = 6, value = 1, class: className } = Astro.props;
+---
+
+<Field id={id} label={label} hint={hint} validate="guests" required min={min} max={max} class={className}>
+  <div class="stepper" data-stepper>
+    <button type="button" class="stepper__btn" data-stepper-dec aria-controls={id} aria-disabled={value <= min ? 'true' : 'false'}>
+      <Icon name="minus" />
+      <span class="visually-hidden">Remove one person</span>
+    </button>
+    <input
+      class="control stepper__input num"
+      id={id}
+      name={name}
+      type="number"
+      inputmode="numeric"
+      min={min}
+      max={max}
+      step="1"
+      value={value}
+      required
+      aria-describedby={hint ? `${id}-hint` : undefined}
+    />
+    <button type="button" class="stepper__btn" data-stepper-inc aria-controls={id} aria-disabled={value >= max ? 'true' : 'false'}>
+      <Icon name="plus" />
+      <span class="visually-hidden">Add one person</span>
+    </button>
+  </div>
+  <p class="visually-hidden" aria-live="polite" data-stepper-live></p>
+</Field>
+
+<script>
+  // − / + buttons for every party-size picker on the page.
+  function initStepper(stepper: HTMLElement) {
+    if (stepper.dataset.ready) return;
+    stepper.dataset.ready = '1';
+    const input = stepper.querySelector<HTMLInputElement>('input');
+    const dec = stepper.querySelector<HTMLButtonElement>('[data-stepper-dec]');
+    const inc = stepper.querySelector<HTMLButtonElement>('[data-stepper-inc]');
+    const live = stepper.parentElement?.querySelector<HTMLElement>('[data-stepper-live]');
+    if (!input || !dec || !inc) return;
+
+    const limits = () => ({ min: Number(input.min) || 1, max: Number(input.max) || 6 });
+    const say = (msg: string) => {
+      if (!live) return;
+      live.textContent = '';
+      window.setTimeout(() => (live.textContent = msg), 60);
+    };
+    const sync = () => {
+      const { min, max } = limits();
+      const v = Number(input.value);
+      dec.setAttribute('aria-disabled', String(!(v > min)));
+      inc.setAttribute('aria-disabled', String(!(v < max)));
+    };
+    const step = (delta: number) => {
+      const { min, max } = limits();
+      const current = Math.round(Number(input.value)) || min;
+      const next = Math.min(max, Math.max(min, current + delta));
+      if (next === current) {
+        say(delta > 0 ? `${max} is the most for this event.` : `The smallest party is ${min}.`);
+        return;
+      }
+      input.value = String(next);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      say(`${next} attending`);
+      sync();
+    };
+
+    dec.addEventListener('click', () => step(-1));
+    inc.addEventListener('click', () => step(1));
+    input.addEventListener('input', sync);
+    input.addEventListener('change', sync);
+    stepper.addEventListener('stepper:sync', sync);
+    sync();
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-stepper]').forEach(initStepper);
+</script>
+
+<style>
+  .stepper {
+    display: inline-grid;
+    grid-template-columns: 3.25rem 5.5rem 3.25rem;
+    align-items: stretch;
+    inline-size: max-content;
+  }
+  .stepper__btn {
+    display: grid;
+    place-items: center;
+    min-block-size: 3.25rem;
+    font-size: 1.35rem;
+    color: var(--heading);
+    background-color: var(--field-bg);
+    border: 1px solid var(--field-border);
+    border-block-end-color: var(--rule-strong);
+    transition:
+      background-color var(--dur-hover) var(--ease-out),
+      color var(--dur-hover) var(--ease-out);
+  }
+  .stepper__btn:first-child {
+    border-start-start-radius: var(--radius-s);
+    border-end-start-radius: var(--radius-s);
+  }
+  .stepper__btn:last-child {
+    border-start-end-radius: var(--radius-s);
+    border-end-end-radius: var(--radius-s);
+  }
+  .stepper__btn:hover {
+    color: var(--accent);
+    background-color: rgb(175 130 67 / 0.12);
+  }
+  .stepper__btn:active {
+    transform: scale(calc(1 - 0.04 * var(--motion)));
+  }
+  .stepper__btn[aria-disabled='true'] {
+    color: var(--text-muted);
+    background-color: transparent;
+    cursor: not-allowed;
+  }
+  .stepper__btn:focus-visible {
+    position: relative;
+    z-index: 1;
+  }
+  /* The number box sits flush between the buttons. */
+  .stepper :global(.stepper__input) {
+    border-inline-width: 0;
+    border-radius: 0;
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 500;
+    -moz-appearance: textfield;
+  }
+  .stepper :global(.stepper__input:focus-visible) {
+    position: relative;
+    z-index: 1;
+  }
+  .stepper :global(.stepper__input::-webkit-inner-spin-button),
+  .stepper :global(.stepper__input::-webkit-outer-spin-button) {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+</style>

@@ -7,7 +7,7 @@
 title: 'Disability Income Insurance'
 order: 8
 lead: 'Your ability to earn an income is one of your most valuable assets. Disability income insurance replaces part of your paycheck if an illness or injury keeps you from working.'
-description: 'Disability income insurance replaces part of your paycheck if illness or injury stops you working. Compare short- and long-term coverage in New Jersey with us.'
+description: 'Disability income insurance replaces part of your paycheck if illness or injury stops you working. Compare short- and long-term coverage with a licensed advisor.'
 whoItsFor:
   - 'Your family depends on your paycheck to pay the bills'
   - 'You are self-employed or own a business'

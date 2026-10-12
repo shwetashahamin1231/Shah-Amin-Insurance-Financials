@@ -78,6 +78,18 @@
   html {
     background: var(--green-900);
     scroll-padding-top: calc(var(--header-h) + 1.5rem);
+    /* Keyboard/anchor scrolling stops clear of the peacock and the Call button. */
+    scroll-padding-bottom: 10rem;
+  }
+  @media (max-width: 63.99rem) {
+    html {
+      scroll-padding-bottom: 11.5rem;
+    }
+  }
+  @media (max-width: 47.99rem) {
+    html {
+      scroll-padding-bottom: 6rem;
+    }
   }
 
   body {

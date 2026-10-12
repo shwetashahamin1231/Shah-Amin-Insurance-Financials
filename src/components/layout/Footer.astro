@@ -10,7 +10,7 @@ import Button from '../ui/Button.astro';
 import Icon from '../ui/Icon.astro';
 import Ornament from '../ui/Ornament.astro';
 import { FOOTER_NAV, LEGAL_NAV, BOOK_HREF } from '../../data/nav';
-import { ADVISOR_LIST, HOURS, SITE, COMPLIANCE, formattedAddress, mapLinks, yearsInBusiness } from '../../config/site';
+import { ADVISOR_LIST, HOURS, SITE, COMPLIANCE, formattedAddress, licensedStatesText, mapLinks, yearsInBusiness } from '../../config/site';
 import { url } from '../../lib/url';
 
 interface Props {
@@ -126,6 +126,7 @@ const year = new Date().getFullYear();
   <!-- Licenses & required disclaimers -->
   <section class="container footer__legal" aria-labelledby="footer-legal-title">
     <h2 id="footer-legal-title" class="visually-hidden">Licenses and disclaimers</h2>
+    <p class="footer__states"><strong>Licensed in:</strong> {licensedStatesText()}.</p>
     <ul role="list" class="footer__licenses">
       {
         COMPLIANCE.licenses.map((l) => (
@@ -319,6 +320,10 @@ const year = new Date().getFullYear();
     font-size: 0.9375rem;
     line-height: 1.6;
     color: var(--ivory-muted);
+  }
+  .footer__states strong {
+    color: var(--ivory-100);
+    font-weight: 500;
   }
   .footer__licenses {
     display: grid;

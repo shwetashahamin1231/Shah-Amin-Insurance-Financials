@@ -1,8 +1,8 @@
 ---
 /**
- * /services/ — overview of all eight services.
+ * /services/ — overview of all services.
  *  • Hero
- *  • Editorial grid of eight engraved cards (I–VIII), alternating 7/5 and 5/7 widths
+ *  • Editorial grid of engraved cards (Roman numerals), alternating 7/5 and 5/7 widths
  *  • "How we work" band on paper, ending with booking / call options
  * Service names, icons and one-line summaries come from src/data/services.ts;
  * phone numbers and hours from src/config/site.ts.
@@ -17,7 +17,8 @@ import { ADVISORS, ADVISOR_LIST, HOURS, SITE } from '../../config/site';
 import { url } from '../../lib/url';
 
 // Card widths on large screens (out of 12 columns): 7/5, 5/7, 7/5, 5/7.
-const SPANS = [7, 5, 5, 7, 7, 5, 5, 7];
+// Alternate 7/5 and 5/7 column pairs; an odd last card spans the full row.
+const SPANS = SERVICES.map((_, i) => (i === SERVICES.length - 1 && SERVICES.length % 2 === 1 ? 12 : [7, 5, 5, 7][i % 4]));
 
 // "How we work" — four simple steps.
 const STEPS = [
@@ -62,12 +63,12 @@ const schema = [
     </Button>
   </PageHero>
 
-  <!-- ── The eight services ── -->
+  <!-- ── The services ── -->
   <section class="section services guilloche-field" aria-labelledby="services-grid-title">
     <div class="container">
       <header class="services__head">
         <div class="services__head-title">
-          <p class="eyebrow eyebrow--rule" data-reveal>Eight areas of coverage</p>
+          <p class="eyebrow eyebrow--rule" data-reveal>Nine areas of coverage</p>
           <h2 id="services-grid-title" data-split>Choose a service to <em>explore</em></h2>
         </div>
         <p class="services__head-text" data-reveal>
@@ -79,7 +80,7 @@ const schema = [
       <ul class="svc-grid" role="list">
         {
           SERVICES.map((s, i) => (
-            <li class:list={['svc', { 'svc--wide': SPANS[i] === 7 }]} style={`--span:${SPANS[i] ?? 6}`} data-reveal>
+            <li class:list={['svc', { 'svc--wide': SPANS[i] >= 7 }]} style={`--span:${SPANS[i] ?? 6}`} data-reveal>
               <article class="svc__card">
                 <span class="svc__num foil-text" aria-hidden="true">
                   {ROMAN[i]}

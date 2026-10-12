@@ -7,26 +7,15 @@
  * hero medallion by scripts/motion/intro.ts, then the curtain fades to
  * reveal the real logo beneath the lines.
  */
-import { LINEART_GROUPS, LINEART_VIEWBOX } from '../brand/logo-lineart';
-
-const order = ['rings', 'monogram', 'wordmark', 'tagline', 'leaf'] as const;
+import lineartUrl from '../../assets/brand/logo-lineart.svg?url';
 ---
 
 <div class="intro" data-intro>
   <div class="intro__curtain" data-intro-curtain aria-hidden="true">
     <div class="intro__guilloche"></div>
   </div>
-  <svg class="intro__lineart" viewBox={LINEART_VIEWBOX} data-intro-lineart aria-hidden="true" focusable="false">
-    {
-      order.map((group) => (
-        <g data-group={group}>
-          {LINEART_GROUPS[group].map((d) => (
-            <path d={d} pathLength="1" />
-          ))}
-        </g>
-      ))
-    }
-  </svg>
+  <!-- Gold line art traced from the logo; fetched and drawn by scripts/motion/intro.ts. -->
+  <svg class="intro__lineart" viewBox="0 0 720 720" data-intro-lineart data-src={lineartUrl} aria-hidden="true" focusable="false"></svg>
   <button type="button" class="intro__skip" data-intro-skip>Skip intro</button>
 </div>
 
@@ -74,7 +63,7 @@ const order = ['rings', 'monogram', 'wordmark', 'tagline', 'leaf'] as const;
     pointer-events: none;
     visibility: hidden;
   }
-  .intro__lineart path {
+  .intro__lineart :global(path) {
     fill: none;
     stroke: var(--gold-400);
     stroke-width: 2; /* in the 720px box — renders ≈1px at hero size after scaling */

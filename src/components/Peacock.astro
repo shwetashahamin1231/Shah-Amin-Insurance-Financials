@@ -1,0 +1,347 @@
+---
+/**
+ * Peacock mascot — a hand-drawn, layered inline SVG (≈12 KB) that sits in the
+ * bottom-right corner (a small "peek" from the bottom-left on phones, where the
+ * Call button owns the right). Rendered once per page by BaseLayout; brought to
+ * life by src/scripts/peacock/ (lazy-loaded when the browser is idle).
+ *
+ * The art is server-rendered in its friendly rest pose, so it looks right before
+ * (and without) JavaScript. Animatable parts carry `pk-*` classes; pivots live in
+ * `data-origin` (SVG user units, viewBox 0 0 200 250):
+ *   .pk-bird (hop)  .pk-shadow  .pk-tail > .pk-feather ×9 (pivot = tail base)
+ *   .pk-legs  .pk-torso (breathing)  .pk-mound (back scallops)  .pk-breast
+ *   .pk-head (neck + head, pivot = neck base) > .pk-crest > .pk-plume ×5
+ *   .pk-face > .pk-eye ×2 (sclera · .pk-iris [iris, pupil, glints] · .pk-lid · lid line + lashes)
+ *   .pk-beak (.pk-beak-u / .pk-beak-l)  .pk-wing (pivot = shoulder)  .pk-hit (pointer area)
+ * Ids use the `pk_` prefix and are rewritten per preview instance so they stay unique.
+ *
+ *   <Peacock />                               the live mascot (once per page)
+ *   <Peacock preview="phone" uid="p1" />      static rendering for the QA page
+ */
+interface Props {
+  /** Static, non-interactive rendering for src/pages/dev/peacock.astro. */
+  preview?: 'desktop' | 'tablet' | 'phone';
+  /** Unique id suffix when several previews share a page (letters/digits). */
+  uid?: string;
+}
+
+const { preview, uid } = Astro.props;
+
+const ART = `
+<defs>
+<radialGradient id="pk_b" gradientUnits="userSpaceOnUse" cx="52" cy="72" r="142" fx="44" fy="48"><stop offset="0" stop-color="#388a7b"/><stop offset=".22" stop-color="#276860"/><stop offset=".5" stop-color="#1a4546"/><stop offset="1" stop-color="#082427"/></radialGradient>
+<linearGradient id="pk_v" x2="0" y1="1"><stop offset="0" stop-color="#0b2b2f"/><stop offset=".5" stop-color="#1b504d"/><stop offset=".85" stop-color="#2c7466"/><stop offset="1" stop-color="#215a53"/></linearGradient>
+<linearGradient id="pk_g" y2="1"><stop offset="0" stop-color="#8d6127"/><stop offset=".3" stop-color="#af8243"/><stop offset=".5" stop-color="#ddb579"/><stop offset=".6" stop-color="#efcb90"/><stop offset=".75" stop-color="#c49d64"/><stop offset="1" stop-color="#8d6127"/></linearGradient>
+<linearGradient id="pk_k" x2="0" y2="1"><stop offset="0" stop-color="#f6e2b8"/><stop offset=".4" stop-color="#ddb579"/><stop offset="1" stop-color="#9a6e33"/></linearGradient>
+<linearGradient id="pk_w" y2="1"><stop offset="0" stop-color="#93945f"/><stop offset=".4" stop-color="#3f7b66"/><stop offset="1" stop-color="#1b4d4c"/></linearGradient>
+<radialGradient id="pk_i" cx=".42" cy=".68" r=".62"><stop offset="0" stop-color="#62c9b2"/><stop offset=".55" stop-color="#23786f"/><stop offset="1" stop-color="#0c3738"/></radialGradient>
+<linearGradient id="pk_j" x2="0" y2="1"><stop offset="0" stop-color="#061a1c" stop-opacity=".55"/><stop offset="1" stop-color="#061a1c" stop-opacity="0"/></linearGradient>
+<radialGradient id="pk_h"><stop offset="0" stop-color="#86d6bd" stop-opacity=".5"/><stop offset="1" stop-color="#86d6bd" stop-opacity="0"/></radialGradient>
+<radialGradient id="pk_d"><stop offset="0" stop-color="#061206" stop-opacity=".55"/><stop offset=".6" stop-color="#061206" stop-opacity=".22"/><stop offset="1" stop-color="#061206" stop-opacity="0"/></radialGradient>
+<linearGradient id="pk_s" x2="0" y1="1" gradientTransform="translate(0 1)"><stop offset=".32" stop-color="#efcb90" stop-opacity="0"/><stop offset=".46" stop-color="#f6e2b8" stop-opacity=".8"/><stop offset=".54" stop-color="#9fe6cc" stop-opacity=".45"/><stop offset=".68" stop-color="#9fe6cc" stop-opacity="0"/></linearGradient>
+<clipPath id="pk_cl"><ellipse cx="36.6" cy="61.2" rx="4.3" ry="6.2"/></clipPath>
+<clipPath id="pk_cr"><ellipse cx="64" cy="61" rx="7" ry="6.9"/></clipPath>
+<path id="pk_fv" d="M-2.5 0C-5-28-13.5-52-13.5-78-13.5-90-7-99 0-104 7-99 13.5-90 13.5-78 13.5-52 5-28 2.5 0Z"/>
+<g id="pk_f">
+<use href="#pk_fv" fill="url(#pk_v)" stroke="#0a2326" stroke-width="2.2"/>
+<path d="M0-22l-6-9m6 9 6-9M0-34l-8.5-10m8.5 10 8.5-10M0-46l-10-11m10 11 10-11M0-58l-10.5-10m10.5 10 10.5-10M0-8v-60" fill="none" stroke="#c49d64" stroke-width=".8" opacity=".55"/>
+<path d="M0-97.5C5.5-93.5 8.8-87.5 8.8-81.5 8.8-74 4.6-68.5 0-68.5S-8.8-74-8.8-81.5C-8.8-87.5-5.5-93.5 0-97.5Z" fill="url(#pk_g)" stroke="#0a2326"/>
+<ellipse cy="-79.5" rx="5.3" ry="6" fill="#2d9d8e"/>
+<path d="M0-84.8C-1.8-83.2-3.9-81-3.9-78.6-3.9-76.3-1.4-75.3 0-77.2 1.4-75.3 3.9-76.3 3.9-78.6 3.9-81 1.8-83.2 0-84.8Z" fill="#0b2a30"/>
+<use href="#pk_fv" fill="url(#pk_s)" opacity="0" style="opacity:var(--shine,0)"/>
+</g>
+<path id="pk_rp" d="M0 30V6a5 5 0 0 1 10 0 5 5 0 0 1 10 0 5 5 0 0 1 10 0 5 5 0 0 1 10 0 5 5 0 0 1 10 0 5 5 0 0 1 10 0 5 5 0 0 1 10 0 5 5 0 0 1 10 0V30Z"/>
+<g id="pk_r"><use href="#pk_rp" fill="#2b6b5b" stroke="#0a2326" stroke-width="3.8"/><use href="#pk_rp" fill="none" stroke="url(#pk_g)" stroke-width="2.2"/></g>
+<path id="pk_md" d="M68.5 128C70 112 85 103 100 103.5 116 104 129 117 133 138 135 152 133 164 128 172L96 172Z"/>
+<clipPath id="pk_mc"><use href="#pk_md"/></clipPath>
+<g id="pk_p"><path d="M0 6.4C-3.2 4.2-4.6 1-4.6-1.6-4.6-4.6-2.6-6.4 0-6.4S4.6-4.6 4.6-1.6C4.6 1 3.2 4.2 0 6.4Z" fill="#2a6d62" stroke-width="1.5"/><ellipse cy="-2" rx="2.3" ry="2.6" fill="url(#pk_g)" stroke="none"/><ellipse cy="-1.5" rx="1.3" ry="1.6" fill="#0b2a30" stroke="none"/></g>
+<path id="pk_l" fill="none" d="M71.5 206 70.5 233.5M50 237 70.5 233.5 62 240.5M70.5 233.5 84 238.5M95 208 97.5 233.5M87 238.5 97.5 233.5 102.5 244M97.5 233.5 118 239"/>
+</defs>
+<ellipse class="pk-shadow" data-origin="84 240" cx="84" cy="240" rx="62" ry="7.5" fill="url(#pk_d)"/>
+<g class="pk-bird" data-origin="84 238">
+<g class="pk-tail" data-origin="92 152"><g transform="translate(92 152)">
+<g class="pk-feather"><use href="#pk_f" transform="rotate(-5)"/></g>
+<g class="pk-feather"><use href="#pk_f" transform="rotate(13) scale(1.06)"/></g>
+<g class="pk-feather"><use href="#pk_f" transform="rotate(32) scale(1.09)"/></g>
+<g class="pk-feather"><use href="#pk_f" transform="rotate(-48) scale(.95)"/></g>
+<g class="pk-feather"><use href="#pk_f" transform="rotate(51) scale(1.08)"/></g>
+<g class="pk-feather"><use href="#pk_f" transform="rotate(-67) scale(.92)"/></g>
+<g class="pk-feather"><use href="#pk_f" transform="rotate(70) scale(1.05)"/></g>
+<g class="pk-feather"><use href="#pk_f" transform="rotate(-84) scale(.88)"/></g>
+<g class="pk-feather"><use href="#pk_f" transform="rotate(89)"/></g>
+</g></g>
+<g class="pk-legs">
+<use href="#pk_l" stroke="#0a2326" stroke-width="5.2"/>
+<use href="#pk_l" stroke="#b68d50" stroke-width="2.9"/>
+<path d="M58 192C59 202 64 208 71.5 208S81 201 79 193ZM82 194C83 204 88.5 210 96 210S106 202 104 192Z" fill="url(#pk_b)" stroke="#0a2326" stroke-width="2.2"/>
+</g>
+<g class="pk-torso" data-origin="84 200">
+<g class="pk-head" data-origin="52 128">
+<g class="pk-crest" data-origin="61 39" fill="none" stroke="#0a2326" stroke-width="1.6">
+<g class="pk-plume"><path d="M59.5 40 47.8 21.1"/><use href="#pk_p" transform="translate(44 16) rotate(-36.5)"/></g>
+<g class="pk-plume"><path d="M60.3 40 53.5 15.6"/><use href="#pk_p" transform="translate(51.5 9.5) rotate(-17.9)"/></g>
+<g class="pk-plume"><path d="M61 40 60.6 12.9"/><use href="#pk_p" transform="translate(60.5 6.5) rotate(-.9)"/></g>
+<g class="pk-plume"><path d="M61.7 40 67.7 15.7"/><use href="#pk_p" transform="translate(69.5 9.5) rotate(16.1)"/></g>
+<g class="pk-plume"><path d="M62.5 40 73.3 21.7"/><use href="#pk_p" transform="translate(77 16.5) rotate(35.4)"/></g>
+</g>
+<path d="M33 131C35.6 121 40.6 112 43.4 104 45 99 45.4 93 44.4 88.4 40.2 86 33.8 80 31.6 72 28.4 60 32.6 46.4 42 40.6 50.4 35.6 62.6 35.4 70.8 40.4 78.6 45.2 82.2 53.4 81 62.6 80 71.4 75.2 80 69.8 87.4 68.6 93 67.8 100 68.3 106 68.6 110 69.4 113.4 70.6 117L73 150H38Z" fill="url(#pk_b)" stroke="#0a2326" stroke-width="2.6"/>
+<ellipse cx="52" cy="46" rx="17" ry="8.5" fill="url(#pk_h)"/>
+<path d="M44 87.4C50 91.4 62 91.6 69.8 87.2L68.6 100C62 103 51 103 44.8 99.6Z" fill="url(#pk_j)"/>
+<path d="M46.6 89.5C47.4 95 46.6 101 45.4 105 43 112 38.6 121 36.4 129" fill="none" stroke="#57b39c" stroke-width="1.6" opacity=".45"/>
+<path d="M41 47.5C48 42.5 59 42 67 45M36 54C44 48.5 56 48 65 50" fill="none" stroke="#5fb8a2" stroke-width=".8" opacity=".3"/>
+<g class="pk-face" stroke="#0a2326">
+<path d="M57.1 60.6C56.4 55.2 60.2 50.2 66 49.4 70.6 48.8 74.8 50.6 76.6 54.4 75 54.2 73.4 55 71.6 56.8 70 55 67.4 54 64 54.1 60.6 54.2 57.8 56.6 57.1 60.6ZM32.4 59.6C31.6 55 33.6 51.4 37.4 50.6 39.6 50.2 41.4 51 42.4 52.6 41.6 53.6 41.2 55.4 40.9 58.8 40.3 56.4 38.7 55 36.6 55 34.3 55 32.7 56.6 32.4 59.6ZM57.6 67C61.4 69.8 67.4 69.8 71.4 66.6 68.4 68.4 62.6 68.6 57.6 67Z" fill="#d3e8dc" stroke-width=".8"/>
+<g class="pk-eye">
+<ellipse cx="36.6" cy="61.2" rx="4.3" ry="6.2" fill="#f5ecda" stroke-width="1.6"/>
+<g clip-path="url(#pk_cl)">
+<g class="pk-iris" data-max="1.5 2" stroke="none"><circle cx="37.7" cy="62.4" r="3.6" fill="url(#pk_i)"/><circle cx="37.9" cy="62.6" r="2.1" fill="#06191b"/><circle cx="38.8" cy="60.3" r="1.05" fill="#fff"/></g>
+<ellipse class="pk-lid" cx="36.6" cy="59.2" rx="6.2" ry="8.2" fill="url(#pk_b)" stroke-width="1.6" transform="translate(0 -15)"/>
+</g>
+<path d="M32.4 59.6C32.7 56.6 34.3 55 36.6 55 38.7 55 40.3 56.4 40.9 58.8M32.8 57.2l-2.8-2.1M32.4 59.4l-3-.7" fill="none" stroke-width="2.4"/>
+</g>
+<g class="pk-eye">
+<ellipse cx="64" cy="61" rx="7" ry="6.9" fill="#f5ecda" stroke-width="1.6"/>
+<g clip-path="url(#pk_cr)">
+<g class="pk-iris" data-max="2.2 1.8" stroke="none"><circle cx="64.9" cy="62.7" r="5.9" fill="url(#pk_i)"/><circle cx="65.1" cy="62.9" r="3.3" fill="#06191b"/><circle cx="67" cy="60.1" r="1.65" fill="#fff"/><circle cx="62.6" cy="65.5" r=".7" fill="#fff" opacity=".8"/></g>
+<ellipse class="pk-lid" cx="64" cy="58.6" rx="9.6" ry="9.6" fill="url(#pk_b)" stroke-width="1.8" transform="translate(0 -16.5)"/>
+</g>
+<path d="M57.1 60.6C57.8 56.6 60.6 54.2 64 54.1 67.4 54 70.3 56.2 71.1 59.6M70.4 56.6l3.6-2.5M71.1 59l3.8-1" fill="none" stroke-width="2.8"/>
+</g>
+<g class="pk-beak">
+<path class="pk-beak-l" data-origin="59.6 73.2" d="M38.6 80.4C44.6 76.4 52 74 59.6 73.2 57.6 75.6 52.4 77.6 46.6 79.2 43.4 80 40.6 80.8 38.6 80.4Z" fill="#a97f47" stroke-width="1.6"/>
+<path class="pk-beak-u" d="M38.4 65.4C42.6 63 48.6 62.8 53.4 63.8 57.2 64.8 59.8 68.4 60.4 72.4 53 72.6 45 75.4 37.8 80.2 36.6 74.6 36.6 69 38.4 65.4Z" fill="url(#pk_k)" stroke-width="1.8"/>
+<path d="M45.4 69.6l3-1.2M60.2 72.6c1.4-.1 2.6-.9 3.2-1.9" fill="none" stroke-width="1.5"/>
+<path d="M41 66.8c3-1.8 7.4-2.2 11-1.2" fill="none" stroke="#fbf1dc" opacity=".75"/>
+</g>
+</g>
+</g>
+<path d="M33.5 129C31.2 137 26.5 148 26 160 25.6 172 28.6 184 37 191 44 197 54 198.5 62 198.5 80 199 100 198 113 194 125 190 132 182 132 170 132 150 121 132 105 124L70 120C55 120 42 122 33.5 129Z" fill="url(#pk_b)"/>
+<ellipse cx="40" cy="156" rx="12" ry="26" fill="url(#pk_h)" opacity=".7"/>
+<path d="M36.2 131C33.4 139 29.8 148 29.4 160 29 170 31 179 35.6 185" fill="none" stroke="#57b39c" stroke-width="1.6" opacity=".45"/>
+<g stroke="#0a2326" fill="none">
+<path d="M33.8 128C31.2 137 26.5 148 26 160 25.6 172 28.6 184 37 191 44 197 54 198.5 62 198.5 80 199 100 198 116 193" stroke-width="2.6"/>
+<path d="M29.4 162C28.8 172 31.6 181 38 186.4 34.4 178 33.2 170 33.6 163Z" fill="url(#pk_g)"/>
+<path class="pk-breast" d="M37.4 147.4C40.4 150.6 41.8 154.6 42.4 158.6 43.6 155.2 45.6 153.4 48.4 153 49.4 155.6 50.8 157.2 53.2 157.6 53.6 154.4 55.4 151.8 58.4 150.2" stroke-width="1.2" opacity=".55"/>
+</g>
+<g class="pk-mound">
+<use href="#pk_md" fill="#103536"/>
+<g clip-path="url(#pk_mc)"><use href="#pk_r" x="63" y="104"/><use href="#pk_r" x="68" y="110"/><use href="#pk_r" x="63" y="116"/><use href="#pk_r" x="68" y="122"/><use href="#pk_r" x="63" y="128"/><use href="#pk_r" x="68" y="134"/><use href="#pk_r" x="63" y="140"/><use href="#pk_r" x="68" y="146"/><use href="#pk_r" x="63" y="152"/><use href="#pk_r" x="68" y="158"/><use href="#pk_r" x="63" y="164"/></g>
+<use href="#pk_md" fill="none" stroke="#0a2326" stroke-width="2"/>
+</g>
+<g class="pk-wing" data-origin="74 141" stroke="#0a2326">
+<path d="M70.5 148C70 139 77 135 86 135 99 135 111 143 118.5 155 124.5 164.5 129.5 177 134 191 122 191.5 110 190.5 100 188 89 185.5 79.5 180 74 171.5 70.5 165 70.5 155 70.5 148Z" fill="url(#pk_b)" stroke-width="2.6"/>
+<path d="M72.5 151C72 142 79 138 87 138 99 138 109 145 114.5 155 106 160.5 96 163.5 86.5 164.5 78.5 165 73 159 72.5 151Z" fill="url(#pk_w)" stroke-width="1.4"/>
+<path d="M76 150C78 144 84 141 90 141.5M77 155.5C80 147.5 88 144.5 96 145.5M80.5 160C85.5 152 93 149 103 150.5M86 162.5C92 156 100 154 109 156" fill="none" stroke="#efcb90" stroke-width=".7" opacity=".45"/>
+<path d="M73.5 156C75.5 165 82 169.5 92 168.5 101 167.5 109.5 163 115.5 157 113.5 164 106 170.5 96 172.5 85 174.5 76 169.5 73.5 156ZM76.5 170.5C80.5 177.5 88 181.5 97.5 182.5 92 184 84 182.5 79.5 178.5 77.8 176.5 76.8 173.5 76.5 170.5Z" fill="url(#pk_g)" stroke-width="1.1"/>
+<path d="M95 176C108 180.5 121 185.5 133 190.5M106 169.5C116 175.5 125 182.5 133 190.5M114.5 160.5C121 169.5 127 179.5 133 190" fill="none" stroke-width="1.3"/>
+<path d="M97 178.6C109 182.6 120 186.6 130 190M107.5 172.2C116.5 177.6 124.5 183.6 130.5 189M116 164C121.5 172 126 180 130.5 187.5" fill="none" stroke="#c49d64" stroke-width=".8" opacity=".8"/>
+</g>
+</g>
+</g>
+<path class="pk-hit" d="M2 152 22 82 30 44 42 4H80L88 40H120L182 78 198 112V156L136 194 120 246H44L54 206 28 190Z" fill="none"/>
+`;
+
+// One line, no indentation (≈12 KB). Preview copies get their own id prefix.
+const art = (preview ? ART.replaceAll('pk_', `pk${uid ?? preview}_`) : ART).replace(/\n\s*/g, '');
+const svgAttrs = {
+  viewBox: '0 0 200 250',
+  'aria-hidden': 'true',
+  focusable: 'false',
+  'stroke-linejoin': 'round',
+  'stroke-linecap': 'round',
+} as const;
+---
+
+{
+  preview ? (
+    <div class:list={['peacock-preview', `peacock-preview--${preview}`]}>
+      <svg class="peacock__svg" {...svgAttrs} set:html={art} />
+    </div>
+  ) : (
+    <div id="peacock-root" class="peacock" data-peacock-root data-peacock data-intro-inert>
+      <div class="peacock__lift">
+        <button type="button" class="peacock__btn" aria-label="Peacock mascot — press to see it fan its tail">
+          <svg class="peacock__svg" {...svgAttrs} set:html={art} />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+{
+  !preview && (
+    <script is:inline>
+      // Restore the last gaze before the first paint, so the eyes don't snap between pages
+      // (the controller keeps tracking from here once it loads).
+      (function () {
+        var d = document;
+        var run = function () {
+          try {
+            var g = JSON.parse(sessionStorage.getItem('sa-peacock-gaze') || 'null');
+            if (!g || d.documentElement.classList.contains('reduce-motion')) return;
+            if (!matchMedia('(hover: hover) and (pointer: fine) and (min-width: 48rem)').matches) return;
+            d.querySelectorAll('[data-peacock] .pk-iris').forEach(function (el) {
+              var m = (el.getAttribute('data-max') || '0 0').split(' ');
+              el.setAttribute('transform', 'translate(' + (g.gx * m[0]).toFixed(2) + ' ' + (g.gy * m[1]).toFixed(2) + ')');
+            });
+          } catch (e) {}
+        };
+        if (d.prerendering) d.addEventListener('prerenderingchange', run, { once: true });
+        else run();
+      })();
+    </script>
+  )
+}
+
+<style>
+  /* ── Live mascot ─────────────────────────────────────────────────────────
+     Sizes: desktop 140px (150 on very wide screens) · tablets 96px, perched
+     above the Call button · phones: a 64px peek from the bottom-left corner.
+     States (set by the controller): .is-tucked while scrolling, .is-ducked when
+     it would cover focused content or the very end of the page, .is-popped when
+     a phone visitor taps the peek. Only the bird's own outline takes the pointer. */
+  .peacock {
+    --pk-h: 140px;
+    --pk-tuck: calc(var(--pk-h) * 0.55);
+    --pk-duck: calc(var(--pk-h) + 2.5rem);
+    --pk-pop: 0px;
+    position: fixed;
+    inset-block-end: max(1.25rem, env(safe-area-inset-bottom));
+    inset-inline-end: max(1.5rem, env(safe-area-inset-right));
+    z-index: var(--z-peacock);
+    inline-size: calc(var(--pk-h) * 0.8);
+    block-size: var(--pk-h);
+    pointer-events: none;
+    view-transition-name: peacock;
+  }
+  @media (min-width: 100rem) {
+    .peacock {
+      --pk-h: 150px;
+    }
+  }
+  /* Tablets: smaller, perched above the floating Call button (56px + 16px margin). */
+  @media (max-width: 63.99rem) {
+    .peacock {
+      --pk-h: 96px;
+      inset-inline-end: max(1rem, env(safe-area-inset-right));
+      inset-block-end: calc(max(1rem, env(safe-area-inset-bottom)) + 56px + 0.75rem);
+    }
+  }
+  /* Phones: head and crest peek over the bottom edge, bottom-left; mirrored to face the page. */
+  @media (max-width: 47.99rem) {
+    .peacock {
+      --pk-h: 120px;
+      --pk-peek: calc(64px + env(safe-area-inset-bottom, 0px));
+      --pk-tuck: calc(var(--pk-peek) * 0.55);
+      --pk-duck: calc(var(--pk-peek) + 1.5rem);
+      --pk-pop: calc((var(--pk-peek) - var(--pk-h)) * 0.9);
+      inset-inline: max(0px, env(safe-area-inset-left)) auto;
+      inset-block-end: calc(var(--pk-peek) - var(--pk-h));
+    }
+    .peacock__svg {
+      transform: scaleX(-1);
+    }
+  }
+
+  .peacock__lift {
+    block-size: 100%;
+    transform: translate3d(0, var(--pk-shift, 0px), 0);
+    transition:
+      transform var(--pk-dur, 640ms) var(--pk-ease, cubic-bezier(0.34, 1.36, 0.64, 1)),
+      opacity 260ms var(--ease-out),
+      visibility 0s linear 0s;
+    will-change: transform;
+  }
+  .peacock.is-tucked {
+    --pk-shift: var(--pk-tuck);
+    --pk-dur: 380ms;
+    --pk-ease: var(--ease-out);
+  }
+  .peacock.is-popped {
+    --pk-shift: var(--pk-pop);
+    --pk-dur: 520ms;
+  }
+  .peacock.is-ducked {
+    --pk-shift: var(--pk-duck);
+    --pk-dur: 380ms;
+    --pk-ease: var(--ease-out);
+  }
+  /* Hidden by the footer switch, or while a dialog is open. */
+  :global(html.peacock-hidden) .peacock__lift,
+  :global(html.scroll-locked) .peacock__lift {
+    transform: translate3d(0, var(--pk-duck), 0);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      transform 380ms var(--ease-out),
+      opacity 260ms var(--ease-out),
+      visibility 0s linear 380ms;
+  }
+  /* Reduced motion: no sliding — it simply fades out of the way. */
+  :global(html.reduce-motion) .peacock .peacock__lift {
+    transform: none;
+    transition:
+      opacity 240ms linear,
+      visibility 0s linear 0s;
+  }
+  :global(html.reduce-motion) .peacock.is-tucked .peacock__lift {
+    opacity: 0.25;
+  }
+  :global(html.reduce-motion) .peacock.is-ducked .peacock__lift,
+  :global(html.reduce-motion.peacock-hidden) .peacock .peacock__lift,
+  :global(html.reduce-motion.scroll-locked) .peacock .peacock__lift {
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 240ms linear,
+      visibility 0s linear 240ms;
+  }
+
+  .peacock__btn {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    border-radius: 1.25rem;
+    pointer-events: none; /* the SVG outline (.pk-hit) takes the pointer instead */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  /* Gold ring with a dark halo: visible over green and paper alike. */
+  .peacock__btn:focus-visible {
+    outline: 2px solid var(--gold-300);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 7px rgb(14 36 15 / 0.85);
+  }
+  .peacock__svg {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    overflow: visible;
+  }
+  .peacock__btn :global(.pk-hit) {
+    pointer-events: all;
+    cursor: pointer;
+  }
+
+  @media print {
+    .peacock {
+      display: none;
+    }
+  }
+
+  /* ── Static previews (dev QA page) ── */
+  .peacock-preview {
+    --pk-h: 140px;
+    inline-size: calc(var(--pk-h) * 0.8);
+    block-size: var(--pk-h);
+  }
+  .peacock-preview--tablet {
+    --pk-h: 96px;
+  }
+  .peacock-preview--phone {
+    --pk-h: 120px;
+  }
+  .peacock-preview--phone .peacock__svg {
+    transform: scaleX(-1);
+  }
+</style>

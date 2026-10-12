@@ -32,7 +32,7 @@ const lightboxImages: LightboxImage[] = photos.map((p) => ({ src: p.src, alt: p.
 const placeholders = ['4/5', '1/1', '3/4', '4/3', '1/1', '4/5', '3/2', '3/4'];
 ---
 
-<BaseLayout title="Gallery" description="Photos from Shah & Amin Financial Services member breakfasts, seminars and community events in New Jersey.">
+<BaseLayout title="Gallery" description="Photos from Shah & Amin Financial Services member breakfasts, seminars and community events.">
   <PageHero eyebrow="Gallery" title="Moments from <em>our events</em>" lead="Breakfasts, seminars and celebrations with the families we serve. Thank you for being part of our story." />
 
   <section class="section surface-paper" aria-label="Photos">
@@ -43,7 +43,7 @@ const placeholders = ['4/5', '1/1', '3/4', '4/3', '1/1', '4/5', '3/2', '3/4'];
             {photos.map((p, i) => (
               <li class="masonry__item" data-reveal>
                 <button type="button" class="tile" data-dialog-open="gallery-lightbox" data-lightbox-start={i} data-cursor="view" aria-label={`Open photo: ${p.alt}`}>
-                  <Picture src={p.src} alt={p.alt} widths={[360, 540, 720, 960]} sizes="(min-width: 64rem) 30vw, (min-width: 40rem) 45vw, 92vw" formats={['avif', 'webp']} class="tile__img" />
+                  <Picture src={p.src} alt={p.alt} widths={[360, 540, 720, 960]} sizes="(min-width: 64rem) 30vw, (min-width: 40rem) 45vw, 92vw" formats={['avif', 'webp']} fallbackFormat="jpg" class="tile__img" />
                   {p.caption && <span class="tile__caption">{p.caption}</span>}
                 </button>
               </li>

@@ -38,6 +38,9 @@
       var seen = store('sessionStorage', 'sa-visited') === '1';
       if (!seen && !fromSite && !(nav && nav.type === 'back_forward') && !d.classList.contains('reduce-motion')) {
         d.classList.add('intro-play');
+        // Start downloading the logo line art right away (only first visits need it).
+        var art = d.getAttribute('data-intro');
+        if (art && window.fetch) window.__saLineart = fetch(art).then(function (r) { return r.text(); });
         // Failsafe: never leave the curtain up if the main script fails to load.
         setTimeout(function () {
           if (!d.classList.contains('intro-running')) {

@@ -1,0 +1,69 @@
+---
+/**
+ * Single-line text input with label, hint and error (see Field.astro).
+ *   <TextField id="rsvp-email" name="email" type="email" label="Email"
+ *              autocomplete="email" validate="email" required />
+ */
+import Field from './Field.astro';
+
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  type?: 'text' | 'email' | 'tel';
+  hint?: string;
+  required?: boolean;
+  /** Shows "(optional)" — defaults to true when the field isn't required. */
+  optional?: boolean;
+  validate?: string;
+  requiredMessage?: string;
+  /** Browser autofill hint, e.g. 'name', 'email', 'tel'. */
+  autocomplete?: string;
+  inputmode?: 'text' | 'email' | 'tel' | 'numeric';
+  maxlength?: number;
+  value?: string;
+  format?: 'phone';
+  width?: 'full' | 'medium' | 'short';
+  autocapitalize?: 'off' | 'none' | 'words' | 'sentences';
+  spellcheck?: boolean;
+  class?: string;
+}
+
+const {
+  id,
+  name,
+  label,
+  type = 'text',
+  hint,
+  required = false,
+  optional = !required,
+  validate,
+  requiredMessage,
+  autocomplete,
+  inputmode,
+  maxlength = 200,
+  value,
+  format,
+  width = 'full',
+  autocapitalize,
+  spellcheck,
+  class: className,
+} = Astro.props;
+---
+
+<Field id={id} label={label} hint={hint} optional={optional} validate={validate} required={required} requiredMessage={requiredMessage} format={format} class={className}>
+  <input
+    class:list={['control', { 'control--medium': width === 'medium', 'control--short': width === 'short' }]}
+    id={id}
+    name={name}
+    type={type}
+    value={value}
+    required={required}
+    maxlength={maxlength}
+    autocomplete={autocomplete}
+    inputmode={inputmode}
+    autocapitalize={autocapitalize}
+    spellcheck={spellcheck === undefined ? undefined : spellcheck ? 'true' : 'false'}
+    aria-describedby={hint ? `${id}-hint` : undefined}
+  />
+</Field>

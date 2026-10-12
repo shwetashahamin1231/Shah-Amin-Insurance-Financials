@@ -7,7 +7,7 @@
 title: 'Medicare Plans'
 order: 6
 lead: 'Medicare gives you choices — and choices can be confusing. We compare Medicare Advantage, Medicare Supplement and Part D drug plans side by side, so you can decide with confidence.'
-description: 'Compare Medicare Advantage, Medicare Supplement (Medigap) and Part D drug plans with a local New Jersey advisor. Plain-English help for new and current members.'
+description: 'Compare Medicare Advantage, Medicare Supplement (Medigap) and Part D drug plans with a licensed, local advisor. Plain-English help for new and current members.'
 whoItsFor:
   - 'You are turning 65 soon, or retiring and leaving employer coverage'
   - 'You want to review your plan during Annual Enrollment, October 15 – December 7'

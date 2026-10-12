@@ -1,0 +1,56 @@
+---
+/**
+ * The gold Send button. While a form is sending, the engine
+ * (src/scripts/forms/status.ts) adds a spinner, switches the text to
+ * "Sending…", sets aria-busy and disables it so it can't be pressed twice.
+ */
+import Button from '../ui/Button.astro';
+import type { IconName } from '../../lib/icons';
+
+interface Props {
+  label: string;
+  /** Text shown while sending (default "Sending…"). */
+  busyLabel?: string;
+  icon?: IconName;
+  size?: 'm' | 'l';
+  class?: string;
+}
+
+const { label, busyLabel, icon = 'arrow-right', size = 'l', class: className } = Astro.props;
+---
+
+<Button type="submit" size={size} icon={icon} class={['submit-btn', className].filter(Boolean).join(' ')} data-submit data-busy-text={busyLabel}>
+  <span class="submit-btn__spinner" aria-hidden="true"></span><span data-btn-text>{label}</span>
+</Button>
+
+<style>
+  .submit-btn__spinner {
+    display: none;
+    inline-size: 1.05em;
+    block-size: 1.05em;
+    margin-inline-end: 0.6em;
+    vertical-align: -0.17em;
+    border: 2px solid currentColor;
+    border-inline-end-color: transparent;
+    border-radius: 50%;
+    animation: submit-spin 0.8s linear infinite;
+  }
+  :global(.submit-btn.is-busy) .submit-btn__spinner {
+    display: inline-block;
+  }
+  :global(.submit-btn.is-busy .btn__icon) {
+    display: none;
+  }
+  :global(.submit-btn[disabled]) {
+    cursor: progress;
+  }
+  /* Reduced motion: a slow single turn, then it rests — the "Sending…" text carries the message. */
+  :global(html.reduce-motion) .submit-btn__spinner {
+    animation-duration: 2.4s;
+  }
+  @keyframes submit-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>

@@ -11,7 +11,7 @@ export default defineConfig({
   site: SITE.url,
   base,
   trailingSlash: 'always',
-  build: { format: 'directory', inlineStylesheets: 'auto' },
+  build: { format: 'directory', inlineStylesheets: 'always' },
   // Lossless whitespace handling (keeps spaces between inline elements intact).
   compressHTML: true,
 

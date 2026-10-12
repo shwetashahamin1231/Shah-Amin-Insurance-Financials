@@ -6,7 +6,7 @@
 title: 'Health Insurance'
 order: 5
 lead: 'Choosing a health plan should not feel like guesswork. We help individuals and families compare plans, check doctors and prescriptions, and understand what they will really pay.'
-description: 'Individual and family health insurance in New Jersey, explained clearly. Compare plans, networks and costs to find coverage that fits your doctors and budget.'
+description: 'Individual and family health insurance, explained clearly. Compare plans, networks and costs to find coverage that fits your doctors and budget.'
 whoItsFor:
   - 'You are self-employed, between jobs or work for a company without health benefits'
   - 'You are retiring before 65 and need coverage until Medicare begins'

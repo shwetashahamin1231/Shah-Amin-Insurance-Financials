@@ -3,6 +3,7 @@
  * so no icon font or extra request is needed. To add an icon, find its name at
  * https://phosphoricons.com, then add one import + one entry below.
  */
+import airplaneTilt from '@phosphor-icons/core/assets/light/airplane-tilt-light.svg?raw';
 import arrowRight from '@phosphor-icons/core/assets/light/arrow-right-light.svg?raw';
 import arrowLeft from '@phosphor-icons/core/assets/light/arrow-left-light.svg?raw';
 import arrowUpRight from '@phosphor-icons/core/assets/light/arrow-up-right-light.svg?raw';
@@ -51,6 +52,7 @@ import warningCircle from '@phosphor-icons/core/assets/light/warning-circle-ligh
 import x from '@phosphor-icons/core/assets/light/x-light.svg?raw';
 
 export const ICONS = {
+  'airplane-tilt': airplaneTilt,
   'arrow-right': arrowRight,
   'arrow-left': arrowLeft,
   'arrow-up-right': arrowUpRight,

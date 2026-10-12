@@ -5,7 +5,7 @@
  *  Used by the menu, the home page, the footer, the booking "topic"
  *  dropdown and the service pages. The full write-up for each service
  *  lives in src/content/services/<slug>.md (same slug as below).
- *  Order here = order on the site (shown as Roman numerals I–VIII).
+ *  Order here = order on the site (shown as Roman numerals I, II, III…).
  */
 import type { IconName } from '../lib/icons';
 
@@ -69,6 +69,12 @@ export const SERVICES: Service[] = [
     shortName: 'Disability Income',
     summary: 'Replace part of your paycheck if illness or injury keeps you from working.',
     icon: 'umbrella',
+  },
+  {
+    slug: 'travel-insurance',
+    name: 'Travel Insurance',
+    summary: 'Travel medical and trip cancellation coverage, so an emergency far from home or a cancelled trip doesn’t become a financial setback.',
+    icon: 'airplane-tilt',
   },
 ];
 

@@ -32,6 +32,7 @@ const Tag = href ? 'a' : 'div';
     widths={[size, size * 2, size * 3]}
     sizes={`${size}px`}
     formats={['avif', 'webp']}
+    fallbackFormat="webp"
     width={size}
     height={size}
     loading={eager ? 'eager' : 'lazy'}

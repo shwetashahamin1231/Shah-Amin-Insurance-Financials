@@ -1,0 +1,30 @@
+---
+/**
+ * Spam trap. Real visitors never see or reach this field (hidden off-screen,
+ * skipped by the Tab key and by screen readers). Simple spam bots fill in
+ * every field they find — if this one has anything in it, the form quietly
+ * pretends to send and the Apps Script ignores it too.
+ * The field name must stay "website" (the Apps Scripts check that name).
+ */
+interface Props {
+  id: string;
+}
+const { id } = Astro.props;
+---
+
+<div class="hp" aria-hidden="true">
+  <label for={id}>Website (leave this empty)</label>
+  <input type="text" id={id} name="website" value="" tabindex="-1" autocomplete="off" />
+</div>
+
+<style>
+  .hp {
+    position: absolute !important;
+    inset-inline-start: -10000px;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+</style>

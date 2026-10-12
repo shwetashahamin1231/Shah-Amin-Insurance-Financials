@@ -104,7 +104,7 @@ const schema = [
     description: data.description,
     url: pageUrl,
     provider: { '@id': `${abs('/')}#agency` },
-    areaServed: { '@type': 'State', name: SITE.areaServed },
+    areaServed: SITE.licensedStates.map((st) => ({ '@type': 'State', name: st.name })),
   },
 ];
 ---

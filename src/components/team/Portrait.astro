@@ -19,7 +19,7 @@ const { initials, name, headshot, alt, size = 'm' } = Astro.props;
 <div class:list={['portrait', `portrait--${size}`]}>
   {
     headshot ? (
-      <Picture src={headshot} alt={alt ?? `Portrait of ${name}`} widths={[360, 540, 720]} sizes="(min-width: 64rem) 26rem, 80vw" formats={['avif', 'webp']} class="portrait__img" />
+      <Picture src={headshot} alt={alt ?? `Portrait of ${name}`} widths={[360, 540, 720]} sizes="(min-width: 64rem) 26rem, 80vw" formats={['avif', 'webp']} fallbackFormat="jpg" class="portrait__img" />
     ) : (
       <div class="portrait__placeholder" role="img" aria-label={`Portrait of ${name} coming soon`}>
         <span class="portrait__initials" aria-hidden="true">

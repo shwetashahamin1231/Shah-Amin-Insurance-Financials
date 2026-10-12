@@ -1,0 +1,274 @@
+---
+/**
+ * Peacock mascot test bench (noindex, excluded from the sitemap).
+ * The live mascot is the one BaseLayout renders in the corner; the buttons
+ * here fire the same `sa:peacock` events the site uses. The grid shows static
+ * renderings at each breakpoint size for quick visual QA.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Peacock from '../../components/Peacock.astro';
+
+const actions = [
+  ['fan', 'Fan the tail'],
+  ['celebrate', 'Celebrate'],
+  ['wave', 'Wave'],
+  ['blink', 'Blink'],
+  ['hop', 'Hop'],
+  ['flap', 'Flap'],
+  ['look', 'Glance'],
+] as const;
+---
+
+<BaseLayout title="Peacock test bench" description="QA page for the peacock mascot." noindex>
+  <section class="section" aria-labelledby="pk-title">
+    <div class="container stack stack-l">
+      <p class="eyebrow eyebrow--rule">Dev · Mascot QA</p>
+      <h1 id="pk-title">Peacock <em>test bench</em></h1>
+      <p class="lead measure">
+        The live peacock sits in the corner. Use these controls to trigger each move, preview reduced motion, and check that it hides for
+        dialogs and the footer switch.
+      </p>
+
+      <div class="qa-panel stack">
+        <h2 class="qa-heading">Moves</h2>
+        <div class="cluster" role="group" aria-label="Trigger peacock moves">
+          {
+            actions.map(([action, label]) => (
+              <button type="button" class="qa-btn" data-pk-action={action}>
+                {label}
+              </button>
+            ))
+          }
+        </div>
+        <h2 class="qa-heading">Modes</h2>
+        <div class="cluster" role="group" aria-label="Peacock modes">
+          <button type="button" class="qa-btn" data-pk-motion aria-pressed="false">Reduced-motion preview</button>
+          <button type="button" class="qa-btn" data-pk-hide aria-pressed="false">Hide the peacock</button>
+          <button type="button" class="qa-btn" data-dialog-open="pk-test-dialog" aria-haspopup="dialog">Open a dialog</button>
+        </div>
+        <p class="qa-note" data-pk-status aria-live="polite">Waiting for the mascot script…</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section surface-paper" aria-labelledby="pk-sizes">
+    <div class="container stack stack-l">
+      <h2 id="pk-sizes">Sizes</h2>
+      <ul class="qa-grid" role="list">
+        <li class="qa-card">
+          <div class="qa-stage qa-stage--green">
+            <Peacock preview="desktop" uid="dg" />
+          </div>
+          <p class="qa-caption"><strong>Desktop</strong> · 140px tall (150px ≥ 1600px), bottom-right</p>
+        </li>
+        <li class="qa-card">
+          <div class="qa-stage qa-stage--paper">
+            <Peacock preview="desktop" uid="dp" />
+          </div>
+          <p class="qa-caption"><strong>Desktop on paper</strong> · same art over light sections</p>
+        </li>
+        <li class="qa-card">
+          <div class="qa-stage qa-stage--green qa-stage--tablet">
+            <Peacock preview="tablet" uid="t" />
+            <span class="qa-fab" aria-hidden="true">Call us</span>
+          </div>
+          <p class="qa-caption"><strong>Tablet</strong> · 96px, perched above the Call button</p>
+        </li>
+        <li class="qa-card">
+          <div class="qa-phone" aria-hidden="true">
+            <div class="qa-phone__peek"><Peacock preview="phone" uid="p" /></div>
+            <span class="qa-fab">Call us</span>
+          </div>
+          <p class="qa-caption"><strong>Phone peek</strong> · 64px visible, bottom-left, mirrored to face the page</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="pk-checks">
+    <div class="container stack stack-l">
+      <h2 id="pk-checks">Things to check</h2>
+      <ol class="qa-list measure">
+        <li>Desktop: the eyes follow the cursor; leave the mouse still for ~4s and it glances around.</li>
+        <li>Hover the bird: the tail fans with a gold-and-green shimmer. Click again while fanned for a hop.</li>
+        <li>Scroll: it tucks down, then pops back about 0.7s after scrolling stops.</li>
+        <li>Tab to the buttons at the bottom-right of this section: it ducks while one of them would be covered.</li>
+        <li>Scroll to the footer: it waves once; at the very bottom it ducks so the footer switches stay reachable.</li>
+        <li>Reduced motion: no loops or tracking; pressing the bird crossfades to the fanned pose.</li>
+        <li>Phones: only the head and crest peek bottom-left; tap to make it pop up and fan.</li>
+      </ol>
+      <div class="qa-filler" aria-hidden="true"></div>
+      <div class="cluster qa-corner" role="group" aria-label="Focus test buttons">
+        <button type="button" class="qa-btn">Focus test A</button>
+        <button type="button" class="qa-btn">Focus test B</button>
+        <button type="button" class="qa-btn">Focus test C</button>
+      </div>
+    </div>
+  </section>
+
+  <dialog class="qa-dialog surface-ivory" id="pk-test-dialog" aria-labelledby="pk-dialog-title" data-backdrop-close>
+    <h2 id="pk-dialog-title">Test dialog</h2>
+    <p>While a dialog is open the page is scroll-locked and the peacock hides.</p>
+    <button type="button" class="qa-btn" data-dialog-close>Close</button>
+  </dialog>
+</BaseLayout>
+
+<script>
+  import { emit } from '../../scripts/lib/env';
+
+  const root = document.documentElement;
+  const status = document.querySelector<HTMLElement>('[data-pk-status]');
+
+  document.querySelectorAll<HTMLButtonElement>('[data-pk-action]').forEach((btn) =>
+    btn.addEventListener('click', () => emit('sa:peacock', { action: btn.dataset.pkAction })),
+  );
+
+  // Preview only: toggles the class for this page view (the footer switch is the persistent one).
+  const motionBtn = document.querySelector<HTMLButtonElement>('[data-pk-motion]');
+  motionBtn?.addEventListener('click', () => {
+    const reduced = !root.classList.contains('reduce-motion');
+    root.classList.toggle('reduce-motion', reduced);
+    motionBtn.setAttribute('aria-pressed', String(reduced));
+    emit('sa:motion-change', { reduced });
+  });
+
+  const hideBtn = document.querySelector<HTMLButtonElement>('[data-pk-hide]');
+  hideBtn?.addEventListener('click', () => {
+    const hidden = !root.classList.contains('peacock-hidden');
+    root.classList.toggle('peacock-hidden', hidden);
+    hideBtn.setAttribute('aria-pressed', String(hidden));
+    hideBtn.textContent = hidden ? 'Show the peacock' : 'Hide the peacock';
+    emit('sa:peacock-visibility', { hidden });
+  });
+
+  // Report whether the live mascot is on the page and wired up.
+  const check = () => {
+    const live = document.querySelector('[data-peacock]');
+    if (!status) return;
+    if (!live) status.textContent = 'No live mascot on this page yet — BaseLayout still renders the placeholder.';
+    else if (live.hasAttribute('data-peacock-ready')) status.textContent = 'Live mascot ready (bottom corner).';
+    else status.textContent = 'Live mascot found; its script loads when the browser is idle…';
+  };
+  check();
+  window.setTimeout(check, 1500);
+  window.setTimeout(check, 4000);
+</script>
+
+<style>
+  .qa-panel {
+    --stack-space: var(--space-s);
+    padding: var(--space-l);
+    background: var(--bg-raised);
+    box-shadow: inset 0 0 0 1px var(--rule);
+  }
+  .qa-heading {
+    font-size: var(--fs-h4);
+  }
+  .qa-btn {
+    min-block-size: 44px;
+    padding: 0.6rem 1.1rem;
+    border-radius: var(--radius-s);
+    font-weight: 500;
+    color: var(--heading);
+    box-shadow: inset 0 0 0 1px var(--rule-strong);
+    transition: background-color var(--dur-hover) var(--ease-out);
+  }
+  .qa-btn:hover,
+  .qa-btn[aria-pressed='true'] {
+    background: rgb(175 130 67 / 0.16);
+  }
+  .qa-note {
+    color: var(--text-muted);
+  }
+
+  .qa-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: var(--space-l);
+  }
+  .qa-card {
+    display: grid;
+    gap: var(--space-xs);
+  }
+  .qa-caption {
+    color: var(--text-muted);
+  }
+  .qa-stage {
+    position: relative;
+    display: grid;
+    place-items: end center;
+    min-block-size: 15rem;
+    padding: var(--space-m);
+    box-shadow: inset 0 0 0 1px var(--rule);
+  }
+  .qa-stage--green {
+    background: var(--green-800);
+  }
+  .qa-stage--paper {
+    background: var(--paper-200);
+  }
+  .qa-stage--tablet {
+    place-items: end end;
+    align-content: end;
+    gap: 0.75rem;
+  }
+  .qa-fab {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 56px;
+    padding-inline: 1.3rem;
+    border-radius: var(--radius-round);
+    background-image: var(--foil-on-dark);
+    color: var(--green-900);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* A phone's bottom edge: the bird peeks 64px from the bottom-left, Call button bottom-right. */
+  .qa-phone {
+    position: relative;
+    block-size: 15rem;
+    overflow: hidden;
+    background: var(--green-800);
+    border-radius: 1.5rem 1.5rem 0 0;
+    box-shadow: inset 0 0 0 1px var(--rule);
+  }
+  .qa-phone__peek {
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-end: calc(64px - 120px);
+  }
+  .qa-phone .qa-fab {
+    position: absolute;
+    inset-inline-end: 1rem;
+    inset-block-end: 1rem;
+  }
+
+  .qa-list {
+    display: grid;
+    gap: var(--space-xs);
+    padding-inline-start: 1.25rem;
+  }
+  .qa-filler {
+    block-size: 40vh;
+  }
+  .qa-corner {
+    justify-content: flex-end;
+  }
+
+  .qa-dialog {
+    margin: auto;
+    padding: var(--space-l);
+    border: 0;
+    max-inline-size: 28rem;
+    box-shadow: var(--shadow-l);
+  }
+  .qa-dialog::backdrop {
+    background: rgb(6 18 6 / 0.6);
+  }
+  .qa-dialog > * + * {
+    margin-block-start: var(--space-s);
+  }
+</style>

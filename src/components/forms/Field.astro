@@ -1,0 +1,229 @@
+---
+/**
+ * Field wrapper used by every form control: visible label (always above the
+ * field), optional hint, and the error message slot the form engine fills in
+ * (src/scripts/forms/fields.ts). The control itself goes in the default slot
+ * and should carry class="control" to get the shared input styling below.
+ *
+ *   <Field id="book-email" label="Email" validate="email" required>
+ *     <input class="control" id="book-email" … />
+ *   </Field>
+ *
+ * Works on green and on paper/ivory surfaces through the semantic colour
+ * variables (--field-bg, --field-border, --focus, --error …).
+ */
+import Icon from '../ui/Icon.astro';
+
+interface Props {
+  /** id of the control (labels point at it; hint/error ids derive from it). */
+  id: string;
+  label: string;
+  hint?: string;
+  /** Adds a quiet "(optional)" after the label. */
+  optional?: boolean;
+  /** Validation rule for the form engine: name · email · phone · guests · choice · text · custom. */
+  validate?: string;
+  required?: boolean;
+  /** Custom wording when the field is missing, e.g. "Please choose an event." */
+  requiredMessage?: string;
+  max?: number;
+  min?: number;
+  /** 'phone' tidies the number into (973) 555-0123 format when the visitor leaves the field. */
+  format?: 'phone';
+  /** Radio groups use a <fieldset>/<legend>; everything else a <div>/<label>. */
+  as?: 'div' | 'fieldset';
+  /** 'p' renders the label as text with id="{id}-label" — for custom widgets that a <label> can't point at (e.g. a calendar grid). */
+  labelAs?: 'label' | 'p';
+  /** Hide the label visually (it is still read by screen readers). */
+  labelHidden?: boolean;
+  /** For radio groups: role="radiogroup" on the fieldset. */
+  role?: 'radiogroup' | 'group';
+  /** Custom widgets: element to focus from the error summary / element that references the error. */
+  focusId?: string;
+  describeId?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  id,
+  label,
+  hint,
+  optional = false,
+  validate,
+  required = false,
+  requiredMessage,
+  max,
+  min,
+  format,
+  as = 'div',
+  labelAs = 'label',
+  labelHidden = false,
+  role,
+  focusId,
+  describeId,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const Tag = as;
+const hintId = hint ? `${id}-hint` : undefined;
+---
+
+<Tag
+  class:list={['field', className]}
+  data-field
+  data-validate={validate}
+  data-required={required ? '' : undefined}
+  data-required-message={requiredMessage}
+  data-max={max}
+  data-min={min}
+  data-format={format}
+  data-focus-id={focusId}
+  data-describe-id={describeId}
+  role={role}
+  aria-required={role === 'radiogroup' && required ? 'true' : undefined}
+  aria-describedby={as === 'fieldset' ? hintId : undefined}
+  {...rest}
+>
+  {
+    as === 'fieldset' ? (
+      <legend class:list={['field__label', { 'visually-hidden': labelHidden }]}>
+        {label}
+        {optional && <span class="field__optional"> (optional)</span>}
+      </legend>
+    ) : labelAs === 'p' ? (
+      <p class:list={['field__label', { 'visually-hidden': labelHidden }]} id={`${id}-label`}>
+        {label}
+        {optional && <span class="field__optional"> (optional)</span>}
+      </p>
+    ) : (
+      <label class:list={['field__label', { 'visually-hidden': labelHidden }]} for={id}>
+        {label}
+        {optional && <span class="field__optional"> (optional)</span>}
+      </label>
+    )
+  }
+  {hint && <p class="field__hint" id={hintId}>{hint}</p>}
+  <p class="field__error" id={`${id}-error`} data-field-error hidden>
+    <Icon name="warning-circle" class="field__error-icon" />
+    <span><span class="visually-hidden">Error: </span><span data-error-text></span></span>
+  </p>
+  <slot />
+</Tag>
+
+<style>
+  .field {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 0.5rem;
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  /* Invalid fields get an error bar on the left (plus the message and icon — never colour alone). */
+  .field.is-invalid {
+    padding-inline-start: 1rem;
+    box-shadow: inset 3px 0 0 var(--error);
+  }
+
+  .field__label {
+    float: none; /* legend reset */
+    padding: 0;
+    font-family: var(--ff-body);
+    font-size: 1.0625rem;
+    font-weight: 500;
+    line-height: 1.35;
+    color: var(--heading);
+  }
+  /* A fieldset's legend sits outside its grid, so `gap` doesn't reach it — space it directly. */
+  legend.field__label {
+    margin-block-end: 0.5rem;
+  }
+  .field__optional {
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+  .field__hint {
+    margin-block-start: -0.2rem;
+    font-size: var(--fs-small);
+    line-height: 1.45;
+    color: var(--text-muted);
+    max-width: 60ch;
+  }
+  .field__error {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: var(--fs-small);
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--error);
+  }
+  .field__error :global(.field__error-icon) {
+    margin-block-start: 0.1em;
+    font-size: 1.2em;
+  }
+
+  /* ── Shared control styling (inputs, selects, textareas, stepper) ── */
+  .field :global(.control) {
+    inline-size: 100%;
+    min-block-size: 3.25rem; /* 52px — comfortably above the 44px target size */
+    padding: 0.75rem 1rem;
+    font-family: var(--ff-body);
+    font-size: 1.0625rem; /* ≥ 16px also stops iOS zooming in */
+    line-height: 1.4;
+    color: var(--text);
+    background-color: var(--field-bg);
+    border: 1px solid var(--field-border);
+    border-block-end-color: var(--rule-strong); /* engraved base line keeps the edge ≥ 3:1 */
+    border-radius: var(--radius-s);
+    box-shadow: inset 0 1px 2px rgb(6 18 6 / 0.08);
+    caret-color: var(--accent);
+    appearance: none;
+    transition:
+      border-color var(--dur-hover) var(--ease-out),
+      background-color var(--dur-hover) var(--ease-out);
+  }
+  .field :global(.control:hover) {
+    border-color: var(--rule-strong);
+  }
+  .field :global(.control:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-color: var(--rule-strong);
+  }
+  .field :global(.control[aria-invalid='true']) {
+    border-color: var(--error);
+    box-shadow: inset 0 0 0 1px var(--error);
+  }
+  .field :global(.control::placeholder) {
+    color: var(--text-muted);
+    opacity: 1;
+  }
+  .field :global(textarea.control) {
+    min-block-size: 7.5rem;
+    resize: vertical;
+  }
+  .field :global(.control--short) {
+    max-inline-size: 14rem;
+  }
+  .field :global(.control--medium) {
+    max-inline-size: 24rem;
+  }
+  /* Browser autofill: keep our colours instead of the default pale blue (unreadable on green). */
+  .field :global(.control:-webkit-autofill) {
+    -webkit-text-fill-color: var(--text);
+    box-shadow:
+      inset 0 0 0 100vmax var(--field-bg),
+      inset 0 0 0 100vmax var(--bg);
+    caret-color: var(--text);
+  }
+  @media (forced-colors: active) {
+    .field.is-invalid {
+      border-inline-start: 3px solid CanvasText;
+    }
+  }
+</style>

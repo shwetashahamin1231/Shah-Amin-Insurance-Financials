@@ -19,8 +19,8 @@ const years = yearsInBusiness();
         <span class="figures__label">Family-owned since</span>
       </li>
       <li class="figures__item" data-reveal>
-        <span class="figures__num num">7</span>
-        <span class="figures__label">Days a week · 11 AM – 7 PM</span>
+        <span class="figures__num num" data-count={SITE.licensedStates.length}>{SITE.licensedStates.length}</span>
+        <span class="figures__label">States where we’re licensed</span>
       </li>
       <li class="figures__item" data-reveal>
         <span class="figures__num num" data-count={SERVICES.length}>{SERVICES.length}</span>

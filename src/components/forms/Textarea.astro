@@ -1,0 +1,28 @@
+---
+/**
+ * Multi-line text box with label, hint and error (see Field.astro).
+ *   <Textarea id="book-message" name="message" label="Anything you’d like us to know?" />
+ * Optional by default; limited to 1,000 characters (the Apps Scripts keep the same limit).
+ */
+import Field from './Field.astro';
+
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  hint?: string;
+  required?: boolean;
+  optional?: boolean;
+  requiredMessage?: string;
+  rows?: number;
+  maxlength?: number;
+  value?: string;
+  class?: string;
+}
+
+const { id, name, label, hint, required = false, optional = !required, requiredMessage, rows = 4, maxlength = 1000, value = '', class: className } = Astro.props;
+---
+
+<Field id={id} label={label} hint={hint} optional={optional} validate="text" required={required} requiredMessage={requiredMessage} max={maxlength} class={className}>
+  <textarea class="control" id={id} name={name} rows={rows} maxlength={maxlength} required={required} aria-describedby={hint ? `${id}-hint` : undefined}>{value}</textarea>
+</Field>
