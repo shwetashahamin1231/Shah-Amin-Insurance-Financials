@@ -26,9 +26,11 @@ interface Props {
   intro?: boolean;
   /** Extra class on <body>. */
   bodyClass?: string;
+  /** Show the footer's booking band (set false on the booking page). */
+  footerCta?: boolean;
 }
 
-const { title, description, image, imageAlt, noindex = false, schema, intro = false, bodyClass } = Astro.props;
+const { title, description, image, imageAlt, noindex = false, schema, intro = false, bodyClass, footerCta = true } = Astro.props;
 
 // Prefetch likely next pages on hover; prerender only on a deliberate press.
 const speculationRules = JSON.stringify({
@@ -65,7 +67,7 @@ const speculationRules = JSON.stringify({
     <main id="main" tabindex="-1" data-intro-inert>
       <slot />
     </main>
-    <Footer />
+    <Footer cta={footerCta} />
     <MobileMenu />
     <CallFab />
     <slot name="overlay" />

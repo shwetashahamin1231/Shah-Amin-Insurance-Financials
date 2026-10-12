@@ -13,6 +13,11 @@ import { FOOTER_NAV, LEGAL_NAV, BOOK_HREF } from '../../data/nav';
 import { ADVISOR_LIST, HOURS, SITE, COMPLIANCE, formattedAddress, mapLinks, yearsInBusiness } from '../../config/site';
 import { url } from '../../lib/url';
 
+interface Props {
+  /** Show the "Book an Appointment" band (hidden on the booking page itself). */
+  cta?: boolean;
+}
+const { cta = true } = Astro.props;
 const address = formattedAddress();
 const maps = mapLinks();
 const year = new Date().getFullYear();
@@ -20,6 +25,7 @@ const year = new Date().getFullYear();
 
 <footer class="footer surface-deep" data-intro-inert data-footer>
   <!-- Call to action band -->
+  {cta && (
   <section class="footer__cta guilloche-field" aria-labelledby="footer-cta-title">
     <div class="container footer__cta-inner">
       <div class="footer__cta-copy">
@@ -46,6 +52,7 @@ const year = new Date().getFullYear();
       </div>
     </div>
   </section>
+  )}
 
   <div class="container footer__main">
     <div class="footer__brand">
