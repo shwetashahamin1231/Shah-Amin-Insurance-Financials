@@ -1,0 +1,81 @@
+---
+/** Upcoming events on the home page, featuring the next event's poster in a gold frame. */
+import Button from '../ui/Button.astro';
+import EventCard from '../events/EventCard.astro';
+import PosterFrame from '../events/PosterFrame.astro';
+import { EVENTS } from '../../data/events';
+import { sortEvents } from '../../lib/events';
+
+const { upcoming, past } = sortEvents(EVENTS);
+const list = (upcoming.length ? upcoming : past).slice(0, 2);
+const featured = [...upcoming, ...past].find((e) => e.poster);
+---
+
+<section class="events-teaser section surface-paper" aria-labelledby="events-teaser-title">
+  <div class="container events-teaser__inner">
+    {
+      featured?.poster && (
+        <div class="events-teaser__poster" data-reveal>
+          <div data-parallax="0.06">
+            <PosterFrame poster={featured.poster} title={featured.title} mode="link" href={`/events/${featured.slug}/`} sizes="(min-width: 64rem) 30vw, 86vw" />
+          </div>
+        </div>
+      )
+    }
+    <div class="events-teaser__copy">
+      <p class="eyebrow eyebrow--rule" data-reveal>Events &amp; seminars</p>
+      <h2 id="events-teaser-title" class="events-teaser__title" data-split>Join us — <em>you’re invited</em></h2>
+      <p class="events-teaser__lead" data-reveal>
+        Breakfasts, seminars and member gatherings where you can learn, ask questions and meet our team in person. Guests are always welcome.
+      </p>
+      <div class="events-teaser__list">
+        {
+          list.map((e) => (
+            <div data-reveal>
+              <EventCard event={e} />
+            </div>
+          ))
+        }
+      </div>
+      <div data-reveal><Button href="/events/" variant="outline" icon="arrow-right">See all events</Button></div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .events-teaser__inner {
+    display: grid;
+    gap: var(--space-3xl);
+    align-items: start;
+  }
+  @media (min-width: 64rem) {
+    .events-teaser__inner {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--space-4xl);
+    }
+    .events-teaser__poster {
+      position: sticky;
+      inset-block-start: calc(var(--header-h) + 3rem);
+    }
+  }
+  .events-teaser__poster {
+    max-inline-size: 30rem;
+    justify-self: center;
+    inline-size: 100%;
+  }
+  .events-teaser__copy > * + * {
+    margin-block-start: var(--space-m);
+  }
+  .events-teaser__title {
+    font-size: var(--fs-h1);
+  }
+  .events-teaser__lead {
+    color: var(--text-muted);
+    max-width: 36em;
+  }
+  .events-teaser__list {
+    display: grid;
+    gap: var(--space-m);
+    padding-block: var(--space-s);
+  }
+</style>

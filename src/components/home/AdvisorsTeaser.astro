@@ -1,0 +1,121 @@
+---
+/** Meet the advisors — portraits (placeholders until headshots arrive), titles and tap-to-call. */
+import { getCollection } from 'astro:content';
+import Portrait from '../team/Portrait.astro';
+import Button from '../ui/Button.astro';
+import { ADVISORS } from '../../config/site';
+import { url } from '../../lib/url';
+
+const team = (await getCollection('team')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<section class="advisors section surface-ivory" aria-labelledby="advisors-title">
+  <div class="container">
+    <div class="advisors__head">
+      <p class="eyebrow eyebrow--rule" data-reveal>Your advisors</p>
+      <h2 id="advisors-title" class="advisors__title" data-split>The people <em>behind the promise</em></h2>
+    </div>
+    <ul class="advisors__grid" role="list">
+      {
+        team.map((member, i) => {
+          const a = ADVISORS[member.data.advisor];
+          return (
+            <li class="advisor" data-reveal style={`--i:${i}`}>
+              <a class="advisor__portrait" href={url(`/about/#${member.id}`)} tabindex="-1" aria-hidden="true">
+                <Portrait initials={a.initials} name={a.name} headshot={member.data.headshot} alt={member.data.headshotAlt} />
+              </a>
+              <div class="advisor__body">
+                <h3 class="advisor__name">
+                  <a href={url(`/about/#${member.id}`)}>{a.name}</a>
+                </h3>
+                <p class="advisor__title">{a.title}</p>
+                {member.data.bioComingSoon && <p class="advisor__soon">Biography coming soon</p>}
+                <div class="advisor__actions">
+                  <Button href={`tel:${a.phoneHref}`} variant="outline" size="s" icon="phone" iconPosition="start">
+                    {a.phone}
+                  </Button>
+                  <Button href={`/about/#${member.id}`} variant="ghost" size="s" icon="arrow-right">
+                    {member.data.bioComingSoon ? 'Profile' : 'Read bio'}
+                  </Button>
+                </div>
+              </div>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .advisors__head {
+    display: grid;
+    gap: var(--space-m);
+    margin-block-end: var(--space-2xl);
+  }
+  .advisors__title {
+    font-size: var(--fs-h1);
+  }
+  .advisors__grid {
+    display: grid;
+    gap: var(--space-3xl) var(--space-2xl);
+  }
+  @media (min-width: 48rem) {
+    .advisors__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    /* Editorial offset: the second advisor sits lower. */
+    .advisor:nth-child(2) {
+      margin-block-start: var(--space-4xl);
+    }
+  }
+  .advisor {
+    display: grid;
+    gap: var(--space-l);
+    align-content: start;
+  }
+  @media (min-width: 75rem) {
+    .advisor {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+      align-items: end;
+    }
+  }
+  .advisor__portrait {
+    display: block;
+    max-inline-size: 22rem;
+  }
+  .advisor__body > * + * {
+    margin-block-start: var(--space-xs);
+  }
+  .advisor__name {
+    font-size: var(--fs-h3);
+  }
+  .advisor__name a {
+    color: inherit;
+    text-decoration: none;
+    background: linear-gradient(var(--gold-700), var(--gold-700)) 0 100% / 0 1px no-repeat;
+    transition: background-size 600ms var(--ease-silk);
+  }
+  .advisor__name a:hover {
+    background-size: 100% 1px;
+  }
+  .advisor__title {
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .advisor__soon {
+    font-family: var(--ff-display);
+    font-style: italic;
+    font-size: 1.5rem;
+    color: var(--text-muted);
+  }
+  .advisor__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s) var(--space-m);
+    padding-block-start: var(--space-xs);
+  }
+</style>

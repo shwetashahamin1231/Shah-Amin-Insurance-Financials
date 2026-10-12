@@ -1,0 +1,205 @@
+---
+/**
+ * Medicare spotlight with a live Annual Enrollment (Oct 15 – Dec 7) status.
+ * The status is rendered at build time and refreshed in the browser, so it
+ * is always correct for the visitor's "today" (Eastern Time).
+ */
+import Button from '../ui/Button.astro';
+import rosetteUrl from '../../assets/patterns/rosette-flower.svg?url';
+
+// Build-time default (the browser recalculates on load).
+function aepState(now = new Date()) {
+  const etToday = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(now); // YYYY-MM-DD
+  const y = Number(etToday.slice(0, 4));
+  const day = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
+  const today = day(etToday);
+  let start = day(`${y}-10-15`);
+  let end = day(`${y}-12-07`);
+  if (today > end) {
+    start = day(`${y + 1}-10-15`);
+    end = day(`${y + 1}-12-07`);
+  }
+  const daysTo = (t: number) => Math.round((t - today) / 86400000);
+  if (today < start) return { state: 'before', text: `Opens October 15 — in ${daysTo(start)} day${daysTo(start) === 1 ? '' : 's'}`, progress: 0 };
+  return { state: 'open', text: `Open now — ends December 7 (${daysTo(end)} day${daysTo(end) === 1 ? '' : 's'} left)`, progress: Math.min(1, (today - start) / (end - start)) };
+}
+const aep = aepState();
+---
+
+<section class="medicare section surface-deep" aria-labelledby="medicare-title">
+  <div class="medicare__rosette" style={`--rosette:url(${rosetteUrl})`} aria-hidden="true" data-parallax="0.1"></div>
+  <div class="container medicare__inner">
+    <div class="medicare__copy">
+      <p class="eyebrow eyebrow--rule" data-reveal>Medicare · Annual Enrollment</p>
+      <h2 id="medicare-title" class="medicare__title" data-split>Turning 65, or reviewing your <em>Medicare plan?</em></h2>
+      <p class="medicare__lead" data-reveal>
+        Medicare has many moving parts — Parts A, B, C and D, Medigap, enrollment windows and penalties. We explain your options in plain English and help you compare plans
+        side by side, so you can enroll with confidence.
+      </p>
+      <div class="medicare__actions" data-reveal>
+        <Button href="/book/" icon="calendar-check" iconPosition="start" magnetic>Book a Medicare review</Button>
+        <Button href="/medicare-101/" variant="outline" icon="arrow-right">Read Medicare 101</Button>
+      </div>
+    </div>
+
+    <div class="aep" data-reveal data-aep>
+      <p class="aep__label">Annual Enrollment Period</p>
+      <p class="aep__dates"><span>Oct 15</span><span class="aep__dash" aria-hidden="true"></span><span>Dec 7</span></p>
+      <div class="aep__track" aria-hidden="true">
+        <span class="aep__fill" style={`--progress:${aep.progress}`}></span>
+      </div>
+      <p class="aep__status" data-aep-status data-state={aep.state} aria-live="polite">
+        <span class="aep__dot" aria-hidden="true"></span>
+        <span data-aep-text>{aep.text}</span>
+      </p>
+      <p class="aep__note">During Annual Enrollment you can join, switch or drop a Medicare Advantage or Part D drug plan for the coming year.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Refresh the enrollment status for the visitor's actual date (Eastern Time).
+  const box = document.querySelector<HTMLElement>('[data-aep]');
+  if (box) {
+    const etToday = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+    const y = Number(etToday.slice(0, 4));
+    const day = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
+    const today = day(etToday);
+    let start = day(`${y}-10-15`);
+    let end = day(`${y}-12-07`);
+    if (today > end) {
+      start = day(`${y + 1}-10-15`);
+      end = day(`${y + 1}-12-07`);
+    }
+    const daysTo = (t: number) => Math.round((t - today) / 86400000);
+    const plural = (n: number) => (n === 1 ? '' : 's');
+    const before = today < start;
+    const text = before
+      ? `Opens October 15 — in ${daysTo(start)} day${plural(daysTo(start))}`
+      : `Open now — ends December 7 (${daysTo(end)} day${plural(daysTo(end))} left)`;
+    const status = box.querySelector<HTMLElement>('[data-aep-status]');
+    const label = box.querySelector<HTMLElement>('[data-aep-text]');
+    if (label && label.textContent !== text) label.textContent = text;
+    status?.setAttribute('data-state', before ? 'before' : 'open');
+    box.querySelector<HTMLElement>('.aep__fill')?.style.setProperty('--progress', String(before ? 0 : Math.min(1, (today - start) / (end - start))));
+  }
+</script>
+
+<style>
+  .medicare {
+    overflow: clip;
+  }
+  .medicare__rosette {
+    position: absolute;
+    inset-block-start: -10%;
+    inset-inline-start: -12rem;
+    inline-size: 44rem;
+    aspect-ratio: 1;
+    background: var(--gold-500);
+    opacity: 0.08;
+    -webkit-mask: var(--rosette) center / contain no-repeat;
+    mask: var(--rosette) center / contain no-repeat;
+    pointer-events: none;
+    z-index: -1;
+  }
+  .medicare__inner {
+    display: grid;
+    gap: var(--space-2xl);
+    align-items: center;
+  }
+  @media (min-width: 64rem) {
+    .medicare__inner {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: var(--space-3xl);
+    }
+  }
+  .medicare__copy > * + * {
+    margin-block-start: var(--space-m);
+  }
+  .medicare__title {
+    font-size: var(--fs-h1);
+    max-width: 14ch;
+  }
+  .medicare__lead {
+    color: var(--ivory-muted);
+    max-width: 36em;
+  }
+  .medicare__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+  }
+
+  .aep {
+    position: relative;
+    padding: clamp(1.75rem, 1.25rem + 2vw, 2.75rem);
+    background: linear-gradient(160deg, rgb(32 64 30 / 0.9), rgb(14 36 15 / 0.9));
+    border: 1px solid rgb(175 130 67 / 0.5);
+    outline: 1px solid rgb(175 130 67 / 0.2);
+    outline-offset: -9px;
+    box-shadow: var(--shadow-l);
+  }
+  .aep > * + * {
+    margin-block-start: var(--space-s);
+  }
+  .aep__label {
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--gold-400);
+  }
+  .aep__dates {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    font-family: var(--ff-display);
+    font-size: clamp(2.25rem, 1.8rem + 2vw, 3.25rem);
+    font-weight: 500;
+    line-height: 1;
+    color: var(--ivory-100);
+  }
+  .aep__dash {
+    flex: 1;
+    block-size: 1px;
+    background: var(--foil-hairline);
+  }
+  .aep__track {
+    position: relative;
+    block-size: 6px;
+    border-radius: 3px;
+    background: rgb(6 18 6 / 0.6);
+    box-shadow: inset 0 0 0 1px rgb(175 130 67 / 0.35);
+    overflow: hidden;
+  }
+  .aep__fill {
+    position: absolute;
+    inset: 0;
+    background: var(--foil-on-dark);
+    transform-origin: left;
+    transform: scaleX(max(0.02, var(--progress)));
+  }
+  .aep__status {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-block-size: 2.5rem;
+    font-weight: 500;
+    color: var(--gold-300);
+  }
+  .aep__dot {
+    inline-size: 0.6rem;
+    block-size: 0.6rem;
+    border-radius: 50%;
+    background: var(--gold-400);
+    box-shadow: 0 0 0 4px rgb(221 181 121 / 0.2);
+  }
+  .aep__status[data-state='open'] .aep__dot {
+    background: #9fd39a;
+    box-shadow: 0 0 0 4px rgb(159 211 154 / 0.2);
+  }
+  .aep__note {
+    font-size: var(--fs-small);
+    color: var(--ivory-muted);
+  }
+</style>

@@ -1,0 +1,72 @@
+---
+/** "At a glance" figures under the hero — only facts provided by the business. */
+import Odometer from '../ui/Odometer.astro';
+import { SITE, yearsInBusiness } from '../../config/site';
+import { SERVICES } from '../../data/services';
+
+const years = yearsInBusiness();
+---
+
+<section id="home-figures" class="figures" aria-label="Shah & Amin at a glance">
+  <div class="container">
+    <ul class="figures__list" role="list">
+      <li class="figures__item" data-reveal>
+        <span class="figures__num num" data-count={years}>{years}</span>
+        <span class="figures__label">Years serving families</span>
+      </li>
+      <li class="figures__item" data-reveal>
+        <span class="figures__num"><Odometer value={SITE.foundedYear} /></span>
+        <span class="figures__label">Family-owned since</span>
+      </li>
+      <li class="figures__item" data-reveal>
+        <span class="figures__num num">7</span>
+        <span class="figures__label">Days a week · 11 AM – 7 PM</span>
+      </li>
+      <li class="figures__item" data-reveal>
+        <span class="figures__num num" data-count={SERVICES.length}>{SERVICES.length}</span>
+        <span class="figures__label">Areas of coverage</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<style>
+  .figures {
+    position: relative;
+    padding-block: clamp(3rem, 2rem + 3vw, 4.5rem);
+    background: var(--green-900);
+    border-block: 1px solid rgb(175 130 67 / 0.3);
+  }
+  .figures__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-xl) var(--space-m);
+  }
+  @media (min-width: 64rem) {
+    .figures__list {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .figures__item {
+    display: grid;
+    gap: 0.6rem;
+    align-content: start;
+    padding-inline-start: var(--space-m);
+    border-inline-start: 1px solid rgb(175 130 67 / 0.45);
+  }
+  .figures__num {
+    font-family: var(--ff-display);
+    font-size: clamp(3rem, 2.2rem + 3.4vw, 5.25rem);
+    font-weight: 500;
+    line-height: 1;
+    color: var(--gold-400);
+    min-inline-size: 2ch;
+  }
+  .figures__label {
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ivory-muted);
+  }
+</style>

@@ -46,18 +46,34 @@ function stopLenis() {
 }
 
 /* ───────────── Reveals ───────────── */
+/** Lock elements in their final state and drop the inline animation styles. */
+export function markRevealed(els: Element[] | NodeListOf<Element>) {
+  els.forEach((el) => el.classList.add('is-revealed'));
+  gsap.set(els, { clearProps: 'opacity,transform' });
+}
+
 function initReveals() {
-  const els = gsap.utils.toArray<HTMLElement>('[data-reveal]');
+  // While the home intro plays, it reveals the hero itself.
+  const introPlaying = root.classList.contains('intro-play') && !root.classList.contains('intro-done');
+  const els = gsap.utils.toArray<HTMLElement>('[data-reveal]').filter((el) => !(introPlaying && el.closest('[data-intro-hero]')));
   if (!els.length) return;
   const reduced = isReducedMotion();
   ScrollTrigger.batch(els, {
-    start: 'top 90%',
+    start: 'top 97%',
     once: true,
     onEnter: (batch) =>
       gsap.fromTo(
         batch,
         { opacity: 0.01, y: reduced ? 0 : (_i, el: HTMLElement) => (el.dataset.reveal === 'fade' ? 0 : 26) },
-        { opacity: 1, y: 0, duration: reduced ? 0.45 : 1, ease: reduced ? 'power1.out' : 'expo.out', stagger: reduced ? 0 : 0.09, overwrite: true, clearProps: 'transform' },
+        {
+          opacity: 1,
+          y: 0,
+          duration: reduced ? 0.45 : 1,
+          ease: reduced ? 'power1.out' : 'expo.out',
+          stagger: reduced ? 0 : 0.09,
+          overwrite: true,
+          onComplete: () => markRevealed(batch as HTMLElement[]),
+        },
       ),
   });
 }
@@ -158,6 +174,22 @@ function initCounters() {
   });
 }
 
+/* ───────────── Odometers (each digit spins a full turn, then lands) ───────────── */
+function initOdometers() {
+  if (isReducedMotion()) return;
+  gsap.utils.toArray<HTMLElement>('[data-odometer]').forEach((el) => {
+    el.querySelectorAll<HTMLElement>('.odo__strip').forEach((strip, i) => {
+      const d = Number(getComputedStyle(strip.parentElement as HTMLElement).getPropertyValue('--d')) || 0;
+      // y: 0 overrides the CSS resting offset so only yPercent drives the spin.
+      gsap.fromTo(
+        strip,
+        { y: 0, yPercent: 0 },
+        { y: 0, yPercent: -(10 + d) * 5, duration: 2.1, ease: 'power3.inOut', delay: i * 0.12, scrollTrigger: { trigger: el, start: 'top 92%', once: true } },
+      );
+    });
+  });
+}
+
 /* ───────────── Parallax (decorative layers only) ───────────── */
 function initParallax() {
   if (isReducedMotion()) return;
@@ -204,8 +236,10 @@ function onMotionChange() {
       st.animation?.progress(1);
       st.kill();
     });
-    gsap.set('[data-reveal], [data-split], [data-hero-split]', { opacity: 1, y: 0 });
+    markRevealed(document.querySelectorAll('[data-reveal]'));
+    gsap.set('[data-split], [data-hero-split]', { opacity: 1 });
     gsap.set('[data-draw]', { strokeDashoffset: 0 });
+    gsap.set('.odo__strip', { clearProps: 'transform' });
     document.querySelectorAll<HTMLElement>('[data-rosette]').forEach((el) => el.style.setProperty('--sweep', '360deg'));
   } else {
     startLenis();
@@ -221,6 +255,7 @@ export async function initMotion(): Promise<void> {
   initReveals();
   initDraw();
   initCounters();
+  initOdometers();
   initParallax();
   initRosettes();
   initSplits();
@@ -228,14 +263,17 @@ export async function initMotion(): Promise<void> {
 
   if (root.classList.contains('intro-play')) {
     const { playIntro } = await import('./intro');
-    playIntro({ lenis, playHeroSplit });
+    playIntro({ lenis, playHeroSplit, markRevealed });
   }
 
   window.addEventListener('sa:motion-change', onMotionChange);
   window.addEventListener('sa:scroll-lock', () => lenis?.stop());
   window.addEventListener('sa:scroll-unlock', () => lenis?.start());
-  // Recalculate trigger positions after late layout changes (fonts, images).
-  window.addEventListener('load', () => ScrollTrigger.refresh(), { once: true });
+  // Evaluate every trigger now (fires reveals for content already in view), and
+  // again after late layout changes (fonts, images) if the page is still loading.
+  requestAnimationFrame(() => ScrollTrigger.refresh());
+  if (document.readyState !== 'complete') window.addEventListener('load', () => ScrollTrigger.refresh(), { once: true });
+  document.fonts?.ready.then(() => ScrollTrigger.refresh());
 }
 
 export { gsap, ScrollTrigger };

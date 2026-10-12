@@ -12,12 +12,12 @@
 }
 
 @layer base {
-  html.js [data-reveal],
+  html.js [data-reveal]:not(.is-revealed),
   html.js:not(.reduce-motion) [data-split],
   html.js:not(.reduce-motion) [data-hero-split] {
     opacity: 0.01;
   }
-  html.js:not(.reduce-motion) [data-reveal]:not([data-reveal='fade']) {
+  html.js:not(.reduce-motion) [data-reveal]:not([data-reveal='fade']):not(.is-revealed) {
     transform: translate3d(0, 26px, 0);
   }
   html.js:not(.reduce-motion) [data-draw] {
@@ -29,7 +29,7 @@
   }
 
   /* Failsafe: reveal everything if the motion script hasn't taken over. */
-  html.js:not(.motion-ready) :is([data-reveal], [data-split], [data-hero-split]) {
+  html.js:not(.motion-ready) :is([data-reveal]:not(.is-revealed), [data-split], [data-hero-split]) {
     animation: sa-failsafe-show 0.6s ease 2.6s forwards;
   }
   html.js:not(.motion-ready) [data-draw] {

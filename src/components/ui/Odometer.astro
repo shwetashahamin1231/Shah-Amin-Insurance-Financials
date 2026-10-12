@@ -1,0 +1,61 @@
+---
+/**
+ * Odometer-style number: each digit spins a full turn and lands on its value
+ * when scrolled into view (motion core: [data-odometer]). Without JS or with
+ * reduced motion the final number simply shows.
+ */
+interface Props {
+  value: number | string;
+  class?: string;
+}
+const { value, class: className } = Astro.props;
+const digits = String(value).split('');
+---
+
+<span class:list={['odo', className]} data-odometer>
+  <span class="visually-hidden">{value}</span>
+  <span class="odo__digits" aria-hidden="true">
+    {
+      digits.map((d) =>
+        /\d/.test(d) ? (
+          <span class="odo__digit" style={`--d:${d}`}>
+            <span class="odo__strip">
+              {[...'01234567890123456789'].map((n) => (
+                <span>{n}</span>
+              ))}
+            </span>
+          </span>
+        ) : (
+          <span>{d}</span>
+        ),
+      )
+    }
+  </span>
+</span>
+
+<style>
+  .odo {
+    display: inline-flex;
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+  .odo__digits {
+    display: inline-flex;
+  }
+  .odo__digit {
+    display: inline-block;
+    block-size: 1em;
+    line-height: 1;
+    overflow: hidden;
+  }
+  .odo__strip {
+    display: flex;
+    flex-direction: column;
+    /* 20 entries (0–9 twice); land on the second run so every digit can spin a full turn. */
+    transform: translateY(calc((10 + var(--d)) * -5%));
+  }
+  .odo__strip > span {
+    display: block;
+    block-size: 1em;
+    line-height: 1;
+  }
+</style>

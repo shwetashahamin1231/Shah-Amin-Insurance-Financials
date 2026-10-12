@@ -1,12 +1,33 @@
 ---
+/**
+ * Home page. Sections live in src/components/home/. The signature intro
+ * (Intro.astro) plays only on the first page of a visit.
+ */
 import BaseLayout from '../layouts/BaseLayout.astro';
-import PageHero from '../components/ui/PageHero.astro';
-import Button from '../components/ui/Button.astro';
+import Intro from '../components/home/Intro.astro';
+import Hero from '../components/home/Hero.astro';
+import Figures from '../components/home/Figures.astro';
+import Story from '../components/home/Story.astro';
+import ServicesIndex from '../components/home/ServicesIndex.astro';
+import MedicareSpotlight from '../components/home/MedicareSpotlight.astro';
+import EventsTeaser from '../components/home/EventsTeaser.astro';
+import ReviewsBand from '../components/home/ReviewsBand.astro';
+import AdvisorsTeaser from '../components/home/AdvisorsTeaser.astro';
+import { SITE } from '../config/site';
 ---
 
-<BaseLayout title="Shah & Amin Financial Services">
-  <PageHero eyebrow="Family-owned since 2000" title="Your family’s future, <em>in trusted hands.</em>" lead="Home page under construction — the full design arrives in Stage 1.">
-    <Button href="/book/" magnetic>Book an Appointment</Button>
-  </PageHero>
-  <section class="section surface-paper"><div class="container"><h2 data-split>Placeholder section</h2></div></section>
+<BaseLayout
+  title={SITE.name}
+  description="Family-owned since 2000: life insurance, annuities, IRAs, 401(k) rollovers, health insurance, Medicare plans, long-term care and disability income insurance — explained in plain English. Open 7 days."
+  intro
+>
+  <Hero />
+  <Figures />
+  <Story />
+  <ServicesIndex />
+  <MedicareSpotlight />
+  <EventsTeaser />
+  <ReviewsBand />
+  <AdvisorsTeaser />
+  <Intro slot="overlay" />
 </BaseLayout>

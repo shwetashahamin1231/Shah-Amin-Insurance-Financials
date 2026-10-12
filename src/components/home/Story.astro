@@ -1,0 +1,173 @@
+---
+/** "A family practice" story on linen paper, with an engraved certificate panel of principles. */
+import Button from '../ui/Button.astro';
+import Ornament from '../ui/Ornament.astro';
+import Logo from '../brand/Logo.astro';
+import { SITE } from '../../config/site';
+
+const principles = [
+  { n: 'I', title: 'We listen first', text: 'Your goals, your family and your budget come before any recommendation.' },
+  { n: 'II', title: 'We explain plainly', text: 'Clear answers without jargon — and time for every question.' },
+  { n: 'III', title: 'We stay close', text: 'A familiar voice to call whenever life, health or plans change.' },
+];
+---
+
+<section class="story section surface-paper" aria-labelledby="story-title">
+  <div class="container story__inner">
+    <div class="story__copy">
+      <p class="eyebrow eyebrow--rule" data-reveal>Our story</p>
+      <h2 id="story-title" class="story__title" data-split>A family practice, <em>built on trust</em></h2>
+      <div class="story__text prose" data-reveal>
+        <p class="story__drop">
+          Gautam Shah opened the doors of Shah &amp; Amin Financial Services in {SITE.foundedYear} with one promise: to treat every client like family. More than a quarter
+          century later, that promise is still how we work.
+        </p>
+        <p>
+          Today, Gautam and Shweta Shah Amin help individuals, couples and families make confident decisions about life insurance, retirement income, health coverage and Medicare
+          — explained in plain English, at a pace that suits you.
+        </p>
+        <p>We are open seven days a week, because the questions that matter most rarely wait for Monday.</p>
+      </div>
+      <div class="story__actions" data-reveal>
+        <Button href="/about/" variant="ghost" icon="arrow-right">Meet our advisors</Button>
+      </div>
+    </div>
+
+    <aside class="story__panel" aria-label="Our principles" data-reveal>
+      <div class="certificate">
+        <span class="certificate__corner certificate__corner--tl" aria-hidden="true"></span>
+        <span class="certificate__corner certificate__corner--tr" aria-hidden="true"></span>
+        <span class="certificate__corner certificate__corner--bl" aria-hidden="true"></span>
+        <span class="certificate__corner certificate__corner--br" aria-hidden="true"></span>
+        <div class="certificate__head">
+          <Logo size={72} compact href={null} />
+          <p class="certificate__est">Established <span class="num">{SITE.foundedYear}</span></p>
+          <Ornament width={160} />
+        </div>
+        <ol class="certificate__list" role="list">
+          {
+            principles.map((p) => (
+              <li>
+                <span class="certificate__num">{p.n}</span>
+                <div>
+                  <h3 class="certificate__title">{p.title}</h3>
+                  <p>{p.text}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<style>
+  .story__inner {
+    display: grid;
+    gap: var(--space-3xl);
+    align-items: center;
+  }
+  @media (min-width: 64rem) {
+    .story__inner {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: var(--space-4xl);
+    }
+  }
+  .story__copy > * + * {
+    margin-block-start: var(--space-m);
+  }
+  .story__title {
+    font-size: var(--fs-h1);
+    max-width: 12ch;
+  }
+  .story__text {
+    font-size: var(--fs-body);
+  }
+  /* Engraved drop cap on the first paragraph. */
+  .story__drop::first-letter {
+    float: left;
+    font-family: var(--ff-display);
+    font-size: 4.6em;
+    line-height: 0.82;
+    padding: 0.06em 0.12em 0 0;
+    color: var(--gold-700);
+    font-weight: 500;
+  }
+
+  .certificate {
+    position: relative;
+    padding: clamp(2rem, 1.5rem + 2vw, 3rem);
+    background: var(--ivory-50);
+    border: 1px solid rgb(141 97 39 / 0.45);
+    outline: 1px solid rgb(141 97 39 / 0.35);
+    outline-offset: -10px;
+    box-shadow: var(--shadow-m);
+  }
+  .certificate__corner {
+    position: absolute;
+    inline-size: 26px;
+    block-size: 26px;
+    border-color: var(--gold-700);
+    border-style: solid;
+    border-width: 0;
+  }
+  .certificate__corner--tl {
+    inset: 16px auto auto 16px;
+    border-block-start-width: 2px;
+    border-inline-start-width: 2px;
+  }
+  .certificate__corner--tr {
+    inset: 16px 16px auto auto;
+    border-block-start-width: 2px;
+    border-inline-end-width: 2px;
+  }
+  .certificate__corner--bl {
+    inset: auto auto 16px 16px;
+    border-block-end-width: 2px;
+    border-inline-start-width: 2px;
+  }
+  .certificate__corner--br {
+    inset: auto 16px 16px auto;
+    border-block-end-width: 2px;
+    border-inline-end-width: 2px;
+  }
+  .certificate__head {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-s);
+    text-align: center;
+    margin-block-end: var(--space-l);
+  }
+  .certificate__est {
+    font-family: var(--ff-display);
+    font-size: 1.5rem;
+    font-style: italic;
+    color: var(--gold-800);
+  }
+  .certificate__list {
+    display: grid;
+    gap: var(--space-m);
+  }
+  .certificate__list li {
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    gap: var(--space-s);
+    padding-block-start: var(--space-m);
+    border-block-start: 1px solid rgb(141 97 39 / 0.25);
+  }
+  .certificate__num {
+    font-family: var(--ff-display);
+    font-size: 1.75rem;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--gold-700);
+  }
+  .certificate__title {
+    font-size: 1.5rem;
+    margin-block-end: 0.25rem;
+  }
+  .certificate__list p {
+    color: var(--ink-muted);
+  }
+</style>

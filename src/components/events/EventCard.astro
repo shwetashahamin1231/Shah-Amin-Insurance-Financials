@@ -1,0 +1,225 @@
+---
+/**
+ * Event card with an engraved date block. Status (Upcoming / Today / Past
+ * Event) is rendered at build time and re-checked in the browser by
+ * src/scripts/event-status.ts using the data-* attributes below.
+ */
+import Icon from '../ui/Icon.astro';
+import Button from '../ui/Button.astro';
+import type { EventItem } from '../../data/events';
+import { dateParts, eventStatus, formatEventDate, formatEventTime, formatVenue, isRsvpOpen } from '../../lib/events';
+import { url } from '../../lib/url';
+
+interface Props {
+  event: EventItem;
+  headingLevel?: 'h2' | 'h3';
+  /** 'feature' adds the poster thumbnail column. */
+  variant?: 'row' | 'feature';
+}
+const { event, headingLevel = 'h3', variant = 'row' } = Astro.props;
+const H = headingLevel;
+const d = dateParts(event);
+const status = eventStatus(event);
+const rsvpOpen = isRsvpOpen(event);
+const venue = formatVenue(event.venue);
+const href = url(`/events/${event.slug}/`);
+const statusLabel = { upcoming: 'Upcoming', today: 'Today', past: 'Past Event' }[status];
+---
+
+<article
+  class:list={['event-card', `event-card--${variant}`, `is-${status}`]}
+  data-event-card
+  data-start={event.start}
+  data-end={event.end ?? ''}
+  data-rsvp-closes={event.rsvpCloses ?? event.start}
+  data-rsvp={event.rsvp ? '1' : '0'}
+>
+  <div class="event-card__date" aria-hidden="true">
+    <span class="event-card__month">{d.month}</span>
+    <span class="event-card__day">{d.day}</span>
+    <span class="event-card__weekday">{d.weekday}</span>
+  </div>
+
+  <div class="event-card__body">
+    <p class="event-card__status" data-event-status>{statusLabel}</p>
+    <H class="event-card__title"><a href={href}>{event.title}</a></H>
+    <ul class="event-card__meta" role="list">
+      <li><Icon name="calendar-blank" /> <span>{formatEventDate(event)}</span></li>
+      <li><Icon name="clock" /> <span>{formatEventTime(event)}</span></li>
+      {
+        venue && (
+          <li>
+            <Icon name="map-pin" />
+            <span>
+              {venue.name}
+              {venue.address && <span class="event-card__addr">{venue.address}</span>}
+            </span>
+          </li>
+        )
+      }
+    </ul>
+    {event.highlight && <p class="event-card__highlight">{event.highlight}</p>}
+    <p class="event-card__summary">{event.summary}</p>
+    <div class="event-card__actions">
+      <span class="event-card__rsvp" data-rsvp-action hidden={!rsvpOpen}>
+        <Button href={`/events/${event.slug}/#rsvp`} size="s" icon="arrow-right">RSVP</Button>
+      </span>
+      <span class="event-card__closed" data-rsvp-closed hidden={rsvpOpen || !event.rsvp}>RSVP closed</span>
+      <Button href={`/events/${event.slug}/`} variant="ghost" size="s">Event details</Button>
+    </div>
+  </div>
+</article>
+
+<script>
+  import '../../scripts/event-status';
+</script>
+
+<style>
+  .event-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    gap: var(--space-m);
+    padding: var(--space-l);
+    background: var(--bg-raised);
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow-s);
+    transition:
+      transform var(--dur-ui) var(--ease-out),
+      box-shadow var(--dur-ui) var(--ease-out),
+      border-color var(--dur-ui);
+  }
+  .event-card:hover {
+    transform: translateY(calc(-4px * var(--motion)));
+    box-shadow: var(--shadow-m);
+    border-color: var(--rule-strong);
+  }
+  @media (max-width: 30rem) {
+    .event-card {
+      grid-template-columns: minmax(0, 1fr);
+      padding: var(--space-m);
+    }
+    .event-card__date {
+      justify-self: start;
+    }
+  }
+
+  .event-card__date {
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 0.2rem;
+    padding: 0.85rem 0.5rem;
+    border: 1px solid var(--rule-strong);
+    outline: 1px solid var(--rule);
+    outline-offset: 3px;
+    text-align: center;
+    min-inline-size: 5.5rem;
+  }
+  .event-card__month {
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+  }
+  .event-card__day {
+    font-family: var(--ff-display);
+    font-size: 3rem;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--heading);
+  }
+  .event-card__weekday {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+  .event-card__body > * + * {
+    margin-block-start: var(--space-xs);
+  }
+  .event-card__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .event-card__status::before {
+    content: '';
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .is-past .event-card__status {
+    color: var(--text-muted);
+  }
+  .is-past .event-card__status::before {
+    background: transparent;
+    box-shadow: inset 0 0 0 1px currentColor;
+  }
+  .event-card__title {
+    font-size: var(--fs-h3);
+  }
+  .event-card__title a {
+    color: inherit;
+    text-decoration: none;
+  }
+  .event-card__title a::after {
+    /* Whole card clickable via the title link (keeps one link per card for screen readers). */
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+  .event-card__title a:focus-visible {
+    outline: none;
+  }
+  .event-card:has(.event-card__title a:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+  .event-card__meta {
+    display: grid;
+    gap: 0.35rem;
+    font-size: var(--fs-small);
+  }
+  .event-card__meta li {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+  }
+  .event-card__meta :global(.icon) {
+    margin-block-start: 0.2em;
+    color: var(--accent);
+  }
+  .event-card__addr {
+    display: block;
+    color: var(--text-muted);
+  }
+  .event-card__highlight {
+    font-family: var(--ff-display);
+    font-size: 1.5rem;
+    font-style: italic;
+    line-height: 1.25;
+    color: var(--accent-large);
+  }
+  .event-card__summary {
+    color: var(--text-muted);
+  }
+  .event-card__actions {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-s) var(--space-m);
+    padding-block-start: var(--space-xs);
+  }
+  .event-card__closed {
+    font-size: var(--fs-small);
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+</style>

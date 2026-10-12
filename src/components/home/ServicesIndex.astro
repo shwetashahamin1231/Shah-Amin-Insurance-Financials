@@ -1,0 +1,151 @@
+---
+/**
+ * Services as an engraved index (like a fine catalogue): sticky intro on the
+ * left, eight numbered entries on the right linking to each service page.
+ */
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import { SERVICES, ROMAN } from '../../data/services';
+import { url } from '../../lib/url';
+---
+
+<section class="services section guilloche-field" aria-labelledby="services-title">
+  <div class="container services__inner">
+    <div class="services__intro">
+      <p class="eyebrow eyebrow--rule" data-reveal>What we do</p>
+      <h2 id="services-title" class="services__title" data-split>Eight ways we <em>protect</em> what matters</h2>
+      <p class="services__lead" data-reveal>
+        From the day you start a family to the day you retire — and every chapter after — we help you choose coverage that fits, and explain every option along the way.
+      </p>
+      <div data-reveal><Button href="/services/" variant="outline" icon="arrow-right">All services</Button></div>
+    </div>
+
+    <ol class="services__list" role="list">
+      {
+        SERVICES.map((s, i) => (
+          <li class="services__item" data-reveal>
+            <a class="services__link" href={url(`/services/${s.slug}/`)}>
+              <span class="services__num" aria-hidden="true">
+                {ROMAN[i]}
+              </span>
+              <span class="services__body">
+                <span class="services__name">
+                  <Icon name={s.icon} class="services__icon" />
+                  {s.name}
+                </span>
+                <span class="services__summary">{s.summary}</span>
+              </span>
+              <Icon name="arrow-up-right" class="services__arrow" />
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .services__inner {
+    display: grid;
+    gap: var(--space-2xl);
+  }
+  @media (min-width: 64rem) {
+    .services__inner {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+      gap: var(--space-3xl);
+      align-items: start;
+    }
+    .services__intro {
+      position: sticky;
+      inset-block-start: calc(var(--header-h) + 3rem);
+    }
+  }
+  .services__intro > * + * {
+    margin-block-start: var(--space-m);
+  }
+  .services__title {
+    font-size: var(--fs-h1);
+  }
+  .services__lead {
+    color: var(--ivory-muted);
+    max-width: 30em;
+  }
+  .services__list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: var(--space-xl);
+  }
+  @media (min-width: 48rem) {
+    .services__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .services__item {
+    border-block-start: 1px solid rgb(175 130 67 / 0.35);
+  }
+  .services__link {
+    position: relative;
+    display: grid;
+    grid-template-columns: 3.25rem 1fr auto;
+    gap: var(--space-s);
+    padding-block: var(--space-l);
+    color: var(--ivory-100);
+    text-decoration: none;
+  }
+  /* Gold rule that draws across the top on hover. */
+  .services__link::before {
+    content: '';
+    position: absolute;
+    inset: -1px 0 auto 0;
+    block-size: 1px;
+    background: var(--foil-on-dark);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 700ms var(--ease-silk);
+  }
+  .services__link:hover::before,
+  .services__link:focus-visible::before {
+    transform: scaleX(1);
+  }
+  .services__num {
+    font-family: var(--ff-display);
+    font-size: 1.75rem;
+    font-weight: 500;
+    line-height: 1.1;
+    color: var(--gold-500);
+  }
+  .services__body {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .services__name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--ff-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.15;
+    transition: color var(--dur-hover) var(--ease-out);
+  }
+  .services__link:hover .services__name {
+    color: var(--gold-300);
+  }
+  .services__name :global(.services__icon) {
+    font-size: 1.4rem;
+    color: var(--gold-400);
+  }
+  .services__summary {
+    color: var(--ivory-muted);
+    font-size: var(--fs-small);
+    line-height: 1.6;
+  }
+  .services__link :global(.services__arrow) {
+    font-size: 1.4rem;
+    color: var(--gold-400);
+    transition: transform 500ms var(--ease-silk);
+  }
+  .services__link:hover :global(.services__arrow) {
+    transform: translate(calc(3px * var(--motion)), calc(-3px * var(--motion)));
+  }
+</style>

@@ -1,0 +1,96 @@
+---
+/**
+ * Advisor portrait in an arched frame. Until a headshot is added (in the
+ * advisor's Markdown file), shows an engraved monogram placeholder.
+ */
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  initials: string;
+  name: string;
+  headshot?: ImageMetadata;
+  alt?: string;
+  size?: 'm' | 'l';
+}
+const { initials, name, headshot, alt, size = 'm' } = Astro.props;
+---
+
+<div class:list={['portrait', `portrait--${size}`]}>
+  {
+    headshot ? (
+      <Picture src={headshot} alt={alt ?? `Portrait of ${name}`} widths={[360, 540, 720]} sizes="(min-width: 64rem) 26rem, 80vw" formats={['avif', 'webp']} class="portrait__img" />
+    ) : (
+      <div class="portrait__placeholder" role="img" aria-label={`Portrait of ${name} coming soon`}>
+        <span class="portrait__initials" aria-hidden="true">
+          {initials}
+        </span>
+        <span class="portrait__note" aria-hidden="true">
+          Portrait coming soon
+        </span>
+      </div>
+    )
+  }
+</div>
+
+<style>
+  .portrait {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    inline-size: 100%;
+    border-radius: 999px 999px 0 0 / 46% 46% 0 0;
+    overflow: hidden;
+    border: 1px solid var(--gold-600);
+    outline: 1px solid rgb(175 130 67 / 0.4);
+    outline-offset: 6px;
+    box-shadow: var(--shadow-m);
+    background: var(--green-900);
+  }
+  .portrait :global(picture),
+  .portrait :global(img) {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .portrait__placeholder {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: var(--space-s);
+    background:
+      radial-gradient(80% 60% at 50% 30%, rgb(80 113 75 / 0.45), transparent 70%),
+      var(--green-900);
+    isolation: isolate;
+  }
+  .portrait__placeholder::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--gold-500);
+    opacity: 0.12;
+    -webkit-mask: url('../../assets/patterns/rosette-flower.svg') center 38% / 92% no-repeat;
+    mask: url('../../assets/patterns/rosette-flower.svg') center 38% / 92% no-repeat;
+  }
+  .portrait__initials {
+    font-family: var(--ff-display);
+    font-size: clamp(3.5rem, 2.5rem + 4vw, 5.5rem);
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    background-image: var(--foil-on-dark);
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .portrait__note {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ivory-muted);
+  }
+</style>

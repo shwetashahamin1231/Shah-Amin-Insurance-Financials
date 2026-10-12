@@ -1,0 +1,99 @@
+---
+/**
+ * Home-page reviews. Shows real reviews from src/data/reviews.ts; until
+ * there are any, shows an elegant invitation to leave one (never invented).
+ */
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import Ornament from '../ui/Ornament.astro';
+import ReviewCard from '../reviews/ReviewCard.astro';
+import { REVIEWS } from '../../data/reviews';
+import { SITE } from '../../config/site';
+
+const featured = REVIEWS.slice(0, 3);
+const reviewHref = SITE.googleReviewUrl || '/reviews/';
+---
+
+<section class="reviews-band section" aria-labelledby="reviews-band-title">
+  <div class="container">
+    {
+      featured.length ? (
+        <div class="reviews-band__with">
+          <div class="reviews-band__head">
+            <p class="eyebrow eyebrow--rule" data-reveal>
+              Client stories
+            </p>
+            <h2 id="reviews-band-title" class="reviews-band__title" data-split>
+              Kind words from <em>our clients</em>
+            </h2>
+          </div>
+          <div class="auto-grid reviews-band__grid">
+            {featured.map((r) => (
+              <div data-reveal>
+                <ReviewCard review={r} />
+              </div>
+            ))}
+          </div>
+          <div class="cluster" data-reveal>
+            <Button href="/reviews/" variant="outline" icon="arrow-right">
+              Read all reviews
+            </Button>
+            <Button href={reviewHref} variant="ghost" icon="star" iconPosition="start">
+              Leave us a review
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div class="reviews-band__invite" data-reveal>
+          <Icon name="quotes" class="reviews-band__mark" size={52} />
+          <h2 id="reviews-band-title" class="reviews-band__title" data-split>
+            Your story could <em>help another family</em>
+          </h2>
+          <p class="reviews-band__lead">
+            We are gathering client reviews to share here. If we have helped you protect your family or plan for retirement, we would be honoured if you would tell others
+            about your experience.
+          </p>
+          <Ornament width={200} />
+          <div class="cluster reviews-band__actions">
+            <Button href={reviewHref} icon="star" iconPosition="start" magnetic>
+              Leave us a review
+            </Button>
+          </div>
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .reviews-band {
+    background-image: radial-gradient(70% 90% at 50% 0%, rgb(80 113 75 / 0.22), transparent 65%);
+  }
+  .reviews-band__with > * + * {
+    margin-block-start: var(--space-xl);
+  }
+  .reviews-band__head > * + * {
+    margin-block-start: var(--space-m);
+  }
+  .reviews-band__title {
+    font-size: var(--fs-h1);
+  }
+  .reviews-band__invite {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-m);
+    max-inline-size: 46rem;
+    margin-inline: auto;
+    text-align: center;
+  }
+  .reviews-band__invite :global(.reviews-band__mark) {
+    color: var(--gold-500);
+  }
+  .reviews-band__lead {
+    font-size: var(--fs-lead);
+    color: var(--ivory-muted);
+  }
+  .reviews-band__actions {
+    justify-content: center;
+  }
+</style>

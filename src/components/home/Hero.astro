@@ -1,0 +1,325 @@
+---
+/**
+ * Home hero — asymmetric: headline left, the real logo medallion inside an
+ * engraved gold rosette on the right. On the first page of a visit the
+ * intro (Intro.astro + scripts/motion/intro.ts) plays over it; otherwise
+ * the headline simply rises in.
+ * The medallion is painted at full opacity from the first frame (it is a
+ * priority image), so page-speed scores are not held back by the intro.
+ */
+import { Picture } from 'astro:assets';
+import medallion from '../../assets/brand/logo-medallion.png';
+import rosetteUrl from '../../assets/patterns/rosette-hero.svg?url';
+import Button from '../ui/Button.astro';
+import { ADVISOR_LIST, SITE, yearsInBusiness } from '../../config/site';
+---
+
+<section class="hero surface-depth" data-intro-hero aria-labelledby="hero-title">
+  <div class="hero__sweep" aria-hidden="true"></div>
+  <div class="container hero__inner">
+    <div class="hero__copy">
+      <p class="eyebrow eyebrow--rule hero__eyebrow" data-reveal="fade">Family-owned · Since {SITE.foundedYear}</p>
+      <h1 id="hero-title" class="hero__title display" data-hero-split>
+        Your family’s future,<br /> <em>in trusted hands.</em>
+      </h1>
+      <p class="lead hero__lead" data-reveal>
+        Life insurance, retirement income, health coverage and Medicare guidance — from a family practice that has stood beside its clients for {yearsInBusiness()} years.
+      </p>
+      <div class="hero__actions" data-reveal>
+        <Button href="/book/" size="l" magnetic icon="calendar-check" iconPosition="start">Book an Appointment</Button>
+        <Button href="/services/" variant="outline" size="l">Explore our services</Button>
+      </div>
+      <p class="hero__call" data-reveal>
+        <span class="hero__call-label">Prefer to talk?</span>
+        {
+          ADVISOR_LIST.map((a, i) => (
+            <>
+              {i > 0 && <span class="hero__call-sep" aria-hidden="true">·</span>}
+              <a href={`tel:${a.phoneHref}`} class="hero__call-link">
+                Call {a.firstName} <span class="num">{a.phone}</span>
+              </a>
+            </>
+          ))
+        }
+      </p>
+    </div>
+
+    <div class="hero__art">
+      <div class="hero__seal" data-hero-seal>
+        <div class="hero__rosette" style={`--rosette:url(${rosetteUrl})`} data-rosette aria-hidden="true"></div>
+        <div class="hero__ring hero__ring--outer" aria-hidden="true"></div>
+        <div class="hero__ring hero__ring--inner" aria-hidden="true"></div>
+        <div class="hero__medallion" data-hero-medallion>
+          <Picture
+            src={medallion}
+            alt="Shah & Amin Financial Services logo: an S&A monogram in deep green and gold with a rising arrow, inside a double ring"
+            widths={[280, 380, 480, 640, 800]}
+            sizes="(min-width: 64rem) 30vw, (min-width: 48rem) 46vw, 66vw"
+            formats={['avif', 'webp']}
+            priority
+            class="hero__medallion-img"
+          />
+          <span class="hero__shine" aria-hidden="true"></span>
+        </div>
+        <p class="hero__est" aria-hidden="true"><span>Est.</span> {SITE.foundedYear}</p>
+      </div>
+    </div>
+  </div>
+
+  <a href="#home-figures" class="hero__scroll" aria-label="Scroll to learn more">
+    <span class="hero__scroll-line" aria-hidden="true"></span>
+    <span class="hero__scroll-text">Scroll</span>
+  </a>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-block-size: min(100svh, 62rem);
+    display: grid;
+    align-items: center;
+    padding-block: calc(var(--header-total) + clamp(2rem, 1rem + 3vw, 4rem)) clamp(4.5rem, 3rem + 4vw, 7rem);
+    overflow: clip;
+    isolation: isolate;
+  }
+  /* A soft diagonal band of light that drifts slowly across the green. */
+  .hero__sweep {
+    position: absolute;
+    inset: -30% -60%;
+    z-index: -1;
+    background: linear-gradient(105deg, transparent 38%, rgb(239 203 144 / 0.07) 47%, rgb(246 226 184 / 0.11) 50%, rgb(239 203 144 / 0.07) 53%, transparent 62%);
+    transform: translateX(-28%);
+    animation: hero-drift 26s var(--ease-inout) 3.2s infinite alternate;
+    pointer-events: none;
+  }
+  @keyframes hero-drift {
+    to {
+      transform: translateX(28%);
+    }
+  }
+  :global(.reduce-motion) .hero__sweep {
+    animation: none;
+  }
+
+  .hero__inner {
+    display: grid;
+    gap: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+    align-items: center;
+  }
+  @media (min-width: 64rem) {
+    .hero__inner {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    }
+  }
+  @media (min-width: 75rem) {
+    .hero__inner {
+      grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+    }
+  }
+
+  .hero__copy > * + * {
+    margin-block-start: var(--space-m);
+  }
+  .hero__title {
+    font-size: clamp(3rem, 1.8rem + 4.2vw, 5.5rem); /* 48 → 88px */
+    font-weight: 500;
+  }
+  .hero__title :global(em) {
+    display: inline-block;
+  }
+  .hero__lead {
+    color: var(--ivory-muted);
+    max-width: 34em;
+  }
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+    padding-block-start: var(--space-xs);
+  }
+  .hero__call {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.75rem;
+    font-size: var(--fs-small);
+    color: var(--ivory-muted);
+  }
+  .hero__call-label {
+    font-weight: 500;
+    color: var(--gold-400);
+  }
+  .hero__call-sep {
+    color: var(--gold-600);
+  }
+  @media (max-width: 30rem) {
+    .hero__call {
+      display: grid;
+      justify-items: start;
+      gap: 0;
+    }
+    .hero__call-sep {
+      display: none;
+    }
+  }
+  .hero__call-link {
+    display: inline-flex;
+    gap: 0.4em;
+    align-items: center;
+    min-block-size: 44px;
+    color: var(--ivory-100);
+    text-decoration: underline;
+    text-decoration-color: rgb(175 130 67 / 0.55);
+    text-underline-offset: 0.25em;
+  }
+  .hero__call-link:hover {
+    color: var(--gold-300);
+  }
+
+  /* ── The seal: rosette + rings + medallion ── */
+  .hero__art {
+    display: grid;
+    place-items: center;
+  }
+  .hero__seal {
+    position: relative;
+    inline-size: min(100%, 34rem);
+    flex: none;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+  }
+  @media (max-width: 63.99rem) {
+    .hero__seal {
+      inline-size: min(84vw, 28rem);
+    }
+  }
+  @media (min-width: 75rem) {
+    /* The seal grows past its narrow column into the margin. */
+    .hero__seal {
+      inline-size: min(128%, 34rem);
+      margin-inline: -8% -20%;
+    }
+  }
+  .hero__rosette {
+    position: absolute;
+    inset: 0;
+    background: var(--gold-400);
+    opacity: 0.5;
+    -webkit-mask: var(--rosette) center / contain no-repeat, conic-gradient(from -90deg, #000 var(--sweep), transparent calc(var(--sweep) + 0.5deg));
+    mask: var(--rosette) center / contain no-repeat, conic-gradient(from -90deg, #000 var(--sweep), transparent calc(var(--sweep) + 0.5deg));
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+  .hero__ring {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .hero__ring--outer {
+    inset: 3%;
+    border: 1px solid rgb(175 130 67 / 0.35);
+  }
+  .hero__ring--inner {
+    inset: 21%;
+    border: 1px solid rgb(221 181 121 / 0.55);
+    box-shadow: 0 0 0 6px rgb(14 36 15 / 0.35);
+  }
+  .hero__medallion {
+    position: relative;
+    inline-size: 56%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 1px rgb(175 130 67 / 0.7),
+      0 24px 60px -18px rgb(0 0 0 / 0.75),
+      0 0 0 10px rgb(6 18 6 / 0.25);
+  }
+  .hero__medallion :global(picture),
+  .hero__medallion :global(img) {
+    inline-size: 100%;
+    block-size: 100%;
+  }
+  /* Foil shimmer that sweeps across the medallion (played by the intro / on hover). */
+  .hero__shine {
+    position: absolute;
+    inset: -20%;
+    background: linear-gradient(115deg, transparent 40%, rgb(255 244 214 / 0.0) 44%, rgb(255 244 214 / 0.55) 50%, rgb(255 244 214 / 0) 56%, transparent 60%);
+    mix-blend-mode: soft-light;
+    transform: translateX(-70%);
+    pointer-events: none;
+  }
+  .hero__seal:hover .hero__shine {
+    transition: transform 1.4s var(--ease-silk);
+    transform: translateX(70%);
+  }
+  :global(.reduce-motion) .hero__seal:hover .hero__shine {
+    transition: none;
+    transform: translateX(-70%);
+  }
+  .hero__est {
+    position: absolute;
+    inset-block-end: 4%;
+    inset-inline-end: 2%;
+    font-family: var(--ff-display);
+    font-size: 1.5rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--gold-500);
+  }
+  .hero__est span {
+    font-style: italic;
+    color: var(--gold-400);
+  }
+
+  .hero__scroll {
+    position: absolute;
+    inset-block-end: 1.25rem;
+    inset-inline-start: 50%;
+    translate: -50% 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--gold-400);
+    text-decoration: none;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+  @media (min-width: 64rem) and (min-height: 46rem) {
+    .hero__scroll {
+      display: flex;
+    }
+  }
+  .hero__scroll-line {
+    position: relative;
+    inline-size: 1px;
+    block-size: 2.75rem;
+    background: rgb(175 130 67 / 0.35);
+    overflow: hidden;
+  }
+  .hero__scroll-line::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold-300);
+    transform: translateY(-100%);
+    animation: scroll-cue 2.6s var(--ease-inout) 3.4s 4;
+  }
+  @keyframes scroll-cue {
+    0% {
+      transform: translateY(-100%);
+    }
+    55%,
+    100% {
+      transform: translateY(100%);
+    }
+  }
+  :global(.reduce-motion) .hero__scroll-line::after {
+    animation: none;
+    transform: none;
+    opacity: 0.6;
+  }
+</style>

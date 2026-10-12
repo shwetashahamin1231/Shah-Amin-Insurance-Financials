@@ -1,0 +1,111 @@
+---
+/**
+ * Signature intro curtain (home page, first page of a visit only).
+ * Shown from the very first frame when the inline head script adds
+ * `html.intro-play`; never shown without JavaScript or with reduced motion.
+ * The gold line art (traced from the real logo) is drawn exactly over the
+ * hero medallion by scripts/motion/intro.ts, then the curtain fades to
+ * reveal the real logo beneath the lines.
+ */
+import { LINEART_GROUPS, LINEART_VIEWBOX } from '../brand/logo-lineart';
+
+const order = ['rings', 'monogram', 'wordmark', 'tagline', 'leaf'] as const;
+---
+
+<div class="intro" data-intro>
+  <div class="intro__curtain" data-intro-curtain aria-hidden="true">
+    <div class="intro__guilloche"></div>
+  </div>
+  <svg class="intro__lineart" viewBox={LINEART_VIEWBOX} data-intro-lineart aria-hidden="true" focusable="false">
+    {
+      order.map((group) => (
+        <g data-group={group}>
+          {LINEART_GROUPS[group].map((d) => (
+            <path d={d} pathLength="1" />
+          ))}
+        </g>
+      ))
+    }
+  </svg>
+  <button type="button" class="intro__skip" data-intro-skip>Skip intro</button>
+</div>
+
+<script is:inline>
+  // Keep keyboard focus out of the page while the curtain is up.
+  if (document.documentElement.classList.contains('intro-play')) {
+    document.querySelectorAll('[data-intro-inert]').forEach(function (el) {
+      el.inert = true;
+    });
+  }
+</script>
+
+<style>
+  .intro {
+    display: none;
+  }
+  :global(html.intro-play:not(.intro-done)) .intro {
+    display: block;
+  }
+  .intro__curtain {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-intro);
+    background:
+      radial-gradient(70% 60% at 50% 45%, var(--green-800), var(--green-900) 70%, var(--green-950));
+  }
+  .intro__guilloche {
+    position: absolute;
+    inset: 0;
+    background: var(--gold-500);
+    opacity: 0.06;
+    -webkit-mask: url('../../assets/patterns/guilloche-tile.svg') 0 0 / 240px repeat;
+    mask: url('../../assets/patterns/guilloche-tile.svg') 0 0 / 240px repeat;
+  }
+  .intro__lineart {
+    position: fixed;
+    /* Positioned over the hero medallion by the intro script (CSS vars below). */
+    inset-block-start: var(--lineart-top, 50%);
+    inset-inline-start: var(--lineart-left, 50%);
+    inline-size: var(--lineart-size, min(60vw, 26rem));
+    block-size: var(--lineart-size, min(60vw, 26rem));
+    translate: var(--lineart-translate, -50% -50%);
+    z-index: calc(var(--z-intro) + 1);
+    overflow: visible;
+    pointer-events: none;
+  }
+  .intro__lineart path {
+    fill: none;
+    stroke: var(--gold-400);
+    stroke-width: 2; /* viewBox units (720) — renders ≈1px at hero size */
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  .intro__skip {
+    position: fixed;
+    inset-block-end: max(1.5rem, env(safe-area-inset-bottom));
+    inset-inline-end: max(1.5rem, env(safe-area-inset-right));
+    z-index: calc(var(--z-intro) + 2);
+    min-block-size: 44px;
+    padding: 0.6rem 1.1rem;
+    color: var(--ivory-100);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border-radius: var(--radius-s);
+    box-shadow: inset 0 0 0 1px rgb(175 130 67 / 0.55);
+    background: rgb(6 18 6 / 0.35);
+    opacity: 0;
+    animation: intro-skip-in 0.5s var(--ease-out) 0.4s forwards;
+  }
+  .intro__skip:hover {
+    color: var(--gold-300);
+  }
+  @keyframes intro-skip-in {
+    to {
+      opacity: 1;
+    }
+  }
+</style>
