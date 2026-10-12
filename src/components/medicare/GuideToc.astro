@@ -1,0 +1,243 @@
+---
+/**
+ * "On this page" table of contents for long guides.
+ *  • Large screens: a dark engraved plate that stays in view in the left rail,
+ *    with the current section highlighted and a thin reading-progress line.
+ *  • Phones/tablets: a slim bar under the header showing the current section;
+ *    tap it to open the full list.
+ * The page decides where it sits (see .guide__rail in medicare-101.astro).
+ * Behaviour: src/scripts/medicare/toc.ts. Without JavaScript it is a plain list.
+ *   <GuideToc sections={[{ id: 'basics', label: 'What Medicare is' }, …]} />
+ */
+import Icon from '../ui/Icon.astro';
+
+interface Props {
+  sections: { id: string; label: string }[];
+}
+const { sections } = Astro.props;
+---
+
+<nav class="toc" aria-label="On this page" data-toc>
+  <button type="button" class="toc__toggle" aria-expanded="false" aria-controls="toc-list" data-toc-toggle>
+    <span class="toc__toggle-label">On this page</span>
+    <span class="toc__current" data-toc-current>{sections[0]?.label}</span>
+    <Icon name="caret-down" class="toc__caret" />
+  </button>
+
+  <p class="toc__title" aria-hidden="true">On this page</p>
+
+  <div class="toc__body">
+    <span class="toc__progress" aria-hidden="true"><span class="toc__progress-bar"></span></span>
+    <ol class="toc__list" id="toc-list" role="list" data-toc-list data-lenis-prevent>
+      {
+        sections.map((s, i) => (
+          <li>
+            <a class="toc__link" href={`#${s.id}`} data-toc-link data-label={s.label}>
+              <span class="toc__num" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <span class="toc__label">{s.label}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</nav>
+
+<script>
+  import '../../scripts/medicare/toc';
+</script>
+
+<style>
+  .toc {
+    --toc-bg: var(--green-900);
+    position: relative;
+    color: var(--ivory-100);
+    background: var(--toc-bg);
+    border: 1px solid rgb(175 130 67 / 0.45);
+    box-shadow: var(--shadow-m);
+    pointer-events: auto;
+  }
+
+  /* ── Phones & tablets: slim bar + dropdown list ── */
+  .toc__toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    inline-size: 100%;
+    min-block-size: 3.25rem;
+    padding: 0.5rem var(--space-s);
+    text-align: start;
+    color: inherit;
+  }
+  .toc__toggle-label {
+    flex: none;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold-400);
+  }
+  .toc__current {
+    flex: 1;
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .toc__toggle :global(.toc__caret) {
+    flex: none;
+    font-size: 1.25rem;
+    color: var(--gold-400);
+    transition: transform var(--dur-ui) var(--ease-silk);
+  }
+  .toc.is-open .toc__toggle :global(.toc__caret) {
+    transform: rotate(180deg);
+  }
+  .toc__title {
+    display: none;
+  }
+  .toc__body {
+    position: relative;
+  }
+  :global(html.js) .toc__body {
+    position: absolute;
+    inset: 100% -1px auto -1px;
+    display: none;
+    background: var(--toc-bg);
+    border: 1px solid rgb(175 130 67 / 0.45);
+    border-block-start: 0;
+    box-shadow: var(--shadow-l);
+  }
+  :global(html.js) .toc.is-open .toc__body {
+    display: block;
+  }
+  .toc__list {
+    display: grid;
+    max-block-size: min(65vh, 32rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--space-2xs) 0;
+  }
+  .toc__link {
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-xs);
+    min-block-size: 2.75rem;
+    padding: 0.6rem var(--space-s);
+    color: var(--ivory-muted);
+    text-decoration: none;
+    line-height: 1.35;
+    transition: color var(--dur-hover) var(--ease-out);
+  }
+  .toc__link:hover {
+    color: var(--ivory-100);
+  }
+  .toc__link::before {
+    content: '';
+    position: absolute;
+    inset-block: 0.55rem;
+    inset-inline-start: 0;
+    inline-size: 2px;
+    background: var(--gold-400);
+    transform: scaleY(0);
+    transition: transform var(--dur-ui) var(--ease-silk);
+  }
+  .toc__link.is-active {
+    color: var(--gold-400);
+  }
+  .toc__link.is-active::before {
+    transform: scaleY(1);
+  }
+  .toc__num {
+    flex: none;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--gold-500);
+    font-variant-numeric: tabular-nums;
+  }
+  .toc__progress {
+    display: none;
+  }
+
+  /* ── Large screens: the plate in the left rail ── */
+  @media (min-width: 64rem) {
+    .toc {
+      padding: var(--space-l) 0 var(--space-m);
+    }
+    .toc::before {
+      content: '';
+      position: absolute;
+      inset: 5px;
+      border: 1px solid rgb(175 130 67 / 0.18);
+      pointer-events: none;
+    }
+    .toc__toggle {
+      display: none;
+    }
+    .toc__title {
+      display: block;
+      padding-inline: var(--space-m);
+      margin-block-end: var(--space-xs);
+      font-size: var(--fs-label);
+      font-weight: 500;
+      letter-spacing: var(--tracking-label);
+      text-transform: uppercase;
+      color: var(--gold-400);
+    }
+    :global(html.js) .toc__body,
+    .toc__body {
+      position: relative;
+      inset: auto;
+      display: block;
+      border: 0;
+      box-shadow: none;
+      background: none;
+    }
+    .toc__list {
+      max-block-size: none;
+      overflow: visible;
+      padding: 0;
+    }
+    .toc__link {
+      padding-inline: var(--space-m);
+    }
+
+    /* Reading progress (browsers with scroll-driven animations; others simply skip it). */
+    @supports (animation-timeline: view()) {
+      .toc__progress {
+        position: absolute;
+        display: block;
+        inset-block: 0.55rem;
+        inset-inline-start: 0;
+        inline-size: 1px;
+        background: rgb(175 130 67 / 0.25);
+      }
+      .toc__progress-bar {
+        position: absolute;
+        inset: 0;
+        background: rgb(221 181 121 / 0.55);
+        transform-origin: top;
+        animation: toc-progress linear both;
+        animation-timeline: --guide;
+        animation-range: contain 0% contain 100%;
+      }
+    }
+  }
+  @keyframes toc-progress {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+  :global(html.reduce-motion) .toc__link::before,
+  :global(html.reduce-motion) .toc :global(.toc__caret) {
+    transition: none;
+  }
+</style>

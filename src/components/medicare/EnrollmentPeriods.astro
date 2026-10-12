@@ -1,0 +1,248 @@
+---
+/**
+ * Medicare enrollment periods.
+ *  • A year "ruler" (visual summary, hidden from screen readers) with the two
+ *    yearly windows and a marker for today.
+ *  • Cards for the yearly windows, each with a live status
+ *    ("Opens in N days" / "Open now — ends in N days"), and cards for the
+ *    windows that depend on your own dates.
+ * Text: ENROLLMENT_PERIODS in src/data/medicare.ts. Live updates:
+ * src/scripts/medicare/periods.ts (via PeriodStatus).
+ */
+import PeriodStatus from './PeriodStatus.astro';
+import Icon from '../ui/Icon.astro';
+import { ENROLLMENT_PERIODS } from '../../data/medicare';
+import { MONTHS_SHORT, todayET } from '../../scripts/medicare/logic';
+
+const yearly = ENROLLMENT_PERIODS.filter((p) => p.yearly);
+const personal = ENROLLMENT_PERIODS.filter((p) => !p.yearly);
+
+/** Position of a date along the year, as a percentage (365-day year). */
+const dayOfYear = (m: number, d: number) => (Date.UTC(2025, m - 1, d) - Date.UTC(2025, 0, 1)) / 86_400_000;
+const pct = (m: number, d: number) => Math.round((dayOfYear(m, d) / 365) * 1000) / 10;
+
+// Windows that share the same dates are drawn once (General Enrollment + MA Open Enrollment).
+const bars = [...new Map(yearly.map((p) => [`${p.yearly!.start.join('-')}_${p.yearly!.end.join('-')}`, p])).values()].map((p) => {
+  const [sm, sd] = p.yearly!.start;
+  const [em, ed] = p.yearly!.end;
+  return { from: pct(sm, sd), to: pct(em, ed) + 0.3, label: `${MONTHS_SHORT[sm - 1]} ${sd} – ${MONTHS_SHORT[em - 1]} ${ed}` };
+});
+const today = todayET();
+---
+
+<div class="periods">
+  <div class="ruler" aria-hidden="true">
+    <div class="ruler__track">
+      {bars.map((b) => <span class="ruler__bar" style={`--from:${b.from}%;--to:${b.to}%`}><span class="ruler__bar-label">{b.label}</span></span>)}
+      <span class="ruler__today" style={`--today:${pct(today.m, today.d)}%`} data-year-today>
+        <span class="ruler__today-label">Today</span>
+      </span>
+    </div>
+    <div class="ruler__months">{MONTHS_SHORT.map((m) => <span>{m}</span>)}</div>
+  </div>
+
+  <h3 class="periods__group-title">Every year</h3>
+  <ul class="periods__grid" role="list">
+    {
+      yearly.map((p) => (
+        <li class="pcard" data-reveal>
+          <div class="pcard__head">
+            <h4 class="pcard__name">
+              {p.name}
+              {p.abbr && <span class="pcard__abbr"> ({p.abbr})</span>}
+            </h4>
+            <p class="pcard__when">{p.when}</p>
+            <PeriodStatus start={p.yearly!.start} end={p.yearly!.end} />
+          </div>
+          <dl class="pcard__facts">
+            <div>
+              <dt>What you can do</dt>
+              <dd>{p.what}</dd>
+            </div>
+            <div>
+              <dt>Changes take effect</dt>
+              <dd>{p.effective}</dd>
+            </div>
+          </dl>
+        </li>
+      ))
+    }
+  </ul>
+
+  <h3 class="periods__group-title">Based on your own dates</h3>
+  <ul class="periods__grid" role="list">
+    {
+      personal.map((p) => (
+        <li class="pcard pcard--personal" data-reveal>
+          <div class="pcard__head">
+            <h4 class="pcard__name">
+              {p.name}
+              {p.abbr && <span class="pcard__abbr"> ({p.abbr})</span>}
+            </h4>
+            <p class="pcard__when">{p.when}</p>
+            <p class="pcard__tag">
+              <Icon name="user-circle" /> Depends on your dates
+            </p>
+          </div>
+          <dl class="pcard__facts">
+            <div>
+              <dt>What you can do</dt>
+              <dd>{p.what}</dd>
+            </div>
+            <div>
+              <dt>Changes take effect</dt>
+              <dd>{p.effective}</dd>
+            </div>
+          </dl>
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<style>
+  .periods {
+    display: grid;
+    gap: var(--space-l);
+  }
+
+  /* ── Year ruler ── */
+  .ruler {
+    display: grid;
+    gap: var(--space-2xs);
+    padding-block: var(--space-xl) var(--space-s);
+  }
+  .ruler__track {
+    position: relative;
+    block-size: 2.75rem;
+    background: repeating-linear-gradient(90deg, var(--rule) 0 1px, transparent 1px calc(100% / 12));
+    border-block: 1px solid var(--rule);
+  }
+  .ruler__bar {
+    position: absolute;
+    inset-block: 0.45rem;
+    inset-inline-start: var(--from);
+    inline-size: calc(var(--to) - var(--from));
+    display: flex;
+    align-items: center;
+    padding-inline: 0.5rem;
+    overflow: hidden;
+    background: var(--green-800);
+    box-shadow: inset 0 0 0 1px var(--gold-600);
+  }
+  .ruler__bar-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--ivory-100);
+  }
+  .ruler__today {
+    position: absolute;
+    inset-block: -0.6rem;
+    inset-inline-start: var(--today);
+    inline-size: 2px;
+    margin-inline-start: -1px;
+    background: var(--garnet);
+  }
+  .ruler__today-label {
+    position: absolute;
+    inset-block-end: 100%;
+    inset-inline-start: 50%;
+    translate: -50% -0.2rem;
+    padding: 0.05rem 0.4rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--ivory-50);
+    background: var(--garnet);
+  }
+  .ruler__months {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+  .ruler__months span {
+    padding-inline-start: 0.25rem;
+  }
+  @media (max-width: 40rem) {
+    .ruler__bar-label {
+      font-size: 0;
+    }
+    .ruler__months {
+      font-size: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+  }
+
+  /* ── Cards ── */
+  .periods__group-title {
+    font-family: var(--ff-body);
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--accent);
+    padding-block-end: var(--space-xs);
+    border-block-end: 1px solid var(--rule);
+  }
+  .periods__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+    gap: var(--space-m);
+  }
+  .pcard {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: var(--space-m);
+    padding: clamp(1.5rem, 1.25rem + 1vw, 2rem);
+    background: var(--bg-raised);
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow-s);
+  }
+  .pcard__head {
+    display: grid;
+    gap: var(--space-xs);
+    justify-items: start;
+  }
+  .pcard__name {
+    font-size: var(--fs-h4);
+  }
+  .pcard__abbr {
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+  .pcard__when {
+    color: var(--text);
+  }
+  .pcard__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.45rem 0.8rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    box-shadow: inset 0 0 0 1px var(--rule);
+  }
+  .pcard__facts {
+    display: grid;
+    gap: var(--space-s);
+    align-content: start;
+    padding-block-start: var(--space-m);
+    border-block-start: 1px solid var(--rule);
+  }
+  .pcard__facts dt {
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .pcard__facts dd {
+    color: var(--text-muted);
+  }
+</style>

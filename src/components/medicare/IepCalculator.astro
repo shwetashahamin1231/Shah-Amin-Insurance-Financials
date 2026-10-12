@@ -1,0 +1,312 @@
+---
+/**
+ * Initial Enrollment Period calculator. The visitor picks the month and year
+ * they turn 65; a 7-month timeline shows their window and, for each month,
+ * when Part B coverage would start if they signed up then.
+ * The page is printed with an example (turning 65 three months from the build
+ * date); src/scripts/medicare/iep.ts takes over in the browser.
+ * The rules live in src/scripts/medicare/logic.ts (initialEnrollment).
+ */
+import { addMonths, iepOffsetLabel, iepSummary, initialEnrollment, monthIndex, MONTHS, MONTHS_SHORT, todayET } from '../../scripts/medicare/logic';
+
+const today = todayET();
+const thisMonth = { y: today.y, m: today.m };
+const example = addMonths(thisMonth, 3);
+const iep = initialEnrollment(example);
+const years = Array.from({ length: 9 }, (_, i) => today.y - 2 + i);
+const nowIndex = monthIndex(thisMonth);
+const short = (ym: { y: number; m: number }) => `${MONTHS_SHORT[ym.m - 1]} 1, ${ym.y}`;
+---
+
+<div class="iep" data-iep>
+  <form class="iep__form" data-iep-form>
+    <div class="iep__field">
+      <label class="iep__label" for="iep-month">The month you turn 65</label>
+      <select class="iep__select" id="iep-month" name="month" data-iep-month>
+        {
+          MONTHS.map((name, i) => (
+            <option value={i + 1} selected={i + 1 === example.m}>
+              {name}
+            </option>
+          ))
+        }
+      </select>
+    </div>
+    <div class="iep__field">
+      <label class="iep__label" for="iep-year">Year</label>
+      <select class="iep__select" id="iep-year" name="year" data-iep-year>
+        {
+          years.map((y) => (
+            <option value={y} selected={y === example.y}>
+              {y}
+            </option>
+          ))
+        }
+      </select>
+    </div>
+    <label class="iep__check">
+      <input type="checkbox" name="first" data-iep-first />
+      <span>My birthday is on the 1st of the month</span>
+    </label>
+  </form>
+
+  <p class="iep__summary" aria-live="polite" data-iep-summary>{iepSummary(iep, thisMonth)}</p>
+
+  <ol class="iep__timeline" role="list" data-iep-timeline>
+    {
+      iep.months.map((m) => (
+        <li
+          class:list={['iep__month', { 'is-birthday': m.offset === 0, 'is-past': monthIndex(m) < nowIndex, 'is-now': monthIndex(m) === nowIndex }]}
+          data-iep-cell
+        >
+          <span class="iep__when" data-iep-when>
+            {iepOffsetLabel(m.offset)}
+          </span>
+          <span class="iep__name" data-iep-name>
+            {MONTHS_SHORT[m.m - 1]} {m.y}
+          </span>
+          <span class="iep__cov">
+            <span class="iep__cov-label">Coverage starts</span>
+            <span class="iep__cov-date" data-iep-cov>
+              {short(m.coverage)}
+            </span>
+          </span>
+          <span class="iep__now" aria-hidden="true">
+            This month
+          </span>
+        </li>
+      ))
+    }
+  </ol>
+
+  <ul class="iep__notes" role="list">
+    <li>
+      <strong>Already getting Social Security?</strong> If your benefits started at least four months before you turn 65, you are enrolled in Part A and Part
+      B automatically, and your card arrives about three months before coverage begins.
+    </li>
+    <li>
+      <strong>Born on the 1st?</strong> Medicare counts you as turning 65 the month before, so your whole window — and your earliest coverage date — moves one
+      month earlier. Tick the box above to see it.
+    </li>
+    <li>
+      <strong>Still working?</strong> With group coverage from a current job, you may be able to wait without a penalty — see “Your situation” below.
+    </li>
+  </ul>
+</div>
+
+<script>
+  import '../../scripts/medicare/iep';
+</script>
+
+<style>
+  .iep {
+    display: grid;
+    gap: var(--space-l);
+  }
+  .iep__form {
+    display: grid;
+    gap: var(--space-m);
+    padding: clamp(1.25rem, 1rem + 1vw, 2rem);
+    background: var(--bg-raised);
+    border: 1px solid var(--rule);
+  }
+  @media (min-width: 40rem) {
+    .iep__form {
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      align-items: end;
+    }
+    .iep__check {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (min-width: 64rem) {
+    .iep__form {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr) minmax(0, 1.4fr);
+    }
+    .iep__check {
+      grid-column: auto;
+    }
+  }
+  :global(html.no-js) .iep__form {
+    display: none;
+  }
+  .iep__field {
+    display: grid;
+    gap: var(--space-2xs);
+  }
+  .iep__label {
+    font-weight: 500;
+  }
+  .iep__select {
+    min-block-size: 3.25rem;
+    padding: 0 2.75rem 0 var(--space-s);
+    border-radius: var(--radius-s);
+    border: 1px solid var(--field-border);
+    background:
+      linear-gradient(45deg, transparent 50%, var(--accent) 50%) calc(100% - 1.35rem) 50% / 6px 6px no-repeat,
+      linear-gradient(-45deg, transparent 50%, var(--accent) 50%) calc(100% - 1rem) 50% / 6px 6px no-repeat,
+      var(--field-bg);
+    background-position:
+      calc(100% - 1.45rem) calc(50% + 1px),
+      calc(100% - 1.05rem) calc(50% + 1px),
+      0 0;
+    color: var(--text);
+    appearance: none;
+    font-size: 1.0625rem;
+  }
+  .iep__check {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    min-block-size: 3.25rem;
+    cursor: pointer;
+  }
+  .iep__check input {
+    flex: none;
+    inline-size: 1.4rem;
+    block-size: 1.4rem;
+    accent-color: var(--green-800);
+  }
+
+  .iep__summary {
+    font-size: var(--fs-lead);
+    line-height: 1.5;
+    max-width: 46em;
+    color: var(--heading);
+  }
+
+  /* 7-month timeline: a row on large screens, a list on phones. */
+  .iep__timeline {
+    display: grid;
+    gap: var(--space-2xs);
+  }
+  @media (min-width: 64rem) {
+    .iep__timeline {
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 0;
+      border: 1px solid var(--rule);
+    }
+  }
+  .iep__month {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.15rem var(--space-s);
+    align-items: center;
+    padding: var(--space-s);
+    background: var(--bg-raised);
+    border: 1px solid var(--rule);
+    transition: background-color var(--dur-ui) var(--ease-out);
+  }
+  @media (min-width: 64rem) {
+    .iep__month {
+      grid-template-columns: minmax(0, 1fr);
+      align-content: start;
+      gap: var(--space-2xs);
+      padding: var(--space-m) var(--space-s) var(--space-l);
+      border: 0;
+      border-inline-start: 1px solid var(--rule);
+    }
+    .iep__month:first-child {
+      border-inline-start: 0;
+    }
+  }
+  .iep__when {
+    grid-column: 1 / -1;
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .iep__name {
+    font-family: var(--ff-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--heading);
+  }
+  .iep__cov {
+    display: grid;
+    justify-items: end;
+    line-height: 1.3;
+  }
+  @media (min-width: 64rem) {
+    .iep__cov {
+      justify-items: start;
+      margin-block-start: var(--space-2xs);
+    }
+  }
+  .iep__cov-label {
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+  }
+  .iep__cov-date {
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .iep__now {
+    display: none;
+    grid-column: 1 / -1;
+    justify-self: start;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ivory-50);
+    background: var(--green-800);
+  }
+  .iep__month.is-now .iep__now {
+    display: inline-block;
+  }
+  /* The birthday month is the anchor of the window. */
+  .iep__month.is-birthday {
+    background: var(--green-800);
+    border-color: var(--green-800);
+  }
+  .iep__month.is-birthday .iep__when,
+  .iep__month.is-birthday .iep__cov-label {
+    color: var(--ivory-muted);
+  }
+  .iep__month.is-birthday .iep__name {
+    color: var(--ivory-100);
+  }
+  .iep__month.is-birthday .iep__cov-date {
+    color: var(--gold-400);
+  }
+  .iep__month.is-birthday .iep__now {
+    color: var(--green-900);
+    background: var(--gold-400);
+  }
+  .iep__month.is-past:not(.is-birthday) {
+    background: transparent;
+  }
+  .iep__month.is-past .iep__name {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+    text-decoration-color: var(--rule-strong);
+  }
+
+  .iep__notes {
+    display: grid;
+    gap: var(--space-xs);
+    max-width: 52rem;
+    color: var(--text-muted);
+  }
+  .iep__notes li {
+    padding-inline-start: var(--space-m);
+    position: relative;
+  }
+  .iep__notes li::before {
+    content: '◆';
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 0.15em;
+    font-size: 0.6em;
+    color: var(--accent);
+  }
+  .iep__notes strong {
+    color: var(--text);
+  }
+</style>

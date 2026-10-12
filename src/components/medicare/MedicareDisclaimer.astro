@@ -1,0 +1,70 @@
+---
+/**
+ * Required Medicare disclaimers (CMS Third-Party Marketing Organization
+ * wording + "not connected with the government"), read from COMPLIANCE in
+ * src/config/site.ts — edit the wording there, not here.
+ * Optionally adds a note that the dollar figures change every year.
+ *   <MedicareDisclaimer />  ·  <MedicareDisclaimer figuresNote headingLevel={3} />
+ */
+import Icon from '../ui/Icon.astro';
+import { COMPLIANCE } from '../../config/site';
+import { FIGURES } from '../../data/medicare';
+
+interface Props {
+  headingLevel?: 2 | 3;
+  /** Add the "figures change every year" note. */
+  figuresNote?: boolean;
+  class?: string;
+}
+
+const { headingLevel = 2, figuresNote = false, class: className } = Astro.props;
+const Heading = `h${headingLevel}` as 'h2' | 'h3';
+const id = `disclaimer-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<aside class:list={['disclaimer', className]} aria-labelledby={id}>
+  <Heading id={id} class="disclaimer__title">
+    <Icon name="info" class="disclaimer__icon" />
+    Important information
+  </Heading>
+  <p>{COMPLIANCE.medicareDisclaimer}</p>
+  <p>{COMPLIANCE.governmentDisclaimer}</p>
+  {
+    figuresNote && (
+      <p>
+        Dollar amounts are {FIGURES.year} figures published by the Centers for Medicare &amp; Medicaid Services and Medicare.gov. They change every year, and
+        plan availability, costs and benefits vary by area. This guide is general education, not a description of every rule — please confirm the details for
+        your own situation.
+      </p>
+    )
+  }
+</aside>
+
+<style>
+  .disclaimer {
+    position: relative;
+    display: grid;
+    gap: var(--space-s);
+    padding: clamp(1.5rem, 1.25rem + 1vw, 2.25rem);
+    border: 1px solid var(--rule);
+    background: rgb(175 130 67 / 0.05);
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+    max-width: 62rem;
+  }
+  .disclaimer__title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--ff-body);
+    font-size: var(--fs-label);
+    font-weight: 600;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .disclaimer__title :global(.disclaimer__icon) {
+    font-size: 1.35rem;
+  }
+</style>

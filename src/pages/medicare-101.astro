@@ -1,0 +1,949 @@
+---
+/**
+ * /medicare-101/ — our plain-English guide to Medicare.
+ * Layout: hero (with live Annual Enrollment status), then a long guide with an
+ * "On this page" rail. Sections alternate paper and green:
+ *   01 basics · 02 the four parts · 03 Original vs Advantage · 04 Medigap ·
+ *   05 when to enroll · 06 costs & penalties · 07 mistakes · 08 your situation ·
+ *   09 how we help · 10 official resources · disclaimer + call to action
+ * Yearly figures and most wording: src/data/medicare.ts.
+ * Interactive pieces: src/components/medicare/* (+ src/scripts/medicare/*).
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/ui/PageHero.astro';
+import Button from '../components/ui/Button.astro';
+import Icon from '../components/ui/Icon.astro';
+import Ornament from '../components/ui/Ornament.astro';
+import Accordion from '../components/ui/Accordion.astro';
+import GuideToc from '../components/medicare/GuideToc.astro';
+import PeriodStatus from '../components/medicare/PeriodStatus.astro';
+import PartsExplorer from '../components/medicare/PartsExplorer.astro';
+import CompareTable from '../components/medicare/CompareTable.astro';
+import MedigapMatrix from '../components/medicare/MedigapMatrix.astro';
+import IepCalculator from '../components/medicare/IepCalculator.astro';
+import EnrollmentPeriods from '../components/medicare/EnrollmentPeriods.astro';
+import CostFigures from '../components/medicare/CostFigures.astro';
+import PenaltyEstimator from '../components/medicare/PenaltyEstimator.astro';
+import MedicareDisclaimer from '../components/medicare/MedicareDisclaimer.astro';
+import { ELIGIBILITY, FIGURES, HOW_WE_HELP, MISTAKES, RESOURCES, SITUATIONS } from '../data/medicare';
+import { ADVISORS, ADVISOR_LIST, HOURS, SITE } from '../config/site';
+import { yearlyPeriodState } from '../scripts/medicare/logic';
+import { url } from '../lib/url';
+
+// The guide's sections, in order (also used for the "On this page" list).
+const SECTIONS = [
+  { id: 'basics', label: 'What Medicare is' },
+  { id: 'parts', label: 'The four parts' },
+  { id: 'compare', label: 'Original vs. Advantage' },
+  { id: 'medigap', label: 'Medigap plans' },
+  { id: 'enrollment', label: 'When to enroll' },
+  { id: 'costs', label: `${FIGURES.year} costs & penalties` },
+  { id: 'mistakes', label: 'Common mistakes' },
+  { id: 'situations', label: 'Your situation' },
+  { id: 'help', label: 'How we help' },
+  { id: 'resources', label: 'Official resources' },
+];
+const num = (id: string) => String(SECTIONS.findIndex((s) => s.id === id) + 1).padStart(2, '0');
+
+const aep = yearlyPeriodState([10, 15], [12, 7]);
+const bookHref = '/book/?topic=medicare-plans';
+
+const site = Astro.site ?? new URL(SITE.url);
+const abs = (path: string) => new URL(url(path), site).toString();
+const schema = [
+  {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: abs('/') },
+      { '@type': 'ListItem', position: 2, name: 'Medicare 101', item: abs('/medicare-101/') },
+    ],
+  },
+  {
+    '@type': 'WebPage',
+    '@id': `${abs('/medicare-101/')}#webpage`,
+    name: 'Medicare 101 — a plain-English guide',
+    url: abs('/medicare-101/'),
+    about: { '@type': 'Thing', name: 'Medicare' },
+    publisher: { '@id': `${abs('/')}#agency` },
+    inLanguage: 'en-US',
+  },
+];
+---
+
+<BaseLayout
+  title={`Medicare 101: A Plain-English Guide (${FIGURES.year})`}
+  description="Medicare in plain English: Parts A–D, Medigap vs. Medicare Advantage, enrollment dates, 2026 costs and late penalties, with simple tools to find your dates."
+  schema={schema}
+>
+  <PageHero
+    eyebrow={`Medicare 101 · Updated for ${FIGURES.year}`}
+    title="Medicare, explained in <em>plain English</em>"
+    lead="The parts, the plans, the deadlines and the costs — gathered into one calm, clear guide. Read at your own pace, then let us help with the decisions."
+  >
+    <Button href={bookHref} magnetic icon="calendar-check" iconPosition="start">Book a Medicare Review</Button>
+    <Button href={`tel:${ADVISORS.gautam.phoneHref}`} variant="outline" icon="phone" iconPosition="start" data-dialog-open="call-sheet" aria-haspopup="dialog">
+      Call Us
+    </Button>
+    <Fragment slot="aside">
+      <PeriodStatus start={[10, 15]} end={[12, 7]} variant="card" name="Annual Enrollment Period">
+        <p>
+          Review or change your Medicare Advantage or Part D coverage for <span data-period-following-year>{aep.end.y + 1}</span>. Changes take effect January
+          1.
+        </p>
+        <p><a class="text-link" href="#enrollment">See every enrollment period</a></p>
+      </PeriodStatus>
+    </Fragment>
+  </PageHero>
+
+  <div class="guide">
+    <!-- "On this page": sticky bar on phones, rail plate on large screens -->
+    <div class="guide__rail">
+      <div class="guide__rail-inner">
+        <GuideToc sections={SECTIONS} />
+      </div>
+    </div>
+
+    <!-- 01 · Basics -->
+    <section id="basics" class="section guide__section surface-paper" aria-labelledby="basics-title">
+      <div class="container guide__inner">
+        <div class="guide__content">
+          <header class="g-head">
+            <p class="eyebrow eyebrow--rule" data-reveal>{num('basics')} · The basics</p>
+            <h2 id="basics-title" data-split>What Medicare is — <em>and who can get it</em></h2>
+          </header>
+          <div class="prose g-intro" data-reveal>
+            <p>
+              Medicare is the federal health insurance program for people 65 and older, and for some younger people with certain disabilities or conditions.
+              The Centers for Medicare &amp; Medicaid Services (CMS) runs the program, and Social Security handles most sign-ups.
+            </p>
+            <p>
+              Medicare doesn’t pay for everything, and it isn’t free: most people pay a monthly premium for Part B and share some costs when they get care.
+              That is why understanding your choices — and your deadlines — matters so much.
+            </p>
+          </div>
+          <ul class="elig" role="list">
+            {
+              ELIGIBILITY.map((e) => (
+                <li class="elig__item" data-reveal>
+                  <Icon name={e.icon} size={34} class="elig__icon" />
+                  <h3 class="elig__title">{e.title}</h3>
+                  <p>{e.text}</p>
+                </li>
+              ))
+            }
+          </ul>
+          <p class="callout" data-reveal>
+            <Icon name="info" class="callout__icon" />
+            <span>
+              <strong>Getting Social Security already?</strong> If your benefits started at least four months before you turn 65, you’ll be enrolled in Part A
+              and Part B automatically. Otherwise, you sign up through Social Security — online, by phone or at a local office.
+            </span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 · The four parts -->
+    <section id="parts" class="section guide__section" aria-labelledby="parts-title">
+      <div class="container guide__inner">
+        <div class="guide__content">
+          <header class="g-head">
+            <p class="eyebrow eyebrow--rule" data-reveal>{num('parts')} · Parts A, B, C &amp; D</p>
+            <h2 id="parts-title" data-split>The four parts of <em>Medicare</em></h2>
+            <p class="g-lead" data-reveal>
+              Parts A and B together are called <strong>Original Medicare</strong>. Part C (Medicare Advantage) is another way to get those same benefits through
+              a private plan, and Part D adds prescription drug coverage. Choose a part to see what it covers and costs.
+            </p>
+          </header>
+          <PartsExplorer />
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 · Original Medicare vs Medicare Advantage -->
+    <section id="compare" class="section guide__section surface-paper" aria-labelledby="compare-title">
+      <div class="container guide__inner">
+        <div class="guide__content">
+          <header class="g-head">
+            <p class="eyebrow eyebrow--rule" data-reveal>{num('compare')} · Your two paths</p>
+            <h2 id="compare-title" data-split>Original Medicare or <em>Medicare Advantage?</em></h2>
+            <p class="g-lead" data-reveal>
+              Most people choose one of two paths. Neither is right for everyone — it depends on your doctors, your health, your budget and how you like to
+              receive care.
+            </p>
+          </header>
+
+          <div class="paths" data-reveal>
+            <div class="path">
+              <p class="path__kicker">Path one</p>
+              <h3 class="path__title">Original <em>Medicare</em></h3>
+              <ul class="path__stack" role="list">
+                <li class="block block--core"><span class="block__tag">Part A</span> Hospital insurance</li>
+                <li class="block block--core"><span class="block__tag">Part B</span> Medical insurance</li>
+                <li class="block block--add"><span class="block__tag">+ Medigap</span> Optional — helps pay your share of costs</li>
+                <li class="block block--add"><span class="block__tag">+ Part D</span> Optional — prescription drug coverage</li>
+              </ul>
+            </div>
+            <p class="paths__or" aria-hidden="true"><span>or</span></p>
+            <div class="path">
+              <p class="path__kicker">Path two</p>
+              <h3 class="path__title">Medicare <em>Advantage</em></h3>
+              <ul class="path__stack" role="list">
+                <li class="block block--bundle">
+                  <span class="block__tag">Part C</span> One private plan, approved by Medicare, that includes:
+                  <ul class="block__inner" role="list">
+                    <li>Part A hospital coverage</li>
+                    <li>Part B medical coverage</li>
+                    <li>Usually Part D drug coverage</li>
+                    <li>Often extra benefits, which vary by plan</li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <CompareTable />
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 · Medigap -->
+    <section id="medigap" class="section guide__section guilloche-field" aria-labelledby="medigap-title">
+      <div class="container guide__inner">
+        <div class="guide__content">
+          <header class="g-head">
+            <p class="eyebrow eyebrow--rule" data-reveal>{num('medigap')} · Medicare Supplement</p>
+            <h2 id="medigap-title" data-split>Medigap plans, <em>side by side</em></h2>
+            <p class="g-lead" data-reveal>
+              Medicare Supplement Insurance — usually called Medigap — is sold by private companies to help pay the costs Original Medicare leaves to you, such
+              as deductibles and coinsurance.
+            </p>
+          </header>
+          <ul class="facts" role="list" data-reveal>
+            <li><Icon name="check" class="facts__icon" /><span>Plans are <strong>standardized</strong> and named by letter, so Plan G from one company has the same benefits as Plan G from another. Prices and service can differ.</span></li>
+            <li><Icon name="check" class="facts__icon" /><span>You must have <strong>Part A and Part B</strong>, and you keep paying your Part B premium.</span></li>
+            <li><Icon name="check" class="facts__icon" /><span>Each person needs their own policy — spouses buy separate plans.</span></li>
+            <li><Icon name="check" class="facts__icon" /><span>Medigap works only with Original Medicare, not with Medicare Advantage, and doesn’t include drug coverage.</span></li>
+          </ul>
+          <MedigapMatrix />
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 · When to enroll -->
+    <section id="enrollment" class="section guide__section surface-paper" aria-labelledby="enrollment-title">
+      <div class="container guide__inner">
+        <div class="guide__content">
+          <header class="g-head">
+            <p class="eyebrow eyebrow--rule" data-reveal>{num('enrollment')} · Dates &amp; deadlines</p>
+            <h2 id="enrollment-title" data-split>When to <em>enroll</em></h2>
+            <p class="g-lead" data-reveal>
+              Medicare has set windows for signing up and making changes. Getting the timing right helps you avoid gaps in coverage and penalties that can last
+              for life.
+            </p>
+          </header>
+
+          <h3 class="g-sub" data-reveal>Find your Initial Enrollment Period</h3>
+          <IepCalculator />
+
+          <h3 class="g-sub g-sub--spaced" data-reveal>Every enrollment period at a glance</h3>
+          <EnrollmentPeriods />
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 · Costs & penalties -->
+    <section id="costs" class="section guide__section" aria-labelledby="costs-title">
+      <div class="container guide__inner">
+        <div class="guide__content">
+          <header class="g-head">
+            <p class="eyebrow eyebrow--rule" data-reveal>{num('costs')} · Costs</p>
+            <h2 id="costs-title" data-split>What Medicare costs in <em>{FIGURES.year}</em></h2>
+            <p class="g-lead" data-reveal>
+              These are the standard amounts set each year for Original Medicare and Part D. Medicare Advantage and Medigap plans set their own premiums and
+              costs, which vary by plan and area.
+            </p>
+          </header>
+          <CostFigures />
+
+          <h3 class="g-sub g-sub--spaced" data-reveal>Estimate a late-enrollment penalty</h3>
+          <p class="g-text" data-reveal>
+            If you sign up late without qualifying coverage, Medicare adds a penalty to your monthly premium — usually for as long as you have that coverage.
+            Enter the number of months to see an estimate.
+          </p>
+          <PenaltyEstimator />
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 · Common mistakes -->
+    <section id="mistakes" class="section guide__section surface-paper" aria-labelledby="mistakes-title">
+      <div class="container guide__inner">
+        <div class="guide__content">
+          <header class="g-head">
+            <p class="eyebrow eyebrow--rule" data-reveal>{num('mistakes')} · Pitfalls</p>
+            <h2 id="mistakes-title" data-split>Common mistakes — <em>and how to avoid them</em></h2>
+          </header>
+          <ol class="mistakes" role="list">
+            {
+              MISTAKES.map((m, i) => (
+                <li class="mistakes__item" data-reveal>
+                  <span class="mistakes__num" aria-hidden="true">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <div>
+                    <h3 class="mistakes__title">{m.title}</h3>
+                    <p>{m.text}</p>
+                  </div>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 · Your situation -->
+    <section id="situations" class="section guide__section" aria-labelledby="situations-title">
+      <div class="container guide__inner">
+        <div class="guide__content">
+          <header class="g-head">
+            <p class="eyebrow eyebrow--rule" data-reveal>{num('situations')} · Real-life questions</p>
+            <h2 id="situations-title" data-split>Answers for <em>your situation</em></h2>
+            <p class="g-lead" data-reveal>Everyone’s path to Medicare is a little different. Open the situation that sounds most like yours.</p>
+          </header>
+          <Accordion items={SITUATIONS.map((s) => ({ id: `situation-${s.id}`, title: s.title, content: s.html }))} size="l" />
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 · How we help -->
+    <section id="help" class="section guide__section surface-paper" aria-labelledby="help-title">
+      <div class="container guide__inner">
+        <div class="guide__content help">
+          <div class="help__main">
+            <header class="g-head">
+              <p class="eyebrow eyebrow--rule" data-reveal>{num('help')} · Working with us</p>
+              <h2 id="help-title" data-split>How we <em>help</em></h2>
+              <p class="g-lead" data-reveal>
+                Medicare decisions are personal. We sit down with you — in person, by phone or by video — and make sure you understand every option before you
+                choose.
+              </p>
+            </header>
+            <ul class="help__list" role="list">
+              {
+                HOW_WE_HELP.map((h) => (
+                  <li class="help__item" data-reveal>
+                    <Icon name={h.icon} size={30} class="help__icon" />
+                    <h3 class="help__title">{h.title}</h3>
+                    <p>{h.text}</p>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+          <aside class="help__card" aria-labelledby="help-card-title" data-reveal>
+            <h3 id="help-card-title" class="help__card-title">Talk with <em>Gautam or Shweta</em></h3>
+            <ul class="help__calls" role="list">
+              {
+                ADVISOR_LIST.map((a) => (
+                  <li>
+                    <a class="help__call" href={`tel:${a.phoneHref}`}>
+                      <Icon name="phone" class="help__call-icon" />
+                      <span class="help__call-text">
+                        <span class="help__call-name">{a.name}</span>
+                        <span class="help__call-num num">{a.phone}</span>
+                      </span>
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+            <Button href={bookHref} icon="calendar-check" iconPosition="start">Book a Medicare Review</Button>
+            <p class="help__hours">{HOURS.summary}. {HOURS.holidayNote}.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 · Official resources -->
+    <section id="resources" class="section guide__section surface-depth" aria-labelledby="resources-title">
+      <div class="container guide__inner">
+        <div class="guide__content">
+          <header class="g-head">
+            <p class="eyebrow eyebrow--rule" data-reveal>{num('resources')} · Straight from the source</p>
+            <h2 id="resources-title" data-split>Official <em>resources</em></h2>
+            <p class="g-lead" data-reveal>
+              You can always check with Medicare directly, or get free, independent counseling from New Jersey’s State Health Insurance Assistance Program.
+            </p>
+          </header>
+          <ul class="res" role="list">
+            {
+              RESOURCES.map((r) => (
+                <li class="res__item" data-reveal>
+                  <h3 class="res__name">{r.name}</h3>
+                  <p class="res__text">{r.text}</p>
+                  {r.phones.length > 0 && (
+                    <ul class="res__phones" role="list">
+                      {r.phones.map((p) => (
+                        <li>
+                          <span class="res__phone-label">{p.label}</span>
+                          <a class="res__phone num" href={`tel:${p.tel}`}>
+                            {p.number}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {r.links.length > 0 && (
+                    <ul class="res__links" role="list">
+                      {r.links.map((l) => (
+                        <li>
+                          <a class="res__link" href={l.href} target="_blank" rel="noopener">
+                            <span>{l.label}</span>
+                            <Icon name="arrow-square-out" class="res__link-icon" />
+                            <span class="visually-hidden"> (opens in a new tab)</span>
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Disclaimer + call to action -->
+  <section class="section surface-paper closing" aria-labelledby="closing-title">
+    <div class="container closing__inner">
+      <div class="closing__cta">
+        <Ornament width={220} />
+        <h2 id="closing-title" class="closing__title" data-split>Ready to talk it <em>through?</em></h2>
+        <p class="closing__text" data-reveal>
+          Bring your questions, your Medicare card and your list of medications. We’ll explain your options and help you choose with confidence.
+        </p>
+        <div class="closing__actions" data-reveal>
+          <Button href={bookHref} icon="calendar-check" iconPosition="start" size="l">Book a Medicare Review</Button>
+          {
+            ADVISOR_LIST.map((a) => (
+              <Button href={`tel:${a.phoneHref}`} variant="outline" icon="phone" iconPosition="start">
+                Call {a.firstName} · <span class="num">{a.phone}</span>
+              </Button>
+            ))
+          }
+        </div>
+      </div>
+      <MedicareDisclaimer figuresNote class="closing__disclaimer" />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* ── Guide layout: content column + "On this page" rail ── */
+  .guide {
+    --rail: 15rem;
+    --rail-gap: clamp(2.5rem, 0.5rem + 3.5vw, 4.5rem);
+    position: relative;
+    view-timeline: --guide block;
+  }
+  .guide__rail {
+    position: sticky;
+    inset-block-start: var(--header-h);
+    z-index: 40;
+  }
+  :global(html.no-js) .guide__rail {
+    position: relative;
+  }
+  .guide__rail :global(.toc) {
+    border-inline: 0;
+  }
+  @media (max-width: 63.99rem) {
+    .guide__section {
+      scroll-margin-block-start: 3.5rem; /* room for the sticky "On this page" bar */
+    }
+  }
+  @media (min-width: 64rem) {
+    .guide__rail {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    :global(html.no-js) .guide__rail {
+      position: absolute;
+    }
+    .guide__rail-inner {
+      display: grid;
+      grid-template-columns: var(--rail) minmax(0, 1fr);
+      column-gap: var(--rail-gap);
+      inline-size: min(100% - 2 * var(--gutter), var(--container));
+      block-size: 100%;
+      margin-inline: auto;
+      padding-block: var(--section-pad);
+    }
+    .guide__rail :global(.toc) {
+      position: sticky;
+      inset-block-start: calc(var(--header-h) + 2rem);
+      align-self: start;
+      border-inline: 1px solid rgb(175 130 67 / 0.45);
+    }
+    .guide__inner {
+      display: grid;
+      grid-template-columns: var(--rail) minmax(0, 1fr);
+      column-gap: var(--rail-gap);
+    }
+    .guide__content {
+      grid-column: 2;
+      min-inline-size: 0;
+    }
+  }
+  .guide__content > * + * {
+    margin-block-start: var(--space-xl);
+  }
+
+  /* ── Section headings & text ── */
+  .g-head {
+    display: grid;
+    gap: var(--space-m);
+    max-width: 52rem;
+  }
+  .g-head h2 {
+    font-size: var(--fs-h2);
+  }
+  .g-lead {
+    font-size: var(--fs-lead);
+    line-height: 1.55;
+    color: var(--text-muted);
+    max-width: 40em;
+  }
+  .g-intro {
+    max-width: 44em;
+  }
+  .g-sub {
+    font-size: var(--fs-h3);
+  }
+  .guide__content > .g-sub--spaced {
+    margin-block-start: var(--space-3xl);
+  }
+  .guide__content > .g-sub + * {
+    margin-block-start: var(--space-m);
+  }
+  .g-text {
+    color: var(--text-muted);
+    max-width: 46em;
+  }
+
+  /* ── 01 Eligibility cards ── */
+  .elig {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    gap: var(--space-s);
+  }
+  .elig__item {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-xs);
+    padding: var(--space-l) var(--space-m);
+    background: var(--bg-raised);
+    border: 1px solid var(--rule);
+    border-block-start: 2px solid var(--rule-strong);
+  }
+  .elig__item :global(.elig__icon) {
+    color: var(--accent);
+  }
+  .elig__title {
+    font-size: var(--fs-h4);
+  }
+  .elig__item p {
+    color: var(--text-muted);
+  }
+  .callout {
+    display: flex;
+    gap: var(--space-s);
+    align-items: flex-start;
+    max-width: 52rem;
+    padding: var(--space-m);
+    border-inline-start: 2px solid var(--rule-strong);
+    background: rgb(141 97 39 / 0.07);
+  }
+  .callout :global(.callout__icon) {
+    flex: none;
+    margin-block-start: 0.15em;
+    font-size: 1.5rem;
+    color: var(--accent);
+  }
+
+  /* ── 03 Two paths ── */
+  .paths {
+    display: grid;
+    gap: var(--space-m);
+  }
+  @media (min-width: 56rem) {
+    .paths {
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: stretch;
+    }
+  }
+  .path {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-s);
+    padding: clamp(1.5rem, 1.25rem + 1vw, 2.25rem);
+    background: var(--bg-raised);
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow-s);
+  }
+  .path::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px solid rgb(141 97 39 / 0.14);
+    pointer-events: none;
+  }
+  .path__kicker {
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .path__title {
+    font-size: var(--fs-h3);
+  }
+  .path__stack {
+    position: relative;
+    display: grid;
+    gap: var(--space-2xs);
+    margin-block-start: var(--space-2xs);
+  }
+  .block {
+    padding: var(--space-s);
+    line-height: 1.45;
+  }
+  .block__tag {
+    display: block;
+    font-family: var(--ff-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.15;
+  }
+  .block--core {
+    color: var(--ivory-100);
+    background: var(--green-800);
+  }
+  .block--core .block__tag {
+    color: var(--gold-400);
+  }
+  .block--add {
+    color: var(--text);
+    border: 1px dashed var(--rule-strong);
+  }
+  .block--add .block__tag {
+    color: var(--accent);
+  }
+  .block--bundle {
+    color: var(--ivory-100);
+    background: var(--green-800);
+    box-shadow: inset 0 0 0 1px var(--gold-600);
+  }
+  .block--bundle .block__tag {
+    color: var(--gold-400);
+  }
+  .block__inner {
+    display: grid;
+    gap: 0.35rem;
+    margin-block-start: var(--space-s);
+    padding-block-start: var(--space-s);
+    border-block-start: 1px solid rgb(175 130 67 / 0.45);
+  }
+  .block__inner li {
+    position: relative;
+    padding-inline-start: 1.2rem;
+  }
+  .block__inner li::before {
+    content: '◆';
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 0.2em;
+    font-size: 0.6em;
+    color: var(--gold-400);
+  }
+  .paths__or {
+    display: grid;
+    place-items: center;
+    font-family: var(--ff-display);
+    font-size: 1.75rem;
+    font-style: italic;
+    color: var(--accent-large);
+  }
+  .paths__or span {
+    display: grid;
+    place-items: center;
+    inline-size: 3.5rem;
+    block-size: 3.5rem;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px var(--rule-strong);
+    background: var(--bg);
+  }
+
+  /* ── 04 Medigap facts ── */
+  .facts {
+    display: grid;
+    gap: var(--space-s);
+    max-width: 52rem;
+  }
+  @media (min-width: 56rem) {
+    .facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--space-xl);
+    }
+  }
+  .facts li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-xs);
+    color: var(--text);
+  }
+  .facts :global(.facts__icon) {
+    margin-block-start: 0.25em;
+    color: var(--accent);
+  }
+
+  /* ── 07 Mistakes: hanging numerals ── */
+  .mistakes {
+    display: grid;
+    gap: 0 var(--space-xl);
+  }
+  @media (min-width: 56rem) {
+    .mistakes {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .mistakes__item {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    gap: var(--space-s);
+    padding-block: var(--space-l);
+    border-block-start: 1px solid var(--rule);
+  }
+  .mistakes__num {
+    font-family: var(--ff-display);
+    font-size: 2.75rem;
+    font-weight: 500;
+    line-height: 0.95;
+    color: var(--accent-large);
+  }
+  .mistakes__title {
+    font-size: var(--fs-h4);
+    margin-block-end: var(--space-2xs);
+  }
+  .mistakes__item p {
+    color: var(--text-muted);
+  }
+
+  /* ── 09 How we help ── */
+  @media (min-width: 80rem) {
+    .help {
+      display: grid;
+      grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+      gap: var(--space-2xl);
+      align-items: start;
+    }
+    .help > * + * {
+      margin-block-start: 0;
+    }
+  }
+  .help__main > * + * {
+    margin-block-start: var(--space-xl);
+  }
+  .help__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    gap: var(--space-l) var(--space-xl);
+  }
+  .help__item {
+    display: grid;
+    gap: var(--space-2xs);
+    align-content: start;
+    padding-block-start: var(--space-m);
+    border-block-start: 1px solid var(--rule);
+  }
+  .help__item :global(.help__icon) {
+    color: var(--accent);
+  }
+  .help__title {
+    font-size: var(--fs-h4);
+  }
+  .help__item p {
+    color: var(--text-muted);
+  }
+  .help__card {
+    position: relative;
+    display: grid;
+    gap: var(--space-m);
+    justify-items: start;
+    padding: clamp(1.75rem, 1.25rem + 1.5vw, 2.5rem);
+    background: var(--bg-raised);
+    border: 1px solid var(--rule-strong);
+    box-shadow: var(--shadow-m);
+  }
+  .help__card::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px solid var(--rule);
+    pointer-events: none;
+  }
+  .help__card-title {
+    font-size: var(--fs-h3);
+  }
+  .help__calls {
+    position: relative;
+    display: grid;
+    gap: var(--space-xs);
+    inline-size: 100%;
+  }
+  .help__call {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    min-block-size: 3.5rem;
+    padding: var(--space-xs) var(--space-s);
+    color: var(--text);
+    text-decoration: none;
+    box-shadow: inset 0 0 0 1px var(--rule);
+    transition: box-shadow var(--dur-hover) var(--ease-out);
+  }
+  .help__call:hover {
+    box-shadow: inset 0 0 0 1px var(--rule-strong);
+  }
+  .help__call :global(.help__call-icon) {
+    flex: none;
+    font-size: 1.5rem;
+    color: var(--accent);
+  }
+  .help__call-text {
+    display: grid;
+    line-height: 1.3;
+  }
+  .help__call-name {
+    font-weight: 600;
+  }
+  .help__call-num {
+    color: var(--accent);
+  }
+  .help__hours {
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+  }
+
+  /* ── 10 Resources ── */
+  .res {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+    gap: var(--space-m);
+  }
+  .res__item {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-s);
+    padding: clamp(1.5rem, 1.25rem + 1vw, 2.25rem);
+    background: var(--bg-raised);
+    border: 1px solid var(--rule);
+  }
+  .res__name {
+    font-size: var(--fs-h4);
+  }
+  .res__text {
+    color: var(--text-muted);
+  }
+  .res__phones,
+  .res__links {
+    display: grid;
+    gap: var(--space-2xs);
+  }
+  .res__phones li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 var(--space-xs);
+  }
+  .res__phone-label {
+    min-inline-size: 3rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .res__phone {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 2.75rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-color: var(--rule-strong);
+    text-underline-offset: 0.22em;
+  }
+  .res__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-block-size: 2.75rem;
+    font-weight: 500;
+    color: var(--heading);
+    text-decoration: underline;
+    text-decoration-color: var(--rule-strong);
+    text-underline-offset: 0.22em;
+  }
+  .res__link:hover,
+  .res__phone:hover {
+    color: var(--accent);
+    text-decoration-color: currentColor;
+  }
+  .res__link :global(.res__link-icon) {
+    flex: none;
+    color: var(--accent);
+  }
+
+  /* ── Closing: call to action + disclaimer ── */
+  .closing__inner {
+    display: grid;
+    gap: var(--space-2xl);
+  }
+  .closing__cta {
+    display: grid;
+    gap: var(--space-m);
+    justify-items: center;
+    text-align: center;
+    max-width: 52rem;
+    margin-inline: auto;
+  }
+  .closing__title {
+    font-size: var(--fs-h2);
+  }
+  .closing__text {
+    font-size: var(--fs-lead);
+    line-height: 1.55;
+    color: var(--text-muted);
+    max-width: 36em;
+  }
+  .closing__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-s);
+    padding-block-start: var(--space-s);
+  }
+  .closing :global(.closing__disclaimer) {
+    margin-inline: auto;
+  }
+</style>

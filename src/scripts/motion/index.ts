@@ -325,6 +325,12 @@ export async function initMotion(): Promise<void> {
   window.addEventListener('sa:motion-change', onMotionChange);
   window.addEventListener('sa:scroll-lock', () => lenis?.stop());
   window.addEventListener('sa:scroll-unlock', () => lenis?.start());
+  // Accordions / filters change the page height: re-measure scroll-linked effects.
+  let layoutTimer: number | undefined;
+  window.addEventListener('sa:layout-change', () => {
+    window.clearTimeout(layoutTimer);
+    layoutTimer = window.setTimeout(() => ScrollTrigger.refresh(), 150);
+  });
   // Parallax positions: recalculate after fonts and images settle.
   requestAnimationFrame(() => ScrollTrigger.refresh());
   if (document.readyState !== 'complete') window.addEventListener('load', () => ScrollTrigger.refresh(), { once: true });

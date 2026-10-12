@@ -1,0 +1,477 @@
+---
+/**
+ * /services/ — overview of all eight services.
+ *  • Hero
+ *  • Editorial grid of eight engraved cards (I–VIII), alternating 7/5 and 5/7 widths
+ *  • "How we work" band on paper, ending with booking / call options
+ * Service names, icons and one-line summaries come from src/data/services.ts;
+ * phone numbers and hours from src/config/site.ts.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/ui/PageHero.astro';
+import Button from '../../components/ui/Button.astro';
+import Icon from '../../components/ui/Icon.astro';
+import Ornament from '../../components/ui/Ornament.astro';
+import { SERVICES, ROMAN } from '../../data/services';
+import { ADVISORS, ADVISOR_LIST, HOURS, SITE } from '../../config/site';
+import { url } from '../../lib/url';
+
+// Card widths on large screens (out of 12 columns): 7/5, 5/7, 7/5, 5/7.
+const SPANS = [7, 5, 5, 7, 7, 5, 5, 7];
+
+// "How we work" — four simple steps.
+const STEPS = [
+  { title: 'We listen', text: 'Tell us about your family, your goals and any coverage you already have. No question is too small.' },
+  { title: 'We explain', text: 'We walk through your options in plain English — how each one works, what it costs and the trade-offs.' },
+  { title: 'You decide', text: 'We compare choices side by side and share our honest view. The decision is always yours, in your own time.' },
+  { title: 'We stay in touch', text: 'When life changes — a new grandchild, retirement, turning 65 — we are here to review your coverage with you.' },
+];
+
+// Structured data: breadcrumb + the list of services.
+const site = Astro.site ?? new URL(SITE.url);
+const abs = (path: string) => new URL(url(path), site).toString();
+const schema = [
+  {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: abs('/') },
+      { '@type': 'ListItem', position: 2, name: 'Services', item: abs('/services/') },
+    ],
+  },
+  {
+    '@type': 'ItemList',
+    name: `${SITE.name} services`,
+    itemListElement: SERVICES.map((s, i) => ({ '@type': 'ListItem', position: i + 1, name: s.name, url: abs(`/services/${s.slug}/`) })),
+  },
+];
+---
+
+<BaseLayout
+  title="Our Services"
+  description="Life insurance, annuities, IRAs, 401(k) rollovers, health insurance, Medicare plans, long-term care and disability income, explained clearly by a family firm."
+  schema={schema}
+>
+  <PageHero
+    eyebrow="Our services"
+    title="Guidance for every <em>chapter</em> of life"
+    lead="Insurance, retirement and Medicare decisions — explained clearly and handled with care. Explore each service below, then talk it through with Gautam or Shweta whenever you are ready."
+  >
+    <Button href="/book/" magnetic icon="calendar-check" iconPosition="start">Book an Appointment</Button>
+    <Button href={`tel:${ADVISORS.gautam.phoneHref}`} variant="outline" icon="phone" iconPosition="start" data-dialog-open="call-sheet" aria-haspopup="dialog">
+      Call Us
+    </Button>
+  </PageHero>
+
+  <!-- ── The eight services ── -->
+  <section class="section services guilloche-field" aria-labelledby="services-grid-title">
+    <div class="container">
+      <header class="services__head">
+        <div class="services__head-title">
+          <p class="eyebrow eyebrow--rule" data-reveal>Eight areas of coverage</p>
+          <h2 id="services-grid-title" data-split>Choose a service to <em>explore</em></h2>
+        </div>
+        <p class="services__head-text" data-reveal>
+          Every family’s needs are different, and many questions overlap — a Medicare decision that touches retirement income, or a life policy that ties into
+          your legacy wishes. That is why we always look at the whole picture with you.
+        </p>
+      </header>
+
+      <ul class="svc-grid" role="list">
+        {
+          SERVICES.map((s, i) => (
+            <li class:list={['svc', { 'svc--wide': SPANS[i] === 7 }]} style={`--span:${SPANS[i] ?? 6}`} data-reveal>
+              <article class="svc__card">
+                <span class="svc__num foil-text" aria-hidden="true">
+                  {ROMAN[i]}
+                </span>
+                <div class="svc__body">
+                  <Icon name={s.icon} size={36} class="svc__icon" />
+                  <h3 class="svc__name">
+                    <a class="svc__link" href={url(`/services/${s.slug}/`)}>
+                      {s.name}
+                    </a>
+                  </h3>
+                  <p class="svc__summary">{s.summary}</p>
+                  <span class="svc__more" aria-hidden="true">
+                    Explore <Icon name="arrow-right" class="svc__arrow" />
+                  </span>
+                </div>
+              </article>
+            </li>
+          ))
+        }
+      </ul>
+
+      <p class="services__aside" data-reveal>
+        <Icon name="info" class="services__aside-icon" />
+        <span>
+          New to Medicare, or helping a parent with it? Our <a class="text-link" href={url('/medicare-101/')}>Medicare 101 guide</a> explains the parts, the
+          plans and the deadlines in plain English.
+        </span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ── How we work + call to action ── -->
+  <section class="section surface-paper how" aria-labelledby="how-title">
+    <div class="container how__inner">
+      <div class="how__intro">
+        <p class="eyebrow eyebrow--rule" data-reveal>How we work</p>
+        <h2 id="how-title" class="how__title" data-split>Clear answers, <em>at your pace</em></h2>
+        <p class="how__text" data-reveal>
+          Whether we meet in person, by phone or on a video call, every conversation follows the same simple path. Bring your family, bring your paperwork — or
+          just bring your questions.
+        </p>
+        <Ornament width={200} align="start" />
+      </div>
+
+      <ol class="how__steps" role="list">
+        {
+          STEPS.map((step, i) => (
+            <li class="how__step" data-reveal>
+              <span class="how__num" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <div class="how__step-body">
+                <h3 class="how__step-title">{step.title}</h3>
+                <p>{step.text}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+
+    <div class="container">
+      <div class="plate" data-reveal>
+        <div class="plate__copy">
+          <h2 class="plate__title">Ready when <em>you are</em></h2>
+          <p class="plate__text">
+            Book a time that suits you, or call either advisor directly. {HOURS.summary}; {HOURS.holidayNote.toLowerCase()}.
+          </p>
+        </div>
+        <div class="plate__actions">
+          <Button href="/book/" icon="calendar-check" iconPosition="start">Book an Appointment</Button>
+          <ul class="plate__calls" role="list">
+            {
+              ADVISOR_LIST.map((a) => (
+                <li>
+                  <a class="plate__call" href={`tel:${a.phoneHref}`}>
+                    <Icon name="phone" class="plate__call-icon" />
+                    <span class="plate__call-text">
+                      <span class="plate__call-name">Call {a.firstName}</span>
+                      <span class="plate__call-num num">{a.phone}</span>
+                    </span>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* ── Section header (7/5 split) ── */
+  .services__head {
+    display: grid;
+    gap: var(--space-m);
+    margin-block-end: var(--space-2xl);
+  }
+  .services__head-title > * + * {
+    margin-block-start: var(--space-m);
+  }
+  .services__head-text {
+    color: var(--text-muted);
+    max-width: 34em;
+  }
+  @media (min-width: 64rem) {
+    .services__head {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: var(--space-3xl);
+      align-items: end;
+    }
+  }
+
+  /* ── Editorial grid ── */
+  .svc-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-m);
+  }
+  @media (min-width: 48rem) {
+    .svc-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 64rem) {
+    .svc-grid {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: var(--space-l);
+    }
+    .svc {
+      grid-column: span var(--span);
+    }
+  }
+  .svc {
+    display: grid;
+  }
+
+  /* Engraved card: square corners, gold hairline, inner frame, gentle lift on hover. */
+  .svc__card {
+    position: relative;
+    display: grid;
+    gap: var(--space-m);
+    align-content: start;
+    padding: clamp(1.75rem, 1.25rem + 1.5vw, 2.75rem);
+    background:
+      linear-gradient(160deg, rgb(246 238 221 / 0.04), transparent 45%),
+      var(--bg-raised);
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow-s);
+    transition:
+      transform var(--dur-hover) var(--ease-out),
+      box-shadow var(--dur-hover) var(--ease-out),
+      border-color var(--dur-hover) var(--ease-out);
+  }
+  .svc__card::before {
+    content: '';
+    position: absolute;
+    inset: 7px;
+    border: 1px solid rgb(175 130 67 / 0.16);
+    pointer-events: none;
+  }
+  .svc__card:hover {
+    transform: translateY(calc(-4px * var(--motion)));
+    box-shadow: var(--shadow-m);
+    border-color: var(--rule-strong);
+  }
+  @media (min-width: 64rem) {
+    .svc--wide .svc__card {
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: var(--space-xl);
+      align-items: start;
+    }
+    .svc--wide .svc__num {
+      padding-inline-end: var(--space-xl);
+      border-inline-end: 1px solid var(--rule);
+      min-inline-size: 2.2ch;
+      font-size: clamp(4.5rem, 2.5rem + 3vw, 6.5rem);
+    }
+  }
+  .svc__num {
+    font-family: var(--ff-display);
+    font-size: 3.25rem;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    justify-self: start;
+  }
+  .svc__body {
+    display: grid;
+    gap: var(--space-s);
+    justify-items: start;
+  }
+  .svc__body :global(.svc__icon) {
+    color: var(--gold-500);
+  }
+  .svc__name {
+    font-size: var(--fs-h3);
+    line-height: 1.12;
+  }
+  .svc__link {
+    color: inherit;
+    text-decoration: none;
+  }
+  /* The whole card is clickable; the link text stays the service name. */
+  .svc__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  .svc__link:focus-visible {
+    outline: none;
+  }
+  .svc__link:focus-visible::after {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+  }
+  .svc__summary {
+    color: var(--text-muted);
+    max-width: 38em;
+  }
+  .svc__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    margin-block-start: var(--space-2xs);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .svc__more :global(.svc__arrow) {
+    transition: transform var(--dur-hover) var(--ease-out);
+  }
+  .svc__card:hover .svc__more :global(.svc__arrow) {
+    transform: translateX(calc(4px * var(--motion)));
+  }
+
+  .services__aside {
+    display: flex;
+    gap: var(--space-s);
+    align-items: flex-start;
+    margin-block-start: var(--space-2xl);
+    max-width: 52rem;
+    color: var(--text-muted);
+  }
+  .services__aside :global(.services__aside-icon) {
+    flex: none;
+    margin-block-start: 0.2em;
+    font-size: 1.4em;
+    color: var(--accent);
+  }
+
+  /* ── How we work (paper) ── */
+  .how__inner {
+    display: grid;
+    gap: var(--space-2xl);
+  }
+  @media (min-width: 64rem) {
+    .how__inner {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--space-3xl);
+      align-items: start;
+    }
+    .how__intro {
+      position: sticky;
+      inset-block-start: calc(var(--header-h) + 3rem);
+    }
+  }
+  .how__intro > * + * {
+    margin-block-start: var(--space-m);
+  }
+  .how__title {
+    font-size: var(--fs-h2);
+  }
+  .how__text {
+    color: var(--text-muted);
+    max-width: 30em;
+  }
+  .how__steps {
+    display: grid;
+  }
+  .how__step {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: var(--space-m);
+    padding-block: var(--space-l);
+    border-block-start: 1px solid var(--rule);
+  }
+  .how__step:last-child {
+    border-block-end: 1px solid var(--rule);
+  }
+  .how__num {
+    font-family: var(--ff-display);
+    font-size: 3rem;
+    font-weight: 500;
+    line-height: 0.9;
+    color: var(--accent-large);
+  }
+  .how__step-body > * + * {
+    margin-block-start: var(--space-2xs);
+  }
+  .how__step-title {
+    font-size: var(--fs-h4);
+  }
+  .how__step-body p {
+    color: var(--text-muted);
+  }
+
+  /* Call-to-action plate: double hairline frame like an engraved certificate. */
+  .plate {
+    position: relative;
+    display: grid;
+    gap: var(--space-xl);
+    margin-block-start: var(--space-3xl);
+    padding: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+    background: var(--bg-raised);
+    border: 1px solid var(--rule-strong);
+    box-shadow: var(--shadow-s);
+  }
+  .plate::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px solid var(--rule);
+    pointer-events: none;
+  }
+  @media (min-width: 64rem) {
+    .plate {
+      grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+      align-items: center;
+      gap: var(--space-3xl);
+    }
+  }
+  .plate__copy > * + * {
+    margin-block-start: var(--space-s);
+  }
+  .plate__title {
+    font-size: var(--fs-h3);
+  }
+  .plate__text {
+    color: var(--text-muted);
+  }
+  .plate__actions {
+    position: relative;
+    display: grid;
+    gap: var(--space-m);
+    justify-items: start;
+  }
+  .plate__calls {
+    display: grid;
+    gap: var(--space-xs);
+    inline-size: 100%;
+  }
+  @media (min-width: 36rem) {
+    .plate__calls {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .plate__call {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    min-block-size: 3.5rem;
+    padding: var(--space-xs) var(--space-s);
+    color: var(--text);
+    text-decoration: none;
+    box-shadow: inset 0 0 0 1px var(--rule);
+    transition:
+      box-shadow var(--dur-hover) var(--ease-out),
+      background-color var(--dur-hover) var(--ease-out);
+  }
+  .plate__call:hover {
+    background: rgb(141 97 39 / 0.07);
+    box-shadow: inset 0 0 0 1px var(--rule-strong);
+  }
+  .plate__call :global(.plate__call-icon) {
+    flex: none;
+    font-size: 1.5rem;
+    color: var(--accent);
+  }
+  .plate__call-text {
+    display: grid;
+    line-height: 1.3;
+  }
+  .plate__call-name {
+    font-weight: 600;
+  }
+  .plate__call-num {
+    color: var(--accent);
+  }
+</style>

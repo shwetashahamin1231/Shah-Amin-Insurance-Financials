@@ -34,6 +34,7 @@ import magnifyingGlassPlus from '@phosphor-icons/core/assets/light/magnifying-gl
 import mapPin from '@phosphor-icons/core/assets/light/map-pin-light.svg?raw';
 import minus from '@phosphor-icons/core/assets/light/minus-light.svg?raw';
 import phone from '@phosphor-icons/core/assets/light/phone-light.svg?raw';
+import pill from '@phosphor-icons/core/assets/light/pill-light.svg?raw';
 import phoneCall from '@phosphor-icons/core/assets/light/phone-call-light.svg?raw';
 import piggyBank from '@phosphor-icons/core/assets/light/piggy-bank-light.svg?raw';
 import plus from '@phosphor-icons/core/assets/light/plus-light.svg?raw';
@@ -83,6 +84,7 @@ export const ICONS = {
   phone,
   'phone-call': phoneCall,
   'piggy-bank': piggyBank,
+  pill,
   plus,
   quotes,
   'seal-check': sealCheck,

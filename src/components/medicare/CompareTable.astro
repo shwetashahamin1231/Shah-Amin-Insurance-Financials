@@ -1,0 +1,176 @@
+---
+/**
+ * Original Medicare (+ Medigap + Part D) compared with Medicare Advantage.
+ * A real <table> with a caption and row/column headers. On phones each row
+ * becomes a small card (the explicit ARIA roles keep the table meaning for
+ * screen readers when the layout changes).
+ * Rows: COMPARE_ROWS in src/data/medicare.ts.
+ */
+import { COMPARE_ROWS } from '../../data/medicare';
+---
+
+<div class="compare">
+  <table class="compare__table" role="table">
+    <caption class="compare__caption">How the two paths compare</caption>
+    <thead role="rowgroup">
+      <tr role="row">
+        <th scope="col" role="columnheader" class="compare__corner"><span class="visually-hidden">Topic</span></th>
+        <th scope="col" role="columnheader" class="compare__colhead">
+          <span class="compare__colname">Original Medicare</span>
+          <span class="compare__colsub">with Medigap &amp; Part D</span>
+        </th>
+        <th scope="col" role="columnheader" class="compare__colhead">
+          <span class="compare__colname">Medicare Advantage</span>
+          <span class="compare__colsub">Part C</span>
+        </th>
+      </tr>
+    </thead>
+    <tbody role="rowgroup">
+      {
+        COMPARE_ROWS.map((row) => (
+          <tr role="row">
+            <th scope="row" role="rowheader">
+              {row.topic}
+            </th>
+            <td role="cell">
+              <span class="compare__label" aria-hidden="true">
+                Original Medicare
+              </span>
+              {row.original}
+            </td>
+            <td role="cell">
+              <span class="compare__label" aria-hidden="true">
+                Medicare Advantage
+              </span>
+              {row.advantage}
+            </td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+  <p class="compare__foot">Plan availability, costs and benefits vary by area and change each year.</p>
+</div>
+
+<style>
+  .compare__table {
+    inline-size: 100%;
+    border-collapse: collapse;
+    text-align: start;
+  }
+  .compare__caption {
+    text-align: start;
+    padding-block-end: var(--space-s);
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .compare__table th,
+  .compare__table td {
+    padding: var(--space-s) var(--space-m);
+    vertical-align: top;
+    text-align: start;
+    border-block-end: 1px solid var(--rule);
+  }
+  .compare__table thead th {
+    border-block-end: 1px solid var(--rule-strong);
+    padding-block: var(--space-m);
+  }
+  .compare__colhead {
+    background: var(--green-800);
+    color: var(--ivory-100);
+  }
+  .compare__colhead + .compare__colhead {
+    border-inline-start: 1px solid rgb(175 130 67 / 0.45);
+  }
+  .compare__colname {
+    display: block;
+    font-family: var(--ff-display);
+    font-size: clamp(1.5rem, 1.35rem + 0.6vw, 1.875rem);
+    font-weight: 600;
+    line-height: 1.15;
+  }
+  .compare__colsub {
+    display: block;
+    margin-block-start: 0.2rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold-400);
+  }
+  .compare__table tbody th {
+    inline-size: 22%;
+    font-weight: 600;
+    color: var(--heading);
+  }
+  .compare__table tbody td {
+    color: var(--text);
+    background: var(--bg-raised);
+  }
+  .compare__table tbody td + td {
+    border-inline-start: 1px solid var(--rule);
+  }
+  .compare__label {
+    display: none;
+  }
+  .compare__foot {
+    margin-block-start: var(--space-s);
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+  }
+
+  /* Phones: one card per topic. */
+  @media (max-width: 47.99rem) {
+    .compare__table,
+    .compare__table tbody,
+    .compare__table tr,
+    .compare__table th,
+    .compare__table td {
+      display: block;
+      inline-size: auto;
+    }
+    .compare__table thead {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+    .compare__caption {
+      display: block;
+    }
+    .compare__table tbody tr {
+      margin-block-end: var(--space-s);
+      border: 1px solid var(--rule);
+      background: var(--bg-raised);
+    }
+    .compare__table tbody th {
+      inline-size: auto;
+      padding: var(--space-s) var(--space-s) var(--space-2xs);
+      border: 0;
+      font-family: var(--ff-display);
+      font-size: 1.5rem;
+      line-height: 1.2;
+    }
+    .compare__table tbody td {
+      padding: var(--space-xs) var(--space-s) var(--space-s);
+      border: 0;
+      border-block-start: 1px solid var(--rule);
+    }
+    .compare__table tbody td + td {
+      border-inline-start: 0;
+    }
+    .compare__label {
+      display: block;
+      margin-block-end: 0.15rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+  }
+</style>

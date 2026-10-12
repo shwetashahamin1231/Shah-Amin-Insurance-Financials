@@ -1,0 +1,136 @@
+---
+/**
+ * The headline Medicare amounts for the year, as engraved figure tiles, plus
+ * the income surcharge note, next year's Part D limits and the sources.
+ * All numbers: FIGURES / PART_D_NEXT_YEAR in src/data/medicare.ts.
+ */
+import { FIGURES, PART_D_NEXT_YEAR, SOURCES } from '../../data/medicare';
+import { money } from '../../scripts/medicare/logic';
+
+const { partA: A, partB: B, partD: D, year } = FIGURES;
+const whole = (n: number) => money(n, !Number.isInteger(n));
+
+const tiles = [
+  { label: 'Part B standard premium', value: whole(B.premium), unit: 'per month' },
+  { label: 'Part B deductible', value: whole(B.deductible), unit: 'per year' },
+  { label: 'Part A hospital deductible', value: whole(A.deductible), unit: 'per benefit period' },
+  { label: 'Part A premium', value: whole(A.premiumMostPeople), unit: `for most people (otherwise ${whole(A.premiumReduced)} or ${whole(A.premiumFull)} a month)` },
+  { label: 'Part D deductible', value: whole(D.maxDeductible), unit: 'per year, at most' },
+  { label: 'Part D out-of-pocket cap', value: whole(D.outOfPocketCap), unit: 'per year for covered drugs' },
+];
+const sources = [SOURCES.cmsFactSheet, SOURCES.partDCosts, SOURCES.medicareCosts];
+---
+
+<div class="costs">
+  <ul class="costs__grid" role="list">
+    {
+      tiles.map((t) => (
+        <li class="tile" data-reveal>
+          <span class="tile__year">{year}</span>
+          <span class="tile__label">{t.label}</span>
+          <span class="tile__value num">{t.value}</span>
+          <span class="tile__unit">{t.unit}</span>
+        </li>
+      ))
+    }
+  </ul>
+
+  <div class="costs__notes">
+    <p>
+      <strong>Higher incomes:</strong> the Part B and Part D premiums include an extra monthly amount if your income is above {whole(B.irmaaIndividualAbove)}
+      (individual tax return) or {whole(B.irmaaJointAbove)} (joint return).
+    </p>
+    {
+      PART_D_NEXT_YEAR && (
+        <p>
+          <strong>Looking ahead to {PART_D_NEXT_YEAR.year}:</strong> for Part D plans starting in January, the deductible can be no more than{' '}
+          {whole(PART_D_NEXT_YEAR.maxDeductible)} and the yearly out-of-pocket cap rises to {whole(PART_D_NEXT_YEAR.outOfPocketCap)}.
+        </p>
+      )
+    }
+    <p class="costs__change">Medicare amounts change every year. The figures above are for {year}.</p>
+    <p class="costs__sources">
+      Sources:{' '}
+      {
+        sources.map((s, i) => (
+          <>
+            {i > 0 && ' · '}
+            <a class="text-link" href={s.url} target="_blank" rel="noopener">
+              {s.label}
+              <span class="visually-hidden"> (opens in a new tab)</span>
+            </a>
+          </>
+        ))
+      }
+    </p>
+  </div>
+</div>
+
+<style>
+  .costs {
+    display: grid;
+    gap: var(--space-xl);
+  }
+  .costs__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    gap: var(--space-s);
+  }
+  .tile {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 0.35rem;
+    padding: var(--space-l) var(--space-m) var(--space-m);
+    background: var(--bg-raised);
+    border: 1px solid var(--rule);
+  }
+  .tile::before {
+    content: '';
+    position: absolute;
+    inset: 5px;
+    border: 1px solid rgb(175 130 67 / 0.14);
+    pointer-events: none;
+  }
+  .tile__year {
+    position: absolute;
+    inset-block-start: 0.7rem;
+    inset-inline-end: 0.8rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+  }
+  .tile__label {
+    padding-inline-end: 3rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .tile__value {
+    font-family: var(--ff-display);
+    font-size: clamp(2.5rem, 2rem + 1.6vw, 3.5rem);
+    font-weight: 500;
+    line-height: 1.05;
+    color: var(--heading);
+  }
+  .tile__unit {
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+  }
+  .costs__notes {
+    display: grid;
+    gap: var(--space-s);
+    max-width: 60rem;
+  }
+  .costs__change {
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .costs__sources {
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+  }
+</style>

@@ -1,0 +1,524 @@
+---
+/**
+ * /faq/ — frequently asked questions, grouped by topic.
+ *  • Quick search: type a word to show only matching questions; the number of
+ *    results is announced politely to screen-reader users.
+ *  • Topic links jump to each group. A link like /faq/#faq-hours opens that answer.
+ *  • FAQPage structured data for search engines.
+ * Questions and answers live in src/data/faqs.ts.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/ui/PageHero.astro';
+import Button from '../components/ui/Button.astro';
+import Icon from '../components/ui/Icon.astro';
+import Accordion from '../components/ui/Accordion.astro';
+import { FAQ_CATEGORIES, ALL_FAQS } from '../data/faqs';
+import { ROMAN } from '../data/services';
+import { ADVISORS, ADVISOR_LIST, HOURS, SITE } from '../config/site';
+import { url } from '../lib/url';
+
+// Answers use links like href="/book/"; add the site's base path for the page,
+// and the full web address for search engines.
+const site = Astro.site ?? new URL(SITE.url);
+const abs = (path: string) => new URL(url(path), site).toString();
+const withBase = (html: string) => html.replace(/href="\/(?!\/)/g, `href="${url('/')}`);
+const withAbsolute = (html: string) => html.replace(/href="\/(?!\/)/g, `href="${abs('/')}`);
+const total = ALL_FAQS.length;
+
+const schema = [
+  {
+    '@type': 'FAQPage',
+    '@id': `${abs('/faq/')}#faqpage`,
+    url: abs('/faq/'),
+    name: `Frequently asked questions — ${SITE.name}`,
+    mainEntity: ALL_FAQS.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: withAbsolute(f.a) },
+    })),
+  },
+  {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: abs('/') },
+      { '@type': 'ListItem', position: 2, name: 'FAQ', item: abs('/faq/') },
+    ],
+  },
+];
+---
+
+<BaseLayout
+  title="Frequently Asked Questions"
+  description="Answers about life insurance, annuities, IRAs, health insurance, Medicare, long-term care, appointments and events from Shah & Amin Financial Services."
+  schema={schema}
+>
+  <PageHero
+    eyebrow="Questions & answers"
+    title="Questions, <em>answered</em>"
+    lead="Quick, plain-English answers about working with us, insurance, retirement, Medicare and our events. Can’t find what you need? Call us — we are glad to help."
+  >
+    <Button href="/book/" magnetic icon="calendar-check" iconPosition="start">Book an Appointment</Button>
+    <Button href={`tel:${ADVISORS.gautam.phoneHref}`} variant="outline" icon="phone" iconPosition="start" data-dialog-open="call-sheet" aria-haspopup="dialog">
+      Call Us
+    </Button>
+  </PageHero>
+
+  <section class="section surface-paper faq" aria-labelledby="faq-heading">
+    <h2 id="faq-heading" class="visually-hidden">Frequently asked questions</h2>
+    <div class="container faq__grid">
+      <!-- Search + topics (sticky on large screens) -->
+      <div class="faq__side">
+        <form class="faq__search" role="search" aria-label="Search the questions" data-faq-form>
+          <label class="faq__search-label" for="faq-filter">Search the questions</label>
+          <div class="faq__field">
+            <Icon name="zoom" class="faq__field-icon" />
+            <input
+              class="faq__input"
+              id="faq-filter"
+              type="search"
+              autocomplete="off"
+              spellcheck="false"
+              enterkeyhint="search"
+              placeholder="Try “Medicare” or “hours”"
+              aria-describedby="faq-status"
+              data-faq-filter
+            />
+            <button type="button" class="faq__clear" data-faq-clear hidden>Clear</button>
+          </div>
+          <p class="faq__status" id="faq-status" role="status" data-faq-status>Showing all {total} questions.</p>
+        </form>
+
+        <nav class="faq__topics" aria-label="FAQ topics">
+          <p class="faq__topics-title">Jump to a topic</p>
+          <ul class="faq__topic-list" role="list">
+            {
+              FAQ_CATEGORIES.map((c) => (
+                <li>
+                  <a class="faq__topic" href={`#${c.id}`} data-faq-jump={c.id}>
+                    <span>{c.title}</span>
+                    <span class="faq__topic-count num" data-faq-count>
+                      {c.items.length}
+                    </span>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+      </div>
+
+      <!-- Questions by topic -->
+      <div class="faq__main">
+        {
+          FAQ_CATEGORIES.map((c, i) => (
+            <section class="faq__group" id={c.id} aria-labelledby={`${c.id}-title`} data-faq-group>
+              <header class="faq__group-head">
+                <span class="faq__group-num" aria-hidden="true">
+                  {ROMAN[i]}
+                </span>
+                <div>
+                  <h2 class="faq__group-title" id={`${c.id}-title`}>
+                    {c.title}
+                  </h2>
+                  <p class="faq__group-intro">{c.intro}</p>
+                </div>
+              </header>
+              <Accordion items={c.items.map((f) => ({ id: f.id, title: f.q, content: `<p>${withBase(f.a)}</p>` }))} />
+            </section>
+          ))
+        }
+
+        <div class="faq__empty" data-faq-empty hidden>
+          <p class="faq__empty-title">No questions match that search.</p>
+          <p>Try a different word — or simply ask us. We are always happy to help.</p>
+          <button type="button" class="faq__empty-btn" data-faq-reset>Show all questions</button>
+        </div>
+
+        <aside class="faq__help" aria-labelledby="faq-help-title">
+          <h2 class="faq__help-title" id="faq-help-title">Still have a <em>question?</em></h2>
+          <p class="faq__help-text">Talk to a real person. {HOURS.summary}; {HOURS.holidayNote.toLowerCase()}.</p>
+          <div class="faq__help-actions">
+            <Button href="/book/" icon="calendar-check" iconPosition="start">Book an Appointment</Button>
+            <ul class="faq__calls" role="list">
+              {
+                ADVISOR_LIST.map((a) => (
+                  <li>
+                    <a class="faq__call" href={`tel:${a.phoneHref}`}>
+                      <Icon name="phone" class="faq__call-icon" />
+                      <span class="faq__call-text">
+                        <span class="faq__call-name">Call {a.firstName}</span>
+                        <span class="faq__call-num num">{a.phone}</span>
+                      </span>
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  /**
+   * FAQ quick search: shows only the questions whose question or answer
+   * contains every word typed. Topics with no matches are hidden, the topic
+   * counts update, and the result count is announced once typing pauses.
+   */
+  const form = document.querySelector<HTMLFormElement>('[data-faq-form]');
+  const input = document.querySelector<HTMLInputElement>('[data-faq-filter]');
+  const status = document.querySelector<HTMLElement>('[data-faq-status]');
+  const clearBtn = document.querySelector<HTMLButtonElement>('[data-faq-clear]');
+  const resetBtn = document.querySelector<HTMLButtonElement>('[data-faq-reset]');
+  const empty = document.querySelector<HTMLElement>('[data-faq-empty]');
+
+  // Lower-case, without accents or curly quotes, so "doesn't" matches "doesn’t".
+  const normalize = (s: string) =>
+    s
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[‘’]/g, "'")
+      .replace(/[“”]/g, '"');
+
+  const groups = Array.from(document.querySelectorAll<HTMLElement>('[data-faq-group]')).map((group) => ({
+    group,
+    link: document.querySelector<HTMLAnchorElement>(`[data-faq-jump="${group.id}"]`),
+    items: Array.from(group.querySelectorAll<HTMLElement>('[data-accordion-item]')).map((item) => ({ item, text: normalize(item.textContent ?? '') })),
+  }));
+  const total = groups.reduce((n, g) => n + g.items.length, 0);
+  let timer: number | undefined;
+
+  const apply = () => {
+    const raw = input?.value.trim() ?? '';
+    const words = normalize(raw).split(/\s+/).filter(Boolean);
+    let shown = 0;
+
+    groups.forEach(({ group, link, items }) => {
+      let count = 0;
+      items.forEach(({ item, text }) => {
+        const match = words.every((w) => text.includes(w));
+        item.hidden = !match;
+        if (match) count++;
+      });
+      group.hidden = count === 0;
+      shown += count;
+      if (link) {
+        const counter = link.querySelector('[data-faq-count]');
+        if (counter) counter.textContent = String(count);
+        if (count === 0) link.setAttribute('aria-disabled', 'true');
+        else link.removeAttribute('aria-disabled');
+      }
+    });
+
+    if (empty) empty.hidden = shown > 0;
+    if (clearBtn) clearBtn.hidden = raw.length === 0;
+    window.dispatchEvent(new CustomEvent('sa:layout-change'));
+
+    // Announce after a short pause so screen readers aren't interrupted on every key.
+    window.clearTimeout(timer);
+    timer = window.setTimeout(() => {
+      if (!status) return;
+      status.textContent =
+        words.length === 0
+          ? `Showing all ${total} questions.`
+          : shown === 0
+            ? `No questions match “${raw}”.`
+            : `${shown} of ${total} questions match “${raw}”.`;
+    }, 400);
+  };
+
+  const reset = () => {
+    if (!input) return;
+    input.value = '';
+    apply();
+    input.focus();
+  };
+
+  input?.addEventListener('input', apply);
+  form?.addEventListener('submit', (e) => e.preventDefault());
+  clearBtn?.addEventListener('click', reset);
+  resetBtn?.addEventListener('click', reset);
+  // A topic with no matching questions can't be jumped to.
+  groups.forEach(({ link }) =>
+    link?.addEventListener('click', (e) => {
+      if (link.getAttribute('aria-disabled') === 'true') e.preventDefault();
+    }),
+  );
+</script>
+
+<style>
+  .faq__grid {
+    display: grid;
+    gap: var(--space-2xl);
+  }
+  @media (min-width: 64rem) {
+    .faq__grid {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+      gap: var(--space-3xl);
+      align-items: start;
+    }
+  }
+  @media (min-width: 64rem) and (min-height: 44rem) {
+    .faq__side {
+      position: sticky;
+      inset-block-start: calc(var(--header-h) + 2rem);
+    }
+  }
+  .faq__side {
+    display: grid;
+    gap: var(--space-xl);
+  }
+
+  /* ── Search ── */
+  :global(html.no-js) .faq__search {
+    display: none;
+  }
+  .faq__search {
+    display: grid;
+    gap: var(--space-2xs);
+  }
+  .faq__search-label {
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .faq__field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--field-border);
+    border-radius: var(--radius-s);
+    background: var(--field-bg);
+    transition: box-shadow var(--dur-hover) var(--ease-out);
+  }
+  .faq__field:focus-within {
+    box-shadow: 0 0 0 2px var(--focus);
+  }
+  .faq__field :global(.faq__field-icon) {
+    flex: none;
+    margin-inline: var(--space-s) 0;
+    font-size: 1.35rem;
+    color: var(--accent);
+  }
+  .faq__input {
+    flex: 1;
+    min-inline-size: 0;
+    min-block-size: 3.25rem;
+    padding: 0 var(--space-s) 0 var(--space-xs);
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font-size: 1.0625rem;
+  }
+  .faq__input:focus {
+    outline: none;
+  }
+  .faq__input::placeholder {
+    color: var(--text-muted);
+    opacity: 1;
+  }
+  .faq__input::-webkit-search-cancel-button {
+    display: none;
+  }
+  .faq__clear {
+    flex: none;
+    min-block-size: 2.75rem;
+    margin-inline-end: 0.25rem;
+    padding-inline: var(--space-s);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  .faq__status {
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+  }
+
+  /* ── Topics ── */
+  .faq__topics-title {
+    margin-block-end: var(--space-2xs);
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .faq__topic-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs);
+  }
+  @media (min-width: 64rem) {
+    .faq__topic-list {
+      display: grid;
+      gap: 0;
+      border-block-start: 1px solid var(--rule);
+    }
+  }
+  .faq__topic {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+    min-block-size: 2.75rem;
+    padding: 0.4rem var(--space-s);
+    color: var(--text);
+    text-decoration: none;
+    box-shadow: inset 0 0 0 1px var(--rule);
+    transition:
+      color var(--dur-hover) var(--ease-out),
+      background-color var(--dur-hover) var(--ease-out);
+  }
+  @media (min-width: 64rem) {
+    .faq__topic {
+      padding-inline: 0;
+      box-shadow: none;
+      border-block-end: 1px solid var(--rule);
+    }
+  }
+  .faq__topic:hover {
+    color: var(--accent);
+  }
+  .faq__topic-count {
+    min-inline-size: 2rem;
+    padding: 0.05rem 0.45rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--rule);
+  }
+  .faq__topic[aria-disabled='true'] {
+    color: var(--text-muted);
+    cursor: default;
+    text-decoration: line-through;
+    text-decoration-color: var(--rule-strong);
+  }
+
+  /* ── Groups ── */
+  .faq__main {
+    display: grid;
+    gap: var(--space-3xl);
+  }
+  .faq__group {
+    scroll-margin-block-start: 1rem;
+  }
+  .faq__group-head {
+    display: grid;
+    grid-template-columns: 3.75rem minmax(0, 1fr);
+    gap: var(--space-s);
+    align-items: start;
+    margin-block-end: var(--space-m);
+  }
+  .faq__group-num {
+    font-family: var(--ff-display);
+    font-size: 2.75rem;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--accent-large);
+  }
+  .faq__group-title {
+    font-size: var(--fs-h3);
+  }
+  .faq__group-intro {
+    margin-block-start: 0.25rem;
+    color: var(--text-muted);
+  }
+
+  .faq__empty {
+    display: grid;
+    gap: var(--space-s);
+    justify-items: start;
+    padding: var(--space-xl);
+    border: 1px dashed var(--rule-strong);
+  }
+  .faq__empty-title {
+    font-family: var(--ff-display);
+    font-size: var(--fs-h4);
+    font-weight: 600;
+    color: var(--heading);
+  }
+  .faq__empty-btn {
+    min-block-size: 2.75rem;
+    font-weight: 500;
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  /* ── Still have a question? ── */
+  .faq__help {
+    position: relative;
+    display: grid;
+    gap: var(--space-m);
+    padding: clamp(1.75rem, 1.25rem + 1.5vw, 3rem);
+    background: var(--bg-raised);
+    border: 1px solid var(--rule-strong);
+    box-shadow: var(--shadow-s);
+  }
+  .faq__help::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px solid var(--rule);
+    pointer-events: none;
+  }
+  .faq__help-title {
+    font-size: var(--fs-h3);
+  }
+  .faq__help-text {
+    color: var(--text-muted);
+  }
+  .faq__help-actions {
+    position: relative;
+    display: grid;
+    gap: var(--space-m);
+    justify-items: start;
+  }
+  .faq__calls {
+    display: grid;
+    gap: var(--space-xs);
+    inline-size: 100%;
+  }
+  @media (min-width: 36rem) {
+    .faq__calls {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .faq__call {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    min-block-size: 3.5rem;
+    padding: var(--space-xs) var(--space-s);
+    color: var(--text);
+    text-decoration: none;
+    box-shadow: inset 0 0 0 1px var(--rule);
+    transition: box-shadow var(--dur-hover) var(--ease-out);
+  }
+  .faq__call:hover {
+    box-shadow: inset 0 0 0 1px var(--rule-strong);
+  }
+  .faq__call :global(.faq__call-icon) {
+    flex: none;
+    font-size: 1.5rem;
+    color: var(--accent);
+  }
+  .faq__call-text {
+    display: grid;
+    line-height: 1.3;
+  }
+  .faq__call-name {
+    font-weight: 600;
+  }
+  .faq__call-num {
+    color: var(--accent);
+  }
+</style>

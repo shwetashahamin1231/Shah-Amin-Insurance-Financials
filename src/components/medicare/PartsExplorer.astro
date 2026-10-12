@@ -1,0 +1,326 @@
+---
+/**
+ * Parts A–D explorer: four engraved "tabs" (WAI-ARIA tabs pattern) that each
+ * show what the part covers, what it costs this year and what to know.
+ * Content and figures: PARTS in src/data/medicare.ts.
+ * Keyboard: Left/Right (or Up/Down) arrows move between parts; Home/End jump.
+ * Without JavaScript all four panels simply show one after another.
+ */
+import Icon from '../ui/Icon.astro';
+import { PARTS, FIGURES } from '../../data/medicare';
+---
+
+<div class="parts" data-tabs>
+  <div class="parts__tablist" role="tablist" aria-label="The four parts of Medicare">
+    {
+      PARTS.map((p, i) => (
+        <button
+          type="button"
+          role="tab"
+          class:list={['parts__tab', { 'is-active': i === 0 }]}
+          id={`part-${p.id}-tab`}
+          aria-selected={i === 0 ? 'true' : 'false'}
+          aria-controls={`part-${p.id}-panel`}
+          tabindex={i === 0 ? 0 : -1}
+          data-tab
+        >
+          <span class="parts__letter foil-text" aria-hidden="true">
+            {p.letter}
+          </span>
+          <span class="parts__tab-text">
+            <span class="parts__tab-name">Part {p.letter}</span>
+            <span class="parts__tab-sub">{p.name}</span>
+          </span>
+        </button>
+      ))
+    }
+  </div>
+
+  {
+    PARTS.map((p, i) => (
+      <div
+        class:list={['parts__panel', { 'is-active': i === 0 }]}
+        role="tabpanel"
+        id={`part-${p.id}-panel`}
+        aria-labelledby={`part-${p.id}-tab`}
+        tabindex="0"
+        data-tabpanel
+      >
+        <div class="parts__head">
+          <Icon name={p.icon} size={40} class="parts__icon" />
+          <div>
+            <h3 class="parts__title">
+              Part {p.letter} <em>{p.name}</em>
+            </h3>
+            <p class="parts__summary">{p.summary}</p>
+          </div>
+        </div>
+        <div class="parts__cols">
+          <div class="parts__col">
+            <h4 class="parts__label">What it covers</h4>
+            <ul class="parts__covers" role="list">
+              {p.covers.map((c) => (
+                <li>
+                  <Icon name="check" class="parts__check" />
+                  <span>{c}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div class="parts__col">
+            <h4 class="parts__label">What it costs in {FIGURES.year}</h4>
+            <dl class="parts__costs">
+              {p.costs.map((c) => (
+                <div class="parts__cost">
+                  <dt>{c.label}</dt>
+                  <dd>
+                    <span class="parts__value">{c.value}</span>
+                    {c.note && <span class="parts__note">{c.note}</span>}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+          <div class="parts__col parts__col--note">
+            <h4 class="parts__label">Good to know</h4>
+            <p>{p.note}</p>
+            <p class="parts__source">
+              Source:{' '}
+              <a class="text-link" href={p.source.url} target="_blank" rel="noopener">
+                {p.source.label}
+                <span class="visually-hidden"> (opens in a new tab)</span>
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    ))
+  }
+</div>
+
+<script>
+  import '../../scripts/medicare/tabs';
+</script>
+
+<style>
+  /* ── The four tabs: engraved cards ── */
+  .parts__tablist {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-s);
+    margin-block-end: var(--space-l);
+  }
+  @media (min-width: 48rem) {
+    .parts__tablist {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  :global(html.no-js) .parts__tablist {
+    display: none;
+  }
+  .parts__tab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    min-block-size: 5.5rem;
+    padding: var(--space-s) var(--space-m);
+    text-align: start;
+    color: var(--text);
+    background: rgb(6 18 6 / 0.25);
+    border: 1px solid var(--rule);
+    transition:
+      transform var(--dur-hover) var(--ease-out),
+      background-color var(--dur-hover) var(--ease-out),
+      border-color var(--dur-hover) var(--ease-out),
+      box-shadow var(--dur-hover) var(--ease-out);
+  }
+  .parts__tab:hover {
+    transform: translateY(calc(-3px * var(--motion)));
+    border-color: var(--rule-strong);
+  }
+  .parts__tab::after {
+    content: '';
+    position: absolute;
+    inset: auto -1px -1px -1px;
+    block-size: 3px;
+    background: var(--foil-on-dark);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur-ui) var(--ease-silk);
+  }
+  .parts__tab.is-active {
+    background: var(--bg-raised);
+    border-color: var(--rule-strong);
+    box-shadow: var(--shadow-m);
+  }
+  .parts__tab.is-active::after {
+    transform: scaleX(1);
+  }
+  .parts__letter {
+    flex: none;
+    font-family: var(--ff-display);
+    font-size: clamp(2.75rem, 2.25rem + 1.5vw, 3.5rem);
+    font-weight: 600;
+    line-height: 1;
+  }
+  .parts__tab-text {
+    display: grid;
+    line-height: 1.25;
+  }
+  .parts__tab-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .parts__tab-sub {
+    font-size: 1.0625rem;
+    font-weight: 500;
+  }
+
+  /* ── Panels ── */
+  .parts__panel {
+    position: relative;
+    padding: clamp(1.5rem, 1rem + 2vw, 3rem);
+    background: var(--bg-raised);
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow-m);
+  }
+  .parts__panel::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px solid rgb(175 130 67 / 0.16);
+    pointer-events: none;
+  }
+  .parts__panel + .parts__panel {
+    margin-block-start: var(--space-m);
+  }
+  :global(html.js) .parts__panel:not(.is-active) {
+    display: none;
+  }
+  :global(html.js) .parts__panel + .parts__panel {
+    margin-block-start: 0;
+  }
+  :global(html.js:not(.reduce-motion)) .parts__panel.is-active {
+    animation: parts-in var(--dur-ui) var(--ease-silk);
+  }
+  @keyframes parts-in {
+    from {
+      opacity: 0.01;
+      transform: translateY(10px);
+    }
+  }
+
+  .parts__head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-m);
+    align-items: start;
+    padding-block-end: var(--space-l);
+    margin-block-end: var(--space-l);
+    border-block-end: 1px solid var(--rule);
+  }
+  .parts__head :global(.parts__icon) {
+    margin-block-start: 0.3rem;
+    color: var(--gold-400);
+  }
+  .parts__title {
+    font-size: var(--fs-h3);
+  }
+  .parts__title em {
+    margin-inline-start: 0.2em;
+  }
+  .parts__summary {
+    margin-block-start: var(--space-2xs);
+    color: var(--text-muted);
+    font-size: var(--fs-lead);
+    line-height: 1.5;
+  }
+
+  .parts__cols {
+    display: grid;
+    gap: var(--space-xl);
+  }
+  @media (min-width: 64rem) {
+    .parts__cols {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    }
+    .parts__col--note {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (min-width: 90rem) {
+    .parts__cols {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 0.95fr);
+    }
+    .parts__col--note {
+      grid-column: auto;
+    }
+  }
+  .parts__col > * + * {
+    margin-block-start: var(--space-s);
+  }
+  .parts__label {
+    font-family: var(--ff-body);
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    line-height: 1.4;
+    color: var(--accent);
+  }
+  .parts__covers {
+    display: grid;
+    gap: var(--space-xs);
+  }
+  .parts__covers li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-xs);
+  }
+  .parts__covers :global(.parts__check) {
+    margin-block-start: 0.25em;
+    color: var(--accent);
+  }
+  .parts__costs {
+    display: grid;
+  }
+  .parts__cost {
+    display: grid;
+    gap: 0.15rem;
+    padding-block: var(--space-xs);
+    border-block-end: 1px solid var(--rule);
+  }
+  .parts__cost:first-child {
+    padding-block-start: 0;
+  }
+  .parts__cost dt {
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+  }
+  .parts__cost dd {
+    display: grid;
+  }
+  .parts__value {
+    font-weight: 600;
+    font-size: 1.125rem;
+    color: var(--heading);
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+  .parts__note {
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+  }
+  .parts__col--note p {
+    color: var(--text);
+  }
+  .parts__source {
+    font-size: var(--fs-small);
+  }
+  .parts__col--note .parts__source {
+    color: var(--text-muted);
+  }
+</style>

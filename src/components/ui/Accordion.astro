@@ -1,0 +1,215 @@
+---
+/**
+ * ACCORDION — questions that open to show their answers.
+ * Follows the WAI-ARIA accordion pattern: each question is a real <button>
+ * (aria-expanded + aria-controls) inside a heading, and each answer is a
+ * labelled region. Behaviour lives in src/scripts/accordion.ts.
+ *
+ * Two ways to use it:
+ *
+ * 1) A list of items (most common)
+ *      <Accordion items={[{ title: 'Question?', content: '<p>Answer…</p>' }]} />
+ *    `content` is HTML from our own data files (trusted) — plain text works too.
+ *
+ * 2) One item with rich content (any markup in the slot)
+ *      <Accordion title="What if I’m still working?" id="still-working">
+ *        <p>…</p>
+ *      </Accordion>
+ *    Wrap several single items in any element with `data-accordion-exclusive`
+ *    if only one should be open at a time.
+ *
+ * Options
+ *   exclusive      only one answer open at a time (list mode)
+ *   headingLevel   2, 3 (default) or 4 — the heading around each question
+ *   items[].id / id  a stable id: a link to  page/#that-id  opens the item
+ *   idPrefix       used to build ids when items have none (e.g. "life-faq")
+ *   open / items[].open  start opened
+ *   size           'm' (default) or 'l' (larger questions)
+ *
+ * Without JavaScript every answer is simply shown open.
+ */
+interface Item {
+  /** The question / heading (plain text). */
+  title: string;
+  /** The answer as HTML (trusted content from our own files) or plain text. */
+  content: string;
+  id?: string;
+  open?: boolean;
+}
+
+interface Props {
+  items?: Item[];
+  /** Single-item mode: the question. The answer goes in the default slot. */
+  title?: string;
+  id?: string;
+  open?: boolean;
+  exclusive?: boolean;
+  headingLevel?: 2 | 3 | 4;
+  idPrefix?: string;
+  size?: 'm' | 'l';
+  class?: string;
+}
+
+const { items, title, id, open = false, exclusive = false, headingLevel = 3, idPrefix, size = 'm', class: className } = Astro.props;
+
+const prefix = idPrefix ?? `acc-${Math.random().toString(36).slice(2, 8)}`;
+const Heading = `h${headingLevel}` as 'h2' | 'h3' | 'h4';
+
+// Plain text answers get wrapped in a paragraph; HTML answers are used as-is.
+const asHtml = (content: string) => (/^\s*</.test(content) ? content : `<p>${content.replace(/&(?!\w+;|#\d+;)/g, '&amp;').replace(/</g, '&lt;')}</p>`);
+
+const list = items
+  ? items.map((item, i) => ({ ...item, id: item.id ?? `${prefix}-${i + 1}`, html: asHtml(item.content) }))
+  : [{ title: title ?? '', id: id ?? `${prefix}-1`, open, html: null as string | null }];
+const slotHtml = items ? null : await Astro.slots.render('default');
+---
+
+<div class:list={['accordion', `accordion--${size}`, className]} data-accordion data-accordion-exclusive={exclusive ? '' : undefined}>
+  {
+    list.map((item) => (
+      <div class:list={['accordion__item', { 'is-open': item.open }]} id={item.id} data-accordion-item>
+        <Heading class="accordion__heading">
+          <button
+            type="button"
+            class="accordion__trigger"
+            id={`${item.id}-trigger`}
+            aria-expanded={item.open ? 'true' : 'false'}
+            aria-controls={`${item.id}-panel`}
+            data-accordion-trigger
+          >
+            <span class="accordion__title">{item.title}</span>
+            <span class="accordion__icon" aria-hidden="true" />
+          </button>
+        </Heading>
+        <div class="accordion__panel" id={`${item.id}-panel`} role="region" aria-labelledby={`${item.id}-trigger`} data-accordion-panel>
+          <div class="accordion__clip">
+            <div class="accordion__content prose" set:html={item.html ?? slotHtml} />
+          </div>
+        </div>
+      </div>
+    ))
+  }
+</div>
+
+<script>
+  import '../../scripts/accordion';
+</script>
+
+<style>
+  .accordion {
+    border-block-start: 1px solid var(--rule);
+  }
+  .accordion__item {
+    border-block-end: 1px solid var(--rule);
+  }
+  .accordion__heading {
+    margin: 0;
+    font: inherit;
+  }
+
+  /* The whole question row is the button: big, easy target (≥ 44px). */
+  .accordion__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-m);
+    inline-size: 100%;
+    min-block-size: 3.5rem;
+    padding: var(--space-m) 0;
+    text-align: start;
+    color: var(--heading);
+    cursor: pointer;
+    transition: color var(--dur-hover) var(--ease-out);
+  }
+  .accordion__trigger:hover {
+    color: var(--accent);
+  }
+  .accordion__title {
+    font-family: var(--ff-display);
+    font-size: clamp(1.375rem, 1.3rem + 0.35vw, 1.625rem); /* 22 → 26px */
+    font-weight: 600;
+    line-height: 1.25;
+    text-wrap: pretty;
+  }
+  .accordion--l .accordion__title {
+    font-size: clamp(1.5rem, 1.35rem + 0.6vw, 1.875rem); /* 24 → 30px */
+  }
+
+  /* Engraved plus / minus in a hairline circle. */
+  .accordion__icon {
+    position: relative;
+    flex: none;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    border-radius: var(--radius-round);
+    box-shadow: inset 0 0 0 1px var(--rule-strong);
+    color: var(--accent);
+    transition:
+      background-color var(--dur-hover) var(--ease-out),
+      transform var(--dur-ui) var(--ease-silk);
+  }
+  .accordion__icon::before,
+  .accordion__icon::after {
+    content: '';
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    inline-size: 0.875rem;
+    block-size: 1.5px;
+    margin: -0.75px 0 0 -0.4375rem;
+    background: currentColor;
+    transition: transform var(--dur-ui) var(--ease-silk);
+  }
+  .accordion__icon::after {
+    transform: rotate(90deg);
+  }
+  .accordion__trigger:hover .accordion__icon {
+    background-color: rgb(175 130 67 / 0.12);
+  }
+  .is-open > .accordion__heading .accordion__icon {
+    transform: rotate(180deg);
+  }
+  .is-open > .accordion__heading .accordion__icon::after {
+    transform: rotate(90deg) scaleX(0);
+  }
+
+  /* Smooth open/close: the panel's single grid row grows from 0fr to 1fr.
+     With JavaScript off, answers simply stay open. */
+  .accordion__panel {
+    display: grid;
+    grid-template-rows: 1fr;
+  }
+  :global(html.js) .accordion__panel {
+    transition:
+      grid-template-rows var(--dur-ui) var(--ease-silk),
+      visibility 0s linear var(--dur-ui);
+  }
+  :global(html.js) .accordion__item:not(.is-open) > .accordion__panel {
+    grid-template-rows: 0fr;
+    visibility: hidden; /* hidden answers are skipped by keyboard and screen readers */
+  }
+  :global(html.js) .accordion__item.is-open > .accordion__panel {
+    transition:
+      grid-template-rows var(--dur-ui) var(--ease-silk),
+      visibility 0s linear 0s;
+  }
+  :global(html.reduce-motion) .accordion__panel,
+  :global(html.reduce-motion) .accordion__icon,
+  :global(html.reduce-motion) .accordion__icon::before,
+  :global(html.reduce-motion) .accordion__icon::after {
+    transition: none !important;
+  }
+  :global(html.no-js) .accordion__icon {
+    display: none;
+  }
+
+  .accordion__clip {
+    min-block-size: 0;
+    overflow: hidden;
+  }
+  .accordion__content {
+    padding-block-end: var(--space-l);
+    padding-inline-end: clamp(0rem, 4vw, 3.25rem);
+    color: var(--text);
+  }
+</style>

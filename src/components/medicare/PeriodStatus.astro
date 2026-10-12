@@ -1,0 +1,159 @@
+---
+/**
+ * Live status of a yearly Medicare enrollment period — "Opens in 4 days" or
+ * "Open now — ends in 12 days". The page is printed with the build date as a
+ * sensible default; the visitor's browser then recalculates it for today
+ * (src/scripts/medicare/periods.ts).
+ *
+ *   <PeriodStatus start={[10, 15]} end={[12, 7]} />                     small badge
+ *   <PeriodStatus start={[10, 15]} end={[12, 7]} variant="card"
+ *                 name="Annual Enrollment Period">…description…</PeriodStatus>
+ *
+ * Inside the card's description, <span data-period-following-year></span>
+ * is filled with the year after the window (the year changes take effect).
+ */
+import { yearlyPeriodState, periodStatusText, formatRange, type MonthDay } from '../../scripts/medicare/logic';
+
+interface Props {
+  start: MonthDay;
+  end: MonthDay;
+  variant?: 'badge' | 'card';
+  /** Card only: the period's name. */
+  name?: string;
+  /** Badge only: also show the dates. */
+  showDates?: boolean;
+  class?: string;
+}
+
+const { start, end, variant = 'badge', name, showDates = false, class: className } = Astro.props;
+const state = yearlyPeriodState(start, end);
+const dataStart = `${start[0]}-${start[1]}`;
+const dataEnd = `${end[0]}-${end[1]}`;
+---
+
+{
+  variant === 'card' ? (
+    <div class:list={['period-card', { 'is-open': state.open }, className]} data-period-status data-start={dataStart} data-end={dataEnd}>
+      {name && <p class="period-card__name eyebrow">{name}</p>}
+      <p class="period-card__dates" data-period-dates>
+        {formatRange(state.start, state.end)}
+      </p>
+      <p class="period-status">
+        <span class="period-status__dot" aria-hidden="true" />
+        <span data-period-text>{periodStatusText(state)}</span>
+      </p>
+      {Astro.slots.has('default') && (
+        <div class="period-card__text">
+          <slot />
+        </div>
+      )}
+    </div>
+  ) : (
+    <p class:list={['period-status', 'period-status--badge', { 'is-open': state.open }, className]} data-period-status data-start={dataStart} data-end={dataEnd}>
+      <span class="period-status__dot" aria-hidden="true" />
+      <span data-period-text>{periodStatusText(state)}</span>
+      {showDates && (
+        <span class="period-status__dates" data-period-dates>
+          {formatRange(state.start, state.end)}
+        </span>
+      )}
+    </p>
+  )
+}
+
+<script>
+  import '../../scripts/medicare/periods';
+</script>
+
+<style>
+  .period-status {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.65rem;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.35;
+    color: var(--heading);
+  }
+  .period-status--badge {
+    padding: 0.45rem 0.8rem;
+    box-shadow: inset 0 0 0 1px var(--rule);
+    background: rgb(175 130 67 / 0.08);
+  }
+  .period-status__dates {
+    flex-basis: 100%;
+    font-weight: 400;
+    color: var(--text-muted);
+    padding-inline-start: 1.3rem;
+  }
+  /* Ring = upcoming; filled gold dot with a soft pulse = open now. */
+  .period-status__dot {
+    position: relative;
+    flex: none;
+    inline-size: 0.7rem;
+    block-size: 0.7rem;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1.5px var(--accent);
+  }
+  .is-open .period-status__dot {
+    background: var(--accent);
+  }
+  .is-open .period-status__dot::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1px solid var(--accent);
+    animation: period-pulse 2.4s var(--ease-out) infinite;
+  }
+  :global(html.reduce-motion) .is-open .period-status__dot::after {
+    animation: none;
+    opacity: 0.5;
+  }
+  @keyframes period-pulse {
+    from {
+      transform: scale(0.6);
+      opacity: 0.9;
+    }
+    to {
+      transform: scale(1.7);
+      opacity: 0;
+    }
+  }
+
+  /* Card (used in the Medicare 101 hero). */
+  .period-card {
+    position: relative;
+    display: grid;
+    gap: var(--space-s);
+    padding: clamp(1.75rem, 1.25rem + 1.5vw, 2.5rem);
+    background: rgb(14 36 15 / 0.72);
+    border: 1px solid var(--rule-strong);
+    box-shadow: var(--shadow-l);
+  }
+  .period-card::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px solid var(--rule);
+    pointer-events: none;
+  }
+  .period-card__dates {
+    font-family: var(--ff-display);
+    font-size: clamp(1.75rem, 1.5rem + 1vw, 2.375rem);
+    font-weight: 500;
+    line-height: 1.1;
+    color: var(--heading);
+  }
+  .period-card .period-status {
+    font-size: 1.125rem;
+    color: var(--accent);
+  }
+  .period-card__text {
+    color: var(--text-muted);
+  }
+  .period-card__text :global(a) {
+    color: var(--text);
+  }
+</style>

@@ -1,0 +1,690 @@
+---
+/**
+ * /services/<slug>/ — one page per service.
+ * Words come from src/content/services/<slug>.md (title, lead, highlights,
+ * checklist, FAQs and the long text). Name, icon, summary and order come from
+ * src/data/services.ts. Sections, top to bottom:
+ *   hero · highlights (paper) · "Is this right for you?" + details (green) ·
+ *   FAQs (paper) · related services (green) · call-to-action band (ivory)
+ */
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/ui/PageHero.astro';
+import Button from '../../components/ui/Button.astro';
+import Icon from '../../components/ui/Icon.astro';
+import Ornament from '../../components/ui/Ornament.astro';
+import Accordion from '../../components/ui/Accordion.astro';
+import PeriodStatus from '../../components/medicare/PeriodStatus.astro';
+import MedicareDisclaimer from '../../components/medicare/MedicareDisclaimer.astro';
+import { SERVICES, ROMAN, type Service } from '../../data/services';
+import { ADVISORS, ADVISOR_LIST, HOURS, SITE } from '../../config/site';
+import { url } from '../../lib/url';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('services');
+  return entries.flatMap((entry) => {
+    const index = SERVICES.findIndex((s) => s.slug === entry.id);
+    // A Markdown file without a matching entry in src/data/services.ts is skipped.
+    if (index < 0) return [];
+    return [{ params: { slug: entry.id }, props: { entry, service: SERVICES[index], index } }];
+  });
+}
+
+interface Props {
+  entry: CollectionEntry<'services'>;
+  service: Service;
+  index: number;
+}
+
+const { entry, service, index } = Astro.props;
+const data = entry.data;
+const { Content } = await render(entry);
+const numeral = ROMAN[index] ?? String(index + 1);
+const isMedicare = service.slug === 'medicare-plans';
+
+/** Escape text before it goes into the hero's HTML title. */
+const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+/** "Life Insurance" → "Life <em>Insurance</em>" (gold italic accent on the last word). */
+function accentLast(title: string): string {
+  const words = title.trim().split(/\s+/);
+  const last = words.pop() ?? '';
+  return words.length ? `${esc(words.join(' '))} <em>${esc(last)}</em>` : `<em>${esc(last)}</em>`;
+}
+
+/** How each service reads in a sentence ("questions about …"). */
+const TOPIC: Record<string, string> = {
+  'life-insurance': 'life insurance',
+  annuities: 'annuities',
+  iras: 'IRAs',
+  'retirement-planning': 'rollovers & retirement',
+  'health-insurance': 'health insurance',
+  'medicare-plans': 'Medicare plans',
+  'long-term-care': 'long-term care',
+  'disability-income-insurance': 'disability insurance',
+};
+const topic = TOPIC[service.slug] ?? service.name;
+
+/** Related services shown near the end of each page (edit freely; 2–3 slugs each). */
+const RELATED: Record<string, string[]> = {
+  'life-insurance': ['long-term-care', 'disability-income-insurance', 'annuities'],
+  annuities: ['iras', 'retirement-planning', 'long-term-care'],
+  iras: ['retirement-planning', 'annuities', 'life-insurance'],
+  'retirement-planning': ['iras', 'annuities', 'medicare-plans'],
+  'health-insurance': ['medicare-plans', 'disability-income-insurance', 'life-insurance'],
+  'medicare-plans': ['health-insurance', 'long-term-care', 'retirement-planning'],
+  'long-term-care': ['life-insurance', 'annuities', 'medicare-plans'],
+  'disability-income-insurance': ['life-insurance', 'health-insurance', 'retirement-planning'],
+};
+const relatedSlugs = RELATED[service.slug] ?? SERVICES.filter((s) => s.slug !== service.slug).slice(0, 3).map((s) => s.slug);
+const related = relatedSlugs
+  .map((slug) => ({ s: SERVICES.find((x) => x.slug === slug), i: SERVICES.findIndex((x) => x.slug === slug) }))
+  .filter((r): r is { s: Service; i: number } => Boolean(r.s));
+
+const faqItems = data.faqs.map((f, i) => ({ id: `${service.slug}-q${i + 1}`, title: f.q, content: f.a }));
+const bookHref = `/book/?topic=${service.slug}`;
+
+// Structured data: breadcrumb + Service (provided by the agency defined in Seo.astro).
+const site = Astro.site ?? new URL(SITE.url);
+const abs = (path: string) => new URL(url(path), site).toString();
+const pageUrl = abs(`/services/${service.slug}/`);
+const schema = [
+  {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: abs('/') },
+      { '@type': 'ListItem', position: 2, name: 'Services', item: abs('/services/') },
+      { '@type': 'ListItem', position: 3, name: data.title, item: pageUrl },
+    ],
+  },
+  {
+    '@type': 'Service',
+    '@id': `${pageUrl}#service`,
+    name: data.title,
+    serviceType: data.title,
+    description: data.description,
+    url: pageUrl,
+    provider: { '@id': `${abs('/')}#agency` },
+    areaServed: { '@type': 'State', name: SITE.areaServed },
+  },
+];
+---
+
+<BaseLayout title={data.title} description={data.description} schema={schema}>
+  <PageHero eyebrow={`${numeral} · Our services`} title={accentLast(data.title)} lead={data.lead}>
+    <Button href={bookHref} magnetic icon="calendar-check" iconPosition="start">Book an Appointment</Button>
+    <Button href={`tel:${ADVISORS.gautam.phoneHref}`} variant="outline" icon="phone" iconPosition="start" data-dialog-open="call-sheet" aria-haspopup="dialog">
+      Call Us
+    </Button>
+    <Fragment slot="aside">
+      <div class="crest" aria-hidden="true">
+        <span class="crest__label">No.</span>
+        <span class="crest__num foil-text">{numeral}</span>
+        <Icon name={service.icon} size={56} class="crest__icon" />
+        <Ornament width={160} draw={false} />
+        <span class="crest__name">{service.shortName ?? service.name}</span>
+      </div>
+    </Fragment>
+  </PageHero>
+
+  <!-- ── Highlights ── -->
+  {
+    data.highlights.length > 0 && (
+      <section class="section surface-paper" aria-labelledby="highlights-title">
+        <div class="container">
+          <header class="split-head">
+            <div class="stack-head">
+              <p class="eyebrow eyebrow--rule" data-reveal>
+                At a glance
+              </p>
+              <h2 id="highlights-title" data-split set:html={`${esc(service.shortName ?? data.title)}, <em>at a glance</em>`} />
+            </div>
+            <p class="split-head__text" data-reveal>
+              {service.summary}
+            </p>
+          </header>
+          <ul class="highlights" role="list">
+            {data.highlights.map((h, i) => (
+              <li class="highlights__item" data-reveal>
+                <div class="engraved">
+                  <span class="engraved__num" aria-hidden="true">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <h3 class="engraved__title">{h.title}</h3>
+                  <p class="engraved__text">{h.text}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- ── Is this right for you? + the details ── -->
+  <section class="section details" aria-labelledby="details-title">
+    <div class="container details__grid">
+      <aside class="details__aside" aria-labelledby="fit-title">
+        <div class="fit">
+          <p class="eyebrow">Is this right for you?</p>
+          <h2 id="fit-title" class="fit__title">It may be, <em>if…</em></h2>
+          <ul class="fit__list" role="list">
+            {
+              data.whoItsFor.map((line) => (
+                <li>
+                  <Icon name="check" class="fit__icon" />
+                  <span>{line}</span>
+                </li>
+              ))
+            }
+          </ul>
+          <p class="fit__note">
+            Not sure? <a class="text-link" href={url(bookHref)}>Book a conversation</a> — we will help you work it out.
+          </p>
+        </div>
+
+        {
+          isMedicare && (
+            <div class="m101">
+              <p class="eyebrow">Annual Enrollment</p>
+              <PeriodStatus start={[10, 15]} end={[12, 7]} showDates />
+              <p class="m101__text">
+                New to Medicare, or want a refresher? Our <a class="text-link" href={url('/medicare-101/')}>Medicare 101 guide</a> explains the parts, plans,
+                deadlines and costs in plain English.
+              </p>
+            </div>
+          )
+        }
+      </aside>
+
+      <div class="details__main">
+        <p class="eyebrow eyebrow--rule" data-reveal>The details</p>
+        <h2 id="details-title" class="visually-hidden">About {topic}</h2>
+        <div class="prose details__prose">
+          <Content />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FAQs ── -->
+  {
+    faqItems.length > 0 && (
+      <section class="section surface-paper" aria-labelledby="faq-title">
+        <div class="container faq-split">
+          <div class="faq-split__intro">
+            <p class="eyebrow eyebrow--rule" data-reveal>
+              Questions
+            </p>
+            <h2 id="faq-title" data-split set:html={`Common questions about <em>${esc(topic)}</em>`} />
+            <p class="faq-split__text" data-reveal>
+              Don’t see your question? Browse <a class="text-link" href={url('/faq/')}>all our FAQs</a>, or call {ADVISORS.gautam.firstName} at{' '}
+              <a class="text-link nowrap" href={`tel:${ADVISORS.gautam.phoneHref}`}>
+                {ADVISORS.gautam.phone}
+              </a>{' '}
+              or {ADVISORS.shweta.firstName} at{' '}
+              <a class="text-link nowrap" href={`tel:${ADVISORS.shweta.phoneHref}`}>
+                {ADVISORS.shweta.phone}
+              </a>
+              .
+            </p>
+          </div>
+          <div class="faq-split__list">
+            <Accordion items={faqItems} idPrefix={`${service.slug}-faq`} />
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- ── Related services ── -->
+  <section class="section related guilloche-field" aria-labelledby="related-title">
+    <div class="container">
+      <header class="split-head">
+        <div class="stack-head">
+          <p class="eyebrow eyebrow--rule" data-reveal>Keep exploring</p>
+          <h2 id="related-title" data-split>Related <em>services</em></h2>
+        </div>
+        <p class="split-head__text" data-reveal>
+          Financial decisions rarely stand alone. These services often go hand in hand with {topic}.
+        </p>
+      </header>
+      <ul class="related__grid" role="list">
+        {
+          related.map(({ s, i }) => (
+            <li data-reveal>
+              <article class="rcard">
+                <div class="rcard__top">
+                  <span class="rcard__num" aria-hidden="true">
+                    {ROMAN[i]}
+                  </span>
+                  <Icon name={s.icon} size={30} class="rcard__icon" />
+                </div>
+                <h3 class="rcard__name">
+                  <a class="rcard__link" href={url(`/services/${s.slug}/`)}>
+                    {s.name}
+                  </a>
+                </h3>
+                <p class="rcard__summary">{s.summary}</p>
+                <span class="rcard__more" aria-hidden="true">
+                  Learn more <Icon name="arrow-right" />
+                </span>
+              </article>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="related__all" data-reveal>
+        <Button href="/services/" variant="ghost" icon="arrow-right">All services</Button>
+      </p>
+    </div>
+  </section>
+
+  <!-- ── Call to action ── -->
+  <section class="section section--tight surface-ivory cta" aria-labelledby="cta-title">
+    <div class="container">
+      <div class="cta__plate">
+        <div class="cta__copy">
+          <p class="eyebrow eyebrow--rule">Talk it through</p>
+          <h2 id="cta-title" class="cta__title" set:html={`Questions about <em>${esc(topic)}</em>?`} />
+          <p class="cta__text">
+            Meet in person, by phone or by video. {HOURS.summary}; {HOURS.holidayNote.toLowerCase()}.
+          </p>
+        </div>
+        <div class="cta__actions">
+          <Button href={bookHref} icon="calendar-check" iconPosition="start" size="l">Book an Appointment</Button>
+          <ul class="cta__calls" role="list">
+            {
+              ADVISOR_LIST.map((a) => (
+                <li>
+                  <a class="cta__call" href={`tel:${a.phoneHref}`}>
+                    <Icon name="phone" class="cta__call-icon" />
+                    <span class="cta__call-text">
+                      <span class="cta__call-name">{a.name}</span>
+                      <span class="cta__call-num num">{a.phone}</span>
+                    </span>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+      {isMedicare && <MedicareDisclaimer class="cta__disclaimer" />}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* ── Hero crest (decorative, large screens only) ── */
+  .crest {
+    position: relative;
+    display: none;
+    justify-items: center;
+    gap: var(--space-s);
+    max-inline-size: 22rem;
+    margin-inline: auto;
+    padding: var(--space-2xl) var(--space-xl) var(--space-xl);
+    border: 1px solid var(--rule-strong);
+    background: rgb(14 36 15 / 0.55);
+    box-shadow: var(--shadow-l);
+    text-align: center;
+  }
+  .crest::before {
+    content: '';
+    position: absolute;
+    inset: 7px;
+    border: 1px solid var(--rule);
+    pointer-events: none;
+  }
+  @media (min-width: 64rem) {
+    .crest {
+      display: grid;
+    }
+  }
+  .crest__label {
+    font-size: var(--fs-label);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .crest__num {
+    font-family: var(--ff-display);
+    font-size: clamp(6rem, 4rem + 4vw, 9rem);
+    font-weight: 500;
+    line-height: 0.9;
+  }
+  .crest :global(.crest__icon) {
+    color: var(--gold-400);
+  }
+  .crest__name {
+    font-family: var(--ff-display);
+    font-size: 1.625rem;
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--heading);
+  }
+
+  /* ── Shared section header: 7/5 split ── */
+  .split-head {
+    display: grid;
+    gap: var(--space-m);
+    margin-block-end: var(--space-2xl);
+  }
+  .stack-head > * + * {
+    margin-block-start: var(--space-m);
+  }
+  .split-head__text {
+    color: var(--text-muted);
+    max-width: 34em;
+  }
+  @media (min-width: 64rem) {
+    .split-head {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: var(--space-3xl);
+      align-items: end;
+    }
+  }
+
+  /* ── Highlights: engraved cards on paper ── */
+  .highlights {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+    gap: var(--space-m);
+  }
+  .highlights__item {
+    display: grid;
+  }
+  .engraved {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-xs);
+    padding: clamp(1.5rem, 1.25rem + 1vw, 2.25rem);
+    background: var(--bg-raised);
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow-s);
+    transition:
+      transform var(--dur-hover) var(--ease-out),
+      box-shadow var(--dur-hover) var(--ease-out),
+      border-color var(--dur-hover) var(--ease-out);
+  }
+  .engraved::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px solid rgb(141 97 39 / 0.14);
+    pointer-events: none;
+  }
+  .engraved:hover {
+    transform: translateY(calc(-4px * var(--motion)));
+    box-shadow: var(--shadow-m);
+    border-color: var(--rule-strong);
+  }
+  .engraved__num {
+    font-family: var(--ff-display);
+    font-size: 2.25rem;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--accent-large);
+  }
+  .engraved__title {
+    font-size: var(--fs-h4);
+  }
+  .engraved__text {
+    color: var(--text-muted);
+  }
+
+  /* ── Details: checklist (5) + long text (7) ── */
+  .details__grid {
+    display: grid;
+    gap: var(--space-2xl);
+  }
+  @media (min-width: 64rem) {
+    .details__grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--space-3xl);
+      align-items: start;
+    }
+  }
+  @media (min-width: 64rem) and (min-height: 52rem) {
+    .details__aside {
+      position: sticky;
+      inset-block-start: calc(var(--header-h) + 2rem);
+    }
+  }
+  .details__aside {
+    display: grid;
+    gap: var(--space-m);
+  }
+  .fit,
+  .m101 {
+    position: relative;
+    display: grid;
+    gap: var(--space-s);
+    padding: clamp(1.5rem, 1.25rem + 1vw, 2.5rem);
+    background: var(--bg-raised);
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow-m);
+  }
+  .fit::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px solid rgb(175 130 67 / 0.16);
+    pointer-events: none;
+  }
+  .fit__title {
+    font-size: var(--fs-h3);
+  }
+  .fit__list {
+    display: grid;
+    margin-block: var(--space-2xs);
+  }
+  .fit__list li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-xs);
+    align-items: start;
+    padding-block: var(--space-xs);
+    border-block-end: 1px solid var(--rule);
+  }
+  .fit__list li:last-child {
+    border-block-end: 0;
+  }
+  .fit__list :global(.fit__icon) {
+    margin-block-start: 0.2em;
+    font-size: 1.25em;
+    color: var(--accent);
+  }
+  .fit__note,
+  .m101__text {
+    color: var(--text-muted);
+  }
+  .details__main > * + * {
+    margin-block-start: var(--space-m);
+  }
+  .details__prose :global(h2:first-child) {
+    margin-block-start: 0;
+  }
+
+  /* ── FAQ: intro (5) + accordion (7) ── */
+  .faq-split {
+    display: grid;
+    gap: var(--space-2xl);
+  }
+  @media (min-width: 64rem) {
+    .faq-split {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--space-3xl);
+      align-items: start;
+    }
+  }
+  .faq-split__intro > * + * {
+    margin-block-start: var(--space-m);
+  }
+  .faq-split__text {
+    color: var(--text-muted);
+    max-width: 30em;
+  }
+
+  /* ── Related services ── */
+  .related__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    gap: var(--space-m);
+  }
+  .related__grid > li {
+    display: grid;
+  }
+  .rcard {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-s);
+    padding: clamp(1.5rem, 1.25rem + 1vw, 2.25rem);
+    background: var(--bg-raised);
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow-s);
+    transition:
+      transform var(--dur-hover) var(--ease-out),
+      box-shadow var(--dur-hover) var(--ease-out),
+      border-color var(--dur-hover) var(--ease-out);
+  }
+  .rcard:hover {
+    transform: translateY(calc(-4px * var(--motion)));
+    box-shadow: var(--shadow-m);
+    border-color: var(--rule-strong);
+  }
+  .rcard__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .rcard__num {
+    font-family: var(--ff-display);
+    font-size: 2.5rem;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--accent-large);
+  }
+  .rcard :global(.rcard__icon) {
+    color: var(--gold-500);
+  }
+  .rcard__name {
+    font-size: var(--fs-h4);
+  }
+  .rcard__link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .rcard__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+  .rcard__link:focus-visible {
+    outline: none;
+  }
+  .rcard__link:focus-visible::after {
+    outline: 2px solid var(--focus);
+    outline-offset: 4px;
+  }
+  .rcard__summary {
+    color: var(--text-muted);
+  }
+  .rcard__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .related__all {
+    margin-block-start: var(--space-xl);
+  }
+
+  /* ── Call-to-action band ── */
+  .cta__plate {
+    position: relative;
+    display: grid;
+    gap: var(--space-xl);
+    padding: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+    border: 1px solid var(--rule-strong);
+    background: var(--paper-200);
+  }
+  .cta__plate::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px solid var(--rule);
+    pointer-events: none;
+  }
+  @media (min-width: 64rem) {
+    .cta__plate {
+      grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+      align-items: center;
+      gap: var(--space-3xl);
+    }
+  }
+  .cta__copy > * + * {
+    margin-block-start: var(--space-s);
+  }
+  .cta__title {
+    font-size: var(--fs-h3);
+  }
+  .cta__text {
+    color: var(--text-muted);
+  }
+  .cta__actions {
+    position: relative;
+    display: grid;
+    gap: var(--space-m);
+    justify-items: start;
+  }
+  .cta__calls {
+    display: grid;
+    gap: var(--space-xs);
+    inline-size: 100%;
+  }
+  @media (min-width: 36rem) {
+    .cta__calls {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .cta__call {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    min-block-size: 3.5rem;
+    padding: var(--space-xs) var(--space-s);
+    color: var(--text);
+    text-decoration: none;
+    background: var(--ivory-50);
+    box-shadow: inset 0 0 0 1px var(--rule);
+    transition: box-shadow var(--dur-hover) var(--ease-out);
+  }
+  .cta__call:hover {
+    box-shadow: inset 0 0 0 1px var(--rule-strong);
+  }
+  .cta__call :global(.cta__call-icon) {
+    flex: none;
+    font-size: 1.5rem;
+    color: var(--accent);
+  }
+  .cta__call-text {
+    display: grid;
+    line-height: 1.3;
+  }
+  .cta__call-name {
+    font-weight: 600;
+  }
+  .cta__call-num {
+    color: var(--accent);
+  }
+  .cta :global(.cta__disclaimer) {
+    margin-block-start: var(--space-xl);
+  }
+</style>
