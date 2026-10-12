@@ -1,0 +1,275 @@
+---
+/**
+ * Living style guide (not linked from the site, excluded from search).
+ * The single visual reference for colours, type, buttons, textures,
+ * ornaments and motion primitives. See CLAUDE.md for the rules.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/ui/PageHero.astro';
+import Button from '../components/ui/Button.astro';
+import Icon from '../components/ui/Icon.astro';
+import Ornament from '../components/ui/Ornament.astro';
+import rosetteHero from '../assets/patterns/rosette-hero.svg?url';
+import { ICONS, type IconName } from '../lib/icons';
+
+const greens = [
+  ['green-950', '#061206'], ['green-900', '#0E240F'], ['green-800', '#1A3719', 'Logo green'], ['green-700', '#20401E'], ['green-600', '#345431'], ['green-500', '#50714B'], ['green-100', '#DCE4D6'],
+];
+const golds = [
+  ['gold-900', '#4A2E0A'], ['gold-800', '#623E11', 'Bronze text'], ['gold-700', '#8D6127'], ['gold-600', '#AF8243', 'Logo gold'], ['gold-500', '#C49D64'], ['gold-400', '#DDB579'], ['gold-300', '#EFCB90'], ['gold-200', '#F6E2B8'],
+];
+const neutrals = [
+  ['ivory-50', '#FBF7EF'], ['ivory-100', '#F6EEDD'], ['ivory-muted', '#CFC6B0'], ['paper-200', '#EDE1CB', 'Logo paper'], ['paper-300', '#E2D3B6'], ['ink-muted', '#465244'], ['garnet', '#8E2A1F'], ['blush', '#F2A493'],
+];
+const iconNames = Object.keys(ICONS) as IconName[];
+---
+
+<BaseLayout title="Style guide" description="Shah & Amin design system reference." noindex>
+  <PageHero eyebrow="Design system" title="The Shah &amp; Amin <em>style guide</em>" lead="Colours measured from the logo, heritage typography, engraved textures and the motion primitives every page is built from.">
+    <Button href="/book/" magnetic icon="calendar-check" iconPosition="start">Book an Appointment</Button>
+    <Button href="#type" variant="outline">Typography</Button>
+    <Button href="#textures" variant="ghost" icon="arrow-right">Textures</Button>
+  </PageHero>
+
+  <section class="section" aria-labelledby="sg-colour">
+    <div class="container stack-l stack">
+      <p class="eyebrow eyebrow--rule" data-reveal>01 · Colour</p>
+      <h2 id="sg-colour" data-split>Green, gold &amp; <em>paper</em></h2>
+      {
+        [greens, golds, neutrals].map((row) => (
+          <ul class="swatches" role="list" data-reveal>
+            {row.map(([name, hex, note]) => (
+              <li class="swatch">
+                <span class="swatch__chip" style={`background:${hex}`} />
+                <span class="swatch__name">{name}</span>
+                <span class="swatch__hex num">{hex}</span>
+                {note && <span class="swatch__note">{note}</span>}
+              </li>
+            ))}
+          </ul>
+        ))
+      }
+      <div class="foil-demo" data-reveal>
+        <span class="foil-text foil-demo__big">Since 2000</span>
+        <span class="foil-demo__bar" aria-hidden="true"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section surface-paper" id="type" aria-labelledby="sg-type">
+    <div class="container stack stack-l">
+      <p class="eyebrow eyebrow--rule" data-reveal>02 · Typography</p>
+      <h2 id="sg-type" data-split>Cormorant Garamond <em>&amp;</em> Jost</h2>
+      <div class="type-grid">
+        <div class="stack">
+          <p class="display">Trusted hands</p>
+          <p class="h1">Heading one</p>
+          <p class="h2">Heading two, <em>with accent</em></p>
+          <p class="h3">Heading three</p>
+          <p class="h4">Heading four</p>
+        </div>
+        <div class="stack prose">
+          <p class="lead">Lead paragraph — a warm, confident introduction set in Jost at 20–24px.</p>
+          <p>
+            Body text is set at 17–19px with generous line spacing for comfortable reading. Links inside running text are always underlined, like
+            <a href="/medicare-101/">this guide to Medicare</a>, so they stay easy to spot.
+          </p>
+          <ul>
+            <li>Bullets use a small gold diamond.</li>
+            <li>Lines never run longer than about 68 characters.</li>
+          </ul>
+          <p class="eyebrow">Eyebrow label · 14px · tracked</p>
+          <p class="small muted">Small muted text for captions and helper notes.</p>
+        </div>
+      </div>
+      <div class="cluster" data-reveal>
+        <Button href="/book/" icon="calendar-check" iconPosition="start">Gold on paper</Button>
+        <Button href="/contact/" variant="outline">Outline</Button>
+        <Button href="/services/" variant="ghost" icon="arrow-right">Ghost link</Button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section guilloche-field" id="textures" aria-labelledby="sg-tex">
+    <div class="container stack stack-l">
+      <p class="eyebrow eyebrow--rule" data-reveal>03 · Texture &amp; ornament</p>
+      <h2 id="sg-tex" data-split>Engraved, <em>tactile</em>, quiet</h2>
+      <div class="tex-grid">
+        <figure class="tex surface-paper" data-reveal><figcaption>Linen paper</figcaption></figure>
+        <figure class="tex tex--guilloche" data-reveal><figcaption>Guilloché field</figcaption></figure>
+        <figure class="tex tex--rosette" data-reveal>
+          <div class="tex__rosette" style={`--src:url(${rosetteHero})`} data-rosette></div>
+          <figcaption>Rosette sweep</figcaption>
+        </figure>
+      </div>
+      <Ornament width={260} />
+      <span class="wave-band" aria-hidden="true"></span>
+      <div class="stats" data-reveal>
+        <p><span class="stat num" data-count="26">26</span><span class="stat__label">Years of service</span></p>
+        <p><span class="stat num">7</span><span class="stat__label">Days a week</span></p>
+        <p><span class="stat num" data-count="8">8</span><span class="stat__label">Areas of coverage</span></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section surface-ivory" aria-labelledby="sg-icons">
+    <div class="container stack stack-l">
+      <p class="eyebrow eyebrow--rule">04 · Icons</p>
+      <h2 id="sg-icons">Phosphor Light, in gold</h2>
+      <ul class="icons" role="list">
+        {
+          iconNames.map((n) => (
+            <li>
+              <Icon name={n} size={28} />
+              <span>{n}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: var(--space-s);
+  }
+  .swatch {
+    display: grid;
+    align-content: start;
+    gap: 0.15rem;
+    font-size: 0.875rem;
+  }
+  .swatch__chip {
+    display: block;
+    aspect-ratio: 4 / 3;
+    border: 1px solid rgb(175 130 67 / 0.45);
+    margin-block-end: 0.35rem;
+  }
+  .swatch__name {
+    font-weight: 500;
+  }
+  .swatch__hex {
+    color: var(--text-muted);
+  }
+  .swatch__note {
+    color: var(--accent);
+    font-size: 0.8125rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .foil-demo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-l);
+  }
+  .foil-demo__big {
+    font-family: var(--ff-display);
+    font-size: var(--fs-display);
+    font-weight: 600;
+    line-height: 1;
+    transition: background-position 1.6s var(--ease-silk);
+  }
+  .foil-demo__big:hover {
+    background-position: 92% 50%;
+  }
+  .foil-demo__bar {
+    flex: 1 1 12rem;
+    block-size: 3.5rem;
+    background-image: var(--foil);
+    background-size: 200% 100%;
+    box-shadow: inset 0 0 0 1px rgb(255 247 225 / 0.3);
+  }
+  .type-grid {
+    display: grid;
+    gap: var(--space-2xl);
+  }
+  @media (min-width: 64rem) {
+    .type-grid {
+      grid-template-columns: 1.1fr 0.9fr;
+    }
+  }
+  .tex-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: var(--space-m);
+  }
+  .tex {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--rule);
+    display: grid;
+    align-items: end;
+    padding: var(--space-s);
+    overflow: hidden;
+  }
+  .tex figcaption {
+    position: relative;
+    font-size: 0.875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .tex--guilloche::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold-500);
+    opacity: 0.22;
+    -webkit-mask: url('../assets/patterns/guilloche-tile.svg') 0 0 / 240px repeat;
+    mask: url('../assets/patterns/guilloche-tile.svg') 0 0 / 240px repeat;
+  }
+  .tex--rosette {
+    background: var(--green-900);
+  }
+  .tex__rosette {
+    position: absolute;
+    inset: 6%;
+    background: var(--gold-400);
+    opacity: 0.6;
+    -webkit-mask: var(--src) center / contain no-repeat, conic-gradient(from -90deg, #000 var(--sweep), transparent calc(var(--sweep) + 0.5deg));
+    mask: var(--src) center / contain no-repeat, conic-gradient(from -90deg, #000 var(--sweep), transparent calc(var(--sweep) + 0.5deg));
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+  .stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xl);
+  }
+  .stats p {
+    display: grid;
+  }
+  .stat {
+    font-family: var(--ff-display);
+    font-size: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+    font-weight: 500;
+    line-height: 1;
+    color: var(--gold-400);
+    min-inline-size: 2ch;
+  }
+  .stat__label {
+    font-size: var(--fs-label);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .icons {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+    gap: var(--space-m);
+  }
+  .icons li {
+    display: grid;
+    justify-items: center;
+    gap: 0.4rem;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    text-align: center;
+  }
+  .icons :global(.icon) {
+    color: var(--gold-700);
+  }
+</style>

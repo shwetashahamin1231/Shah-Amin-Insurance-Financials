@@ -1,0 +1,437 @@
+---
+/**
+ * Site header — fixed at the top of every page.
+ *  • Desktop (≥ 1200px): utility bar (hours, phones, email) + main bar with
+ *    dropdown menus and the "Book an Appointment" button.
+ *  • Smaller screens: logo, "Book" button and a Menu button that opens the
+ *    full-screen menu (MobileMenu.astro, a <dialog> outside this header).
+ * On scroll it condenses using transforms only (no layout shift).
+ * Behaviour lives in src/scripts/header.ts.
+ */
+import Logo from '../brand/Logo.astro';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import { NAV, BOOK_HREF } from '../../data/nav';
+import { ADVISOR_LIST, HOURS, SITE } from '../../config/site';
+import { url, isCurrent } from '../../lib/url';
+
+const path = Astro.url.pathname;
+---
+
+<div class="header-sentinel" data-header-sentinel aria-hidden="true"></div>
+<header class="site-header" data-header data-intro-inert>
+  <div class="utility">
+    <div class="container utility__inner">
+      <p class="utility__hours">
+        <Icon name="clock" />
+        <span>{HOURS.summary}</span>
+        <span class="utility__sep" aria-hidden="true">·</span>
+        <span class="utility__note">{HOURS.holidayNote}</span>
+      </p>
+      <ul class="utility__contact" role="list">
+        {
+          ADVISOR_LIST.map((a) => (
+            <li>
+              <a href={`tel:${a.phoneHref}`} aria-label={`Call ${a.name}, ${a.phone}`}>
+                <Icon name="phone" />
+                <span class="utility__who">{a.firstName}</span>
+                <span class="num">{a.phone}</span>
+              </a>
+            </li>
+          ))
+        }
+        <li>
+          <a href={`mailto:${SITE.email}`}>
+            <Icon name="envelope" />
+            <span>{SITE.email}</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="bar">
+    <div class="container bar__inner">
+      <Logo size={56} eager class="bar__logo" />
+
+      <nav class="nav" aria-label="Main">
+        <ul class="nav__list" role="list">
+          {
+            NAV.map((item, i) => {
+              const current = isCurrent(item.href, path, item.href === '/');
+              return (
+                <li class="nav__item" data-nav-item={item.children ? '' : undefined}>
+                  <a href={url(item.href)} class="nav__link" aria-current={isCurrent(item.href, path, true) ? 'page' : undefined} data-active={current ? '' : undefined}>
+                    {item.label}
+                  </a>
+                  {item.children && (
+                    <>
+                      <button class="nav__toggle" type="button" aria-expanded="false" aria-controls={`nav-panel-${i}`} data-nav-toggle>
+                        <Icon name="caret-down" />
+                        <span class="visually-hidden">{item.label} menu</span>
+                      </button>
+                      <div class:list={['nav__panel', { 'nav__panel--wide': item.children.length > 4 }]} id={`nav-panel-${i}`} data-nav-panel>
+                        <ul role="list">
+                          {item.children.map((child) => (
+                            <li>
+                              <a href={url(child.href)} class="nav__sublink" aria-current={isCurrent(child.href, path, true) ? 'page' : undefined}>
+                                <span class="nav__sublabel">{child.label}</span>
+                                {child.description && <span class="nav__subdesc">{child.description}</span>}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </>
+                  )}
+                </li>
+              );
+            })
+          }
+        </ul>
+      </nav>
+
+      <div class="bar__actions">
+        <Button href={BOOK_HREF} variant="gold" size="s" magnetic class="bar__book">
+          <span class="bar__book-long">Book an Appointment</span>
+          <span class="bar__book-short">Book</span>
+        </Button>
+        <button class="menu-btn" type="button" aria-haspopup="dialog" aria-controls="site-menu" data-dialog-open="site-menu">
+          <Icon name="list" size={26} />
+          <span class="menu-btn__label">Menu</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<style>
+  /* Desktop vs compact header metrics live on :root so pages can offset their heroes. */
+  :global(:root) {
+    --header-total: calc(var(--utility-h) + var(--header-h));
+  }
+  @media (max-width: 74.99rem) {
+    :global(:root) {
+      --utility-h: 0rem;
+      --header-h: 4.5rem;
+    }
+  }
+
+  .header-sentinel {
+    position: absolute;
+    inset: 0 0 auto 0;
+    block-size: 40px;
+    pointer-events: none;
+  }
+
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: var(--z-header);
+    view-transition-name: site-header;
+    transition: transform 600ms var(--ease-silk);
+  }
+  .site-header.is-condensed {
+    transform: translateY(calc(-1 * var(--utility-h)));
+  }
+
+  /* ── Utility bar (desktop only) ── */
+  .utility {
+    display: none;
+    block-size: var(--utility-h);
+    background: var(--green-950);
+    border-block-end: 1px solid rgb(175 130 67 / 0.25);
+    font-size: 0.875rem;
+    color: var(--ivory-muted);
+  }
+  @media (min-width: 75rem) {
+    .utility {
+      display: block;
+    }
+  }
+  .utility__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    block-size: 100%;
+    gap: var(--space-m);
+  }
+  .utility__hours {
+    display: flex;
+    align-items: center;
+    gap: 0.55em;
+  }
+  .utility__hours :global(.icon) {
+    color: var(--gold-500);
+  }
+  .utility__sep {
+    color: var(--gold-600);
+  }
+  .utility__contact {
+    display: flex;
+    gap: var(--space-l);
+  }
+  .utility__contact a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    min-block-size: 2.5rem;
+    color: var(--ivory-100);
+    text-decoration: none;
+    transition: color var(--dur-hover) var(--ease-out);
+  }
+  .utility__contact a:hover {
+    color: var(--gold-300);
+  }
+  .utility__contact :global(.icon) {
+    color: var(--gold-500);
+  }
+  .utility__who {
+    color: var(--gold-400);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Main bar ── */
+  .bar {
+    position: relative;
+  }
+  .bar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgb(14 36 15 / 0);
+    border-block-end: 1px solid rgb(175 130 67 / 0);
+    transform-origin: top;
+    transition:
+      background-color 500ms var(--ease-out),
+      border-color 500ms var(--ease-out),
+      box-shadow 500ms var(--ease-out),
+      transform 600ms var(--ease-silk);
+  }
+  .is-condensed .bar::before,
+  .bar.is-solid::before {
+    background: rgb(14 36 15 / 0.97);
+    border-block-end-color: rgb(175 130 67 / 0.4);
+    box-shadow: 0 12px 30px -20px rgb(0 0 0 / 0.8);
+  }
+  @media (min-width: 75rem) {
+    .is-condensed .bar::before {
+      transform: scaleY(0.82);
+    }
+    .is-condensed .bar__inner {
+      transform: translateY(-0.5rem);
+    }
+  }
+  .bar__inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-l);
+    block-size: var(--header-h);
+    transition: transform 600ms var(--ease-silk);
+  }
+  .bar__inner :global(.bar__logo) {
+    transform-origin: left center;
+    transition: transform 600ms var(--ease-silk);
+  }
+  .is-condensed .bar__inner :global(.bar__logo) {
+    transform: scale(0.86);
+  }
+  @media (max-width: 74.99rem) {
+    .bar__inner :global(.bar__logo) {
+      --logo-size: 44px !important;
+    }
+  }
+  @media (max-width: 26rem) {
+    .bar__inner :global(.logo__words) {
+      display: none;
+    }
+  }
+
+  /* ── Desktop navigation ── */
+  .nav {
+    display: none;
+    margin-inline-start: auto;
+  }
+  @media (min-width: 75rem) {
+    .nav {
+      display: block;
+    }
+  }
+  .nav__list {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+  }
+  .nav__item {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .nav__link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    padding-inline: 0.7rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--ivory-100);
+    text-decoration: none;
+    transition: color var(--dur-hover) var(--ease-out);
+  }
+  .nav__item[data-nav-item] .nav__link {
+    padding-inline-end: 0.15rem;
+  }
+  .nav__link::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0.7rem;
+    inset-block-end: 0.55rem;
+    block-size: 1px;
+    background: var(--foil-hairline);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 500ms var(--ease-silk);
+  }
+  .nav__item[data-nav-item] .nav__link::after {
+    inset-inline-end: 0.15rem;
+  }
+  .nav__link:hover,
+  .nav__link[data-active] {
+    color: var(--gold-300);
+  }
+  .nav__link:hover::after,
+  .nav__link[data-active]::after {
+    transform: scaleX(1);
+  }
+  .nav__toggle {
+    display: grid;
+    place-items: center;
+    inline-size: 1.75rem;
+    block-size: 44px;
+    color: var(--gold-400);
+    transition: transform var(--dur-ui) var(--ease-out), color var(--dur-hover);
+  }
+  .nav__toggle[aria-expanded='true'] {
+    transform: rotate(180deg);
+    color: var(--gold-300);
+  }
+
+  .nav__panel {
+    position: absolute;
+    inset-block-start: calc(100% + 0.5rem);
+    inset-inline-start: -0.5rem;
+    min-inline-size: 17rem;
+    padding: 0.75rem;
+    background: var(--green-900);
+    border: 1px solid rgb(175 130 67 / 0.45);
+    box-shadow: var(--shadow-l);
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(calc(8px * var(--motion)));
+    transition:
+      opacity 260ms var(--ease-out),
+      transform 360ms var(--ease-silk),
+      visibility 0s linear 360ms;
+  }
+  .nav__panel::before {
+    /* Gold hairline accent along the top edge. */
+    content: '';
+    position: absolute;
+    inset: -1px -1px auto;
+    block-size: 2px;
+    background: var(--foil-on-dark);
+  }
+  .nav__panel[data-open] {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 260ms var(--ease-out),
+      transform 360ms var(--ease-silk),
+      visibility 0s;
+  }
+  .nav__panel--wide {
+    inline-size: 36rem;
+  }
+  .nav__panel--wide ul {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 0.5rem;
+  }
+  .nav__sublink {
+    display: grid;
+    gap: 0.15rem;
+    padding: 0.7rem 0.85rem;
+    color: var(--ivory-100);
+    text-decoration: none;
+    border-inline-start: 1px solid transparent;
+    transition: background-color var(--dur-hover) var(--ease-out), border-color var(--dur-hover);
+  }
+  .nav__sublink:hover,
+  .nav__sublink[aria-current='page'] {
+    background: rgb(175 130 67 / 0.1);
+    border-inline-start-color: var(--gold-500);
+  }
+  .nav__sublabel {
+    font-size: 0.9875rem;
+    font-weight: 500;
+  }
+  .nav__subdesc {
+    font-size: 0.875rem;
+    color: var(--ivory-muted);
+  }
+
+  /* ── Actions ── */
+  .bar__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    margin-inline-start: auto;
+  }
+  @media (min-width: 75rem) {
+    .bar__actions {
+      margin-inline-start: var(--space-s);
+    }
+  }
+  .bar__book-short {
+    display: none;
+  }
+  @media (max-width: 40rem) {
+    .bar__book-long {
+      display: none;
+    }
+    .bar__book-short {
+      display: inline;
+    }
+  }
+  .menu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-block-size: 44px;
+    min-inline-size: 44px;
+    padding-inline: 0.4rem;
+    color: var(--ivory-100);
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .menu-btn :global(.icon) {
+    color: var(--gold-400);
+  }
+  @media (min-width: 75rem) {
+    .menu-btn {
+      display: none;
+    }
+  }
+  @media (max-width: 26rem) {
+    .menu-btn__label {
+      display: none;
+    }
+  }
+</style>

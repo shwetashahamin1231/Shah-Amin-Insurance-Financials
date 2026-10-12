@@ -1,0 +1,118 @@
+---
+/**
+ * Standard hero for inner pages: eyebrow, large heading (words rise in),
+ * optional lead text and actions, over deep green with a faint guilloché
+ * rosette. Slot "aside" places content (image/plate) on the right.
+ */
+import rosetteUrl from '../../assets/patterns/rosette-flower.svg?url';
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  /** Title may include <em>…</em> for the gold italic accent word. */
+  lead?: string;
+  align?: 'start' | 'center';
+  breadcrumb?: { label: string; href: string }[];
+}
+const { eyebrow, title, lead, align = 'start' } = Astro.props;
+const hasAside = Astro.slots.has('aside');
+---
+
+<section class:list={['page-hero', 'surface-depth', `page-hero--${align}`, { 'page-hero--split': hasAside }]}>
+  <div class="page-hero__rosette" aria-hidden="true" data-parallax="0.12">
+    <div class="page-hero__rosette-art" style={`--rosette:url(${rosetteUrl})`} data-rosette></div>
+  </div>
+  <div class="container page-hero__inner">
+    <div class="page-hero__copy">
+      {eyebrow && <p class="eyebrow eyebrow--rule" data-reveal="fade">{eyebrow}</p>}
+      <h1 class="page-hero__title" data-hero-split set:html={title} />
+      {lead && <p class="lead page-hero__lead" data-reveal>{lead}</p>}
+      {Astro.slots.has('default') && <div class="page-hero__actions" data-reveal><slot /></div>}
+    </div>
+    {hasAside && <div class="page-hero__aside"><slot name="aside" /></div>}
+  </div>
+  <div class="page-hero__rule" aria-hidden="true"></div>
+</section>
+
+<style>
+  .page-hero {
+    position: relative;
+    overflow: clip;
+    padding-block: calc(var(--header-total) + clamp(3rem, 2rem + 5vw, 6.5rem)) clamp(3.5rem, 2.5rem + 4vw, 6rem);
+    isolation: isolate;
+  }
+  .page-hero__inner {
+    position: relative;
+    display: grid;
+    gap: var(--space-2xl);
+    align-items: center;
+  }
+  @media (min-width: 64rem) {
+    .page-hero--split .page-hero__inner {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    }
+  }
+  .page-hero__copy > * + * {
+    margin-block-start: var(--space-m);
+  }
+  .page-hero--center .page-hero__copy {
+    text-align: center;
+    margin-inline: auto;
+    max-width: 52rem;
+  }
+  .page-hero--center .page-hero__lead {
+    margin-inline: auto;
+  }
+  .page-hero__title {
+    font-size: var(--fs-h1);
+    max-width: 16ch;
+  }
+  .page-hero--center .page-hero__title {
+    margin-inline: auto;
+  }
+  .page-hero__lead {
+    color: var(--ivory-muted);
+  }
+  .page-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s) var(--space-m);
+    padding-block-start: var(--space-s);
+  }
+  .page-hero--center .page-hero__actions {
+    justify-content: center;
+  }
+
+  .page-hero__rosette {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-end: -14rem;
+    inline-size: min(52rem, 90vw);
+    aspect-ratio: 1;
+    translate: 0 -50%;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .page-hero--center .page-hero__rosette {
+    inset-inline-end: auto;
+    inset-inline-start: 50%;
+    translate: -50% -50%;
+  }
+  .page-hero__rosette-art {
+    inline-size: 100%;
+    block-size: 100%;
+    background: var(--gold-500);
+    opacity: 0.16;
+    -webkit-mask: var(--rosette) center / contain no-repeat, conic-gradient(from -90deg, #000 var(--sweep), transparent calc(var(--sweep) + 0.5deg));
+    mask: var(--rosette) center / contain no-repeat, conic-gradient(from -90deg, #000 var(--sweep), transparent calc(var(--sweep) + 0.5deg));
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+  .page-hero__rule {
+    position: absolute;
+    inset: auto 0 0 0;
+    block-size: 1px;
+    background: var(--foil-hairline);
+    opacity: 0.7;
+  }
+</style>

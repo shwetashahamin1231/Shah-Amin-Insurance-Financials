@@ -1,0 +1,165 @@
+---
+/**
+ * Buttons & button-styled links.
+ *   variant: 'gold'    — primary call to action (metallic foil, dark text)
+ *            'outline' — gold hairline border
+ *            'ghost'   — text with animated gold underline
+ *   magnetic: gently follows the cursor on desktop (motion permitting)
+ * Renders <a> when `href` is set, otherwise <button>.
+ */
+import Icon from './Icon.astro';
+import type { IconName } from '../../lib/icons';
+import { url } from '../../lib/url';
+
+interface Props {
+  href?: string;
+  variant?: 'gold' | 'outline' | 'ghost';
+  size?: 'm' | 'l' | 's';
+  icon?: IconName;
+  iconPosition?: 'start' | 'end';
+  magnetic?: boolean;
+  type?: 'button' | 'submit' | 'reset';
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  href,
+  variant = 'gold',
+  size = 'm',
+  icon,
+  iconPosition = 'end',
+  magnetic = false,
+  type = 'button',
+  class: className,
+  ...rest
+} = Astro.props;
+
+const Tag = href ? 'a' : 'button';
+const external = href && /^https?:/.test(href);
+---
+
+<Tag
+  href={href ? url(href) : undefined}
+  type={href ? undefined : type}
+  class:list={['btn', `btn--${variant}`, `btn--${size}`, className]}
+  data-magnetic={magnetic ? '' : undefined}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener' : undefined}
+  {...rest}
+>
+  <span class="btn__inner">
+    {icon && iconPosition === 'start' && <Icon name={icon} class="btn__icon" />}
+    <span class="btn__label"><slot /></span>
+    {icon && iconPosition === 'end' && <Icon name={icon} class="btn__icon btn__icon--end" />}
+  </span>
+</Tag>
+
+<style>
+  .btn {
+    --btn-h: 3.25rem;
+    --btn-px: 1.6rem;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: var(--btn-h);
+    padding-inline: var(--btn-px);
+    border-radius: var(--radius-s);
+    font-family: var(--ff-body);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    line-height: 1.1;
+    white-space: nowrap;
+    cursor: pointer;
+    isolation: isolate;
+    transition:
+      transform var(--dur-hover) var(--ease-out),
+      box-shadow var(--dur-hover) var(--ease-out),
+      background-color var(--dur-hover) var(--ease-out),
+      color var(--dur-hover) var(--ease-out);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn--s {
+    --btn-h: 2.75rem;
+    --btn-px: 1.1rem;
+    font-size: 0.8125rem;
+  }
+  .btn--l {
+    --btn-h: 3.75rem;
+    --btn-px: 2.1rem;
+    font-size: 1rem;
+  }
+  .btn__inner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7em;
+    pointer-events: none;
+  }
+  .btn :global(.btn__icon) {
+    font-size: 1.2em;
+    transition: transform var(--dur-hover) var(--ease-out);
+  }
+  .btn:hover :global(.btn__icon--end) {
+    transform: translateX(calc(3px * var(--motion)));
+  }
+  .btn:active {
+    transform: scale(calc(1 - 0.02 * var(--motion)));
+    transition-duration: var(--dur-press);
+  }
+
+  /* Gold foil — the primary call to action. Text: green-900 on gold (8.6:1). */
+  .btn--gold {
+    color: var(--green-900);
+    background-image: var(--foil-on-dark);
+    background-size: 220% 100%;
+    background-position: 0% 50%;
+    box-shadow:
+      inset 0 0 0 1px rgb(255 247 225 / 0.35),
+      0 1px 0 rgb(255 247 225 / 0.25) inset,
+      0 8px 22px -10px rgb(6 18 6 / 0.7);
+    transition:
+      background-position 900ms var(--ease-silk),
+      transform var(--dur-hover) var(--ease-out),
+      box-shadow var(--dur-hover) var(--ease-out);
+  }
+  .btn--gold:hover {
+    background-position: 100% 50%;
+    box-shadow:
+      inset 0 0 0 1px rgb(255 247 225 / 0.5),
+      0 1px 0 rgb(255 247 225 / 0.3) inset,
+      0 14px 30px -12px rgb(6 18 6 / 0.75);
+  }
+
+  /* Hairline outline. */
+  .btn--outline {
+    color: var(--heading);
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--rule-strong);
+  }
+  .btn--outline:hover {
+    background: rgb(175 130 67 / 0.12);
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
+
+  /* Text link with a gold underline that draws in from the left. */
+  .btn--ghost {
+    --btn-px: 0;
+    color: var(--heading);
+    min-block-size: 2.75rem;
+  }
+  .btn--ghost .btn__label {
+    /* Gold line (top layer) draws over a faint resting rule. */
+    background:
+      linear-gradient(var(--accent), var(--accent)) 0 100% / 0% 1px no-repeat,
+      linear-gradient(var(--rule), var(--rule)) 0 100% / 100% 1px no-repeat;
+    padding-block-end: 0.3em;
+    transition: background-size 500ms var(--ease-silk);
+  }
+  .btn--ghost:hover .btn__label {
+    background-size: 100% 1px, 100% 1px;
+  }
+</style>

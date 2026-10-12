@@ -1,0 +1,51 @@
+---
+/**
+ * Tiny inline scripts that must run before the first paint:
+ *  • marks the page as JS-enabled
+ *  • applies the motion preference (footer switch overrides the OS setting)
+ *  • applies the "hide peacock" preference
+ *  • decides whether the home-page intro plays (first page of the visit only)
+ * Keep this file small — it blocks rendering.
+ */
+---
+
+<script is:inline>
+  (function () {
+    var d = document.documentElement;
+    d.classList.remove('no-js');
+    d.classList.add('js');
+
+    var store = function (kind, key) {
+      try { return window[kind].getItem(key); } catch (e) { return null; }
+    };
+
+    // Motion: 'on' / 'off' from the footer switch wins; otherwise follow the OS.
+    var mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var applyMotion = function () {
+      var pref = store('localStorage', 'sa-motion');
+      d.classList.toggle('reduce-motion', pref ? pref === 'off' : mq.matches);
+    };
+    applyMotion();
+    if (mq.addEventListener) mq.addEventListener('change', applyMotion);
+    window.__saApplyMotion = applyMotion;
+
+    if (store('localStorage', 'sa-peacock') === 'hidden') d.classList.add('peacock-hidden');
+
+    // Intro: only on the first page of a visit, never on back/forward or in-site navigation.
+    if (d.hasAttribute('data-intro')) {
+      var nav = performance.getEntriesByType ? performance.getEntriesByType('navigation')[0] : null;
+      var fromSite = document.referrer && document.referrer.indexOf(location.origin) === 0;
+      var seen = store('sessionStorage', 'sa-visited') === '1';
+      if (!seen && !fromSite && !(nav && nav.type === 'back_forward') && !d.classList.contains('reduce-motion')) {
+        d.classList.add('intro-play');
+        // Failsafe: never leave the curtain up if the main script fails to load.
+        setTimeout(function () {
+          if (!d.classList.contains('intro-running')) {
+            d.classList.add('intro-done');
+            document.querySelectorAll('[data-intro-inert]').forEach(function (el) { el.inert = false; });
+          }
+        }, 3500);
+      }
+    }
+  })();
+</script>

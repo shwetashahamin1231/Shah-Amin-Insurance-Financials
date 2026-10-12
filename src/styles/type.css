@@ -1,0 +1,169 @@
+/* ════════════════════════════════════════════════════════════════════
+   TYPOGRAPHY — Cormorant Garamond (display) + Jost (body & UI).
+   Rule of thumb: Cormorant never below 22px; gold-600 text only ≥ 24px.
+   ════════════════════════════════════════════════════════════════════ */
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  .display,
+  .h1,
+  .h2,
+  .h3,
+  .h4 {
+    font-family: var(--ff-display);
+    font-weight: 500;
+    line-height: var(--lh-heading);
+    letter-spacing: -0.005em;
+    color: var(--heading);
+    text-wrap: balance;
+  }
+  .display {
+    font-size: var(--fs-display);
+    line-height: var(--lh-display);
+    letter-spacing: -0.012em;
+  }
+  h1,
+  .h1 {
+    font-size: var(--fs-h1);
+    line-height: 1.04;
+    letter-spacing: -0.01em;
+  }
+  h2,
+  .h2 {
+    font-size: var(--fs-h2);
+  }
+  h3,
+  .h3 {
+    font-size: var(--fs-h3);
+    font-weight: 600;
+  }
+  h4,
+  .h4 {
+    font-size: var(--fs-h4);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  /* Italic accent words inside headings, e.g. "in trusted <em>hands</em>". */
+  :is(h1, h2, h3, .display, .h1, .h2, .h3) em {
+    font-style: italic;
+    font-weight: 500;
+    color: var(--accent-large);
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+  strong,
+  b {
+    font-weight: 600;
+  }
+
+  .lead {
+    font-size: var(--fs-lead);
+    line-height: 1.55;
+    max-width: 40em;
+  }
+
+  .small {
+    font-size: var(--fs-small);
+  }
+  .muted {
+    color: var(--text-muted);
+  }
+  .num {
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+
+  /* Small uppercase label above headings ("eyebrow"). */
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.9em;
+    font-family: var(--ff-body);
+    font-size: var(--fs-label);
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .eyebrow--rule::before {
+    content: '';
+    inline-size: 2.5rem;
+    block-size: 1px;
+    background: currentColor;
+    opacity: 0.8;
+  }
+
+  /* Metallic foil text. Use on large display text only. */
+  .foil-text {
+    background-image: var(--foil-text);
+    background-size: 240% 100%;
+    background-position: 8% 50%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Links inside running text are always underlined (WCAG / Lighthouse link-in-text-block). */
+  .prose a,
+  .text-link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--rule-strong);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+    transition: text-decoration-color var(--dur-hover) var(--ease-out), color var(--dur-hover) var(--ease-out);
+  }
+  .prose a:hover,
+  .text-link:hover {
+    color: var(--accent);
+    text-decoration-color: currentColor;
+    text-decoration-thickness: 2px;
+  }
+
+  /* Long-form text (Markdown content, Medicare 101, bios). */
+  .prose {
+    max-width: var(--measure);
+  }
+  .prose > * + * {
+    margin-block-start: 1em;
+  }
+  .prose :is(h2, h3, h4) {
+    margin-block-start: 1.6em;
+  }
+  .prose :is(h2, h3, h4) + * {
+    margin-block-start: 0.6em;
+  }
+  .prose h2 {
+    font-size: var(--fs-h3);
+  }
+  .prose h3 {
+    font-size: var(--fs-h4);
+  }
+  .prose ul,
+  .prose ol {
+    padding-inline-start: 1.4em;
+  }
+  .prose li + li {
+    margin-block-start: 0.45em;
+  }
+  .prose ul li::marker {
+    content: '◆  ';
+    color: var(--accent);
+    font-size: 0.6em;
+  }
+  .prose blockquote {
+    border-inline-start: 1px solid var(--rule-strong);
+    padding-inline-start: 1.25em;
+    font-family: var(--ff-display);
+    font-size: var(--fs-h4);
+    font-style: italic;
+    line-height: 1.4;
+  }
+}

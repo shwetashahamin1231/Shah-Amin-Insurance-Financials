@@ -1,0 +1,238 @@
+---
+/**
+ * Full-screen menu for tablets and phones. A native <dialog>, so focus is
+ * trapped and Escape closes it for free. It lives outside the header because
+ * the header uses transforms (which would break a fixed-position child).
+ * Open/close wiring: src/scripts/dialogs.ts.
+ */
+import Logo from '../brand/Logo.astro';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import { NAV, BOOK_HREF } from '../../data/nav';
+import { ADVISOR_LIST, HOURS } from '../../config/site';
+import { url, isCurrent } from '../../lib/url';
+
+const path = Astro.url.pathname;
+// Flatten: top-level links, with sub-links shown beneath their parent (skip duplicates of the parent).
+const items = NAV.filter((n) => n.label !== 'Medicare 101');
+---
+
+<dialog class="menu surface-deep" id="site-menu" aria-label="Site menu" data-lenis-prevent>
+  <div class="menu__frame">
+    <div class="menu__top container">
+      <Logo size={44} />
+      <button class="menu__close" type="button" data-dialog-close aria-label="Close menu">
+        <Icon name="x" size={30} />
+      </button>
+    </div>
+
+    <nav class="menu__nav container" aria-label="Main">
+      <ol class="menu__list" role="list">
+        {
+          items.map((item, i) => (
+            <li class="menu__item" style={`--i:${i}`}>
+              <a href={url(item.href)} class="menu__link" aria-current={isCurrent(item.href, path, true) ? 'page' : undefined}>
+                <span class="menu__num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                {item.label}
+              </a>
+              {item.children && (
+                <ul class="menu__sub" role="list">
+                  {item.children
+                    .filter((c) => c.href !== item.href)
+                    .map((c) => (
+                      <li>
+                        <a href={url(c.href)} aria-current={isCurrent(c.href, path, true) ? 'page' : undefined}>
+                          {c.label}
+                        </a>
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+
+    <div class="menu__footer container">
+      <Button href={BOOK_HREF} variant="gold" size="l" icon="calendar-check" iconPosition="start">Book an Appointment</Button>
+      <div class="menu__calls">
+        {
+          ADVISOR_LIST.map((a) => (
+            <a class="menu__call" href={`tel:${a.phoneHref}`}>
+              <Icon name="phone" />
+              <span>
+                <span class="menu__call-name">Call {a.firstName}</span>
+                <span class="num">{a.phone}</span>
+              </span>
+            </a>
+          ))
+        }
+      </div>
+      <p class="menu__hours small">{HOURS.summary} · {HOURS.holidayNote}</p>
+    </div>
+  </div>
+</dialog>
+
+<style>
+  .menu {
+    position: fixed;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    max-inline-size: none;
+    max-block-size: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background-image:
+      radial-gradient(90% 60% at 85% 0%, rgb(80 113 75 / 0.28), transparent 60%),
+      radial-gradient(70% 50% at 0% 100%, rgb(6 18 6 / 0.7), transparent 60%);
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    transition:
+      opacity 400ms var(--ease-out),
+      clip-path 650ms var(--ease-inout),
+      overlay 650ms allow-discrete,
+      display 650ms allow-discrete;
+  }
+  .menu[open] {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  @starting-style {
+    .menu[open] {
+      opacity: 0;
+      clip-path: inset(0 0 100% 0);
+    }
+  }
+  .menu::backdrop {
+    background: transparent;
+  }
+  :global(.reduce-motion) .menu {
+    clip-path: none;
+    transition: opacity 200ms ease, overlay 200ms allow-discrete, display 200ms allow-discrete;
+  }
+
+  .menu__frame {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 100%;
+    padding-block-end: var(--space-xl);
+    border: 1px solid rgb(175 130 67 / 0.35);
+    outline: 1px solid rgb(175 130 67 / 0.15);
+    outline-offset: -8px;
+  }
+  .menu__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    block-size: var(--header-h);
+  }
+  .menu__close {
+    display: grid;
+    place-items: center;
+    inline-size: 48px;
+    block-size: 48px;
+    color: var(--gold-300);
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgb(175 130 67 / 0.5);
+  }
+
+  .menu__nav {
+    margin-block: var(--space-l);
+  }
+  .menu__item {
+    border-block-end: 1px solid rgb(175 130 67 / 0.22);
+    opacity: 0;
+    transform: translateY(calc(18px * var(--motion)));
+    transition:
+      opacity 500ms var(--ease-out) calc(120ms + var(--i) * 55ms),
+      transform 700ms var(--ease-silk) calc(120ms + var(--i) * 55ms);
+  }
+  .menu[open] .menu__item {
+    opacity: 1;
+    transform: none;
+  }
+  @starting-style {
+    .menu[open] .menu__item {
+      opacity: 0;
+      transform: translateY(calc(18px * var(--motion)));
+    }
+  }
+  .menu__link {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    padding-block: 0.7rem;
+    font-family: var(--ff-display);
+    font-size: clamp(2rem, 1.4rem + 3vw, 2.75rem);
+    font-weight: 500;
+    line-height: 1.1;
+    color: var(--ivory-100);
+    text-decoration: none;
+  }
+  .menu__link[aria-current='page'] {
+    color: var(--gold-300);
+  }
+  .menu__num {
+    font-family: var(--ff-body);
+    font-size: 0.875rem;
+    letter-spacing: 0.14em;
+    color: var(--gold-500);
+  }
+  .menu__sub {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+    padding: 0 0 1rem 2.1rem;
+  }
+  .menu__sub a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    color: var(--ivory-muted);
+    text-decoration: underline;
+    text-decoration-color: rgb(175 130 67 / 0.5);
+    text-underline-offset: 0.25em;
+  }
+  .menu__sub a[aria-current='page'] {
+    color: var(--gold-300);
+  }
+
+  .menu__footer {
+    display: grid;
+    gap: var(--space-m);
+    margin-block-start: auto;
+  }
+  .menu__calls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: var(--space-s);
+  }
+  .menu__call {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    min-block-size: 64px;
+    padding: 0.75rem 1rem;
+    color: var(--ivory-100);
+    text-decoration: none;
+    box-shadow: inset 0 0 0 1px rgb(175 130 67 / 0.45);
+  }
+  .menu__call :global(.icon) {
+    font-size: 1.5rem;
+    color: var(--gold-400);
+  }
+  .menu__call > span {
+    display: grid;
+  }
+  .menu__call-name {
+    font-weight: 500;
+  }
+  .menu__hours {
+    color: var(--ivory-muted);
+  }
+</style>

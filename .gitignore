@@ -1,0 +1,23 @@
+# Build output
+dist/
+.astro/
+
+# Dependencies
+node_modules/
+
+# Logs & local env
+npm-debug.log*
+.env
+.env.*
+!.env.example
+
+# OS / editor files
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+
+# Local QA output (screenshots, Lighthouse reports)
+.qa/
+
+# Personal Claude Code settings
+.claude/settings.local.json

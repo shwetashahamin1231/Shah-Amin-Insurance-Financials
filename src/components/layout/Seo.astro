@@ -1,0 +1,96 @@
+---
+/**
+ * <head> tags for search engines and link previews, plus the site-wide
+ * structured data (InsuranceAgency + WebSite). Pages can pass extra
+ * JSON-LD objects (FAQPage, Event, BreadcrumbList…) through `schema`.
+ */
+import { SITE, ADVISOR_LIST, HOURS } from '../../config/site';
+import { SERVICES } from '../../data/services';
+import { url } from '../../lib/url';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Absolute or root-relative image path for link previews. */
+  image?: string;
+  imageAlt?: string;
+  noindex?: boolean;
+  type?: 'website' | 'article';
+  schema?: Record<string, unknown> | Record<string, unknown>[];
+}
+
+const { title, description = SITE.description, image, imageAlt, noindex = false, type = 'website', schema } = Astro.props;
+
+const site = Astro.site ?? new URL(SITE.url);
+const abs = (path: string) => new URL(path.startsWith('http') ? path : url(path), site).toString();
+const canonical = new URL(Astro.url.pathname, site).toString();
+const fullTitle = title === SITE.name ? `${SITE.name} — Insurance, Retirement & Medicare Guidance` : `${title} | ${SITE.name}`;
+const ogImage = abs(image ?? '/og/default.jpg');
+const ogAlt = imageAlt ?? `${SITE.name} logo — a green and gold S&A monogram medallion`;
+
+const a = SITE.address;
+const agency: Record<string, unknown> = {
+  '@type': 'InsuranceAgency',
+  '@id': `${abs('/')}#agency`,
+  name: SITE.name,
+  url: abs('/'),
+  logo: abs('/icon-512.png'),
+  image: abs('/og/default.jpg'),
+  description: SITE.description,
+  telephone: ADVISOR_LIST[0].phoneHref,
+  ...(SITE.emailIsPlaceholder ? {} : { email: SITE.email }),
+  foundingDate: String(SITE.foundedYear),
+  founder: { '@type': 'Person', name: SITE.founder },
+  areaServed: { '@type': 'State', name: SITE.areaServed },
+  knowsAbout: SERVICES.map((s) => s.name),
+  openingHoursSpecification: [
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+      opens: HOURS.open,
+      closes: HOURS.close,
+    },
+  ],
+  employee: ADVISOR_LIST.map((adv) => ({ '@type': 'Person', name: adv.name, jobTitle: adv.title, telephone: adv.phoneHref })),
+  ...(a.street
+    ? { address: { '@type': 'PostalAddress', streetAddress: a.street, addressLocality: a.city, addressRegion: a.state, postalCode: a.zip, addressCountry: a.country } }
+    : {}),
+  ...(SITE.social.length ? { sameAs: SITE.social.map((s) => s.url) } : {}),
+};
+
+const graph = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    agency,
+    { '@type': 'WebSite', '@id': `${abs('/')}#website`, url: abs('/'), name: SITE.name, publisher: { '@id': `${abs('/')}#agency` }, inLanguage: 'en-US' },
+    ...(schema ? (Array.isArray(schema) ? schema : [schema]) : []),
+  ],
+};
+---
+
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content={SITE.name} />
+<meta property="og:locale" content="en_US" />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:alt" content={ogAlt} />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+
+<meta name="theme-color" content="#1A3719" />
+<link rel="icon" href={url('/favicon.svg')} type="image/svg+xml" />
+<link rel="icon" href={url('/favicon-32.png')} sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href={url('/apple-touch-icon.png')} />
+<link rel="manifest" href={url('/site.webmanifest')} />
+<link rel="sitemap" href={url('/sitemap-index.xml')} />
+
+<script type="application/ld+json" set:html={JSON.stringify(graph)} />

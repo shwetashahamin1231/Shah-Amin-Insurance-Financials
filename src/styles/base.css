@@ -1,0 +1,187 @@
+/* ════════════════════════════════════════════════════════════════════
+   BASE — reset, document defaults, focus, motion preferences, surfaces.
+   ════════════════════════════════════════════════════════════════════ */
+
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  * {
+    margin: 0;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    hanging-punctuation: first last;
+  }
+  img,
+  picture,
+  svg,
+  video,
+  canvas {
+    display: block;
+    max-width: 100%;
+  }
+  img,
+  video {
+    height: auto;
+  }
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+    letter-spacing: inherit;
+  }
+  button {
+    cursor: pointer;
+    background: none;
+    border: 0;
+    padding: 0;
+  }
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  li,
+  dd {
+    overflow-wrap: break-word;
+  }
+  ul[role='list'],
+  ol[role='list'] {
+    list-style: none;
+    padding: 0;
+  }
+  table {
+    border-collapse: collapse;
+  }
+  [hidden] {
+    display: none !important;
+  }
+}
+
+@layer base {
+  :root {
+    /* 1 = full motion, 0 = reduced. Hover lifts etc. multiply by this. */
+    --motion: 1;
+  }
+  :root.reduce-motion {
+    --motion: 0;
+  }
+
+  html {
+    background: var(--green-900);
+    scroll-padding-top: calc(var(--header-h) + 1.5rem);
+  }
+
+  body {
+    min-height: 100svh;
+    font-family: var(--ff-body);
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    font-weight: 400;
+    font-kerning: normal;
+    color: var(--text);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: var(--gold-400);
+    color: var(--green-900);
+  }
+
+  a {
+    color: inherit;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+  }
+
+  /* Visible, high-contrast keyboard focus everywhere (gold on green, green on paper). */
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+
+  /* Lenis smooth-scroll housekeeping (only active when Lenis runs). */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  /* Without JavaScript, honour reduced motion directly. */
+  @media (prefers-reduced-motion: reduce) {
+    html:not(.js) *,
+    html:not(.js) *::before,
+    html:not(.js) *::after {
+      animation: none !important;
+      transition-duration: 1ms !important;
+    }
+  }
+  /* With JavaScript, `.reduce-motion` combines the OS setting and the footer switch. */
+  .reduce-motion *,
+  .reduce-motion *::before,
+  .reduce-motion *::after {
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* ── Surfaces: set the semantic colour variables for everything inside ── */
+  .surface-green,
+  .surface-deep,
+  .surface-paper,
+  .surface-ivory {
+    background-color: var(--bg);
+    color: var(--text);
+  }
+  .surface-deep {
+    --bg: var(--green-900);
+    --bg-raised: var(--green-800);
+    --accent-large: var(--gold-600); /* 4.8:1 on green-900 */
+  }
+  .surface-paper,
+  .surface-ivory {
+    --bg: var(--paper-200);
+    --bg-raised: var(--ivory-50);
+    --text: var(--green-900);
+    --text-muted: var(--ink-muted);
+    --heading: var(--green-800);
+    --accent: var(--gold-800);
+    --accent-large: var(--gold-700);
+    --rule: rgb(141 97 39 / 0.38);
+    --rule-strong: var(--gold-700);
+    --focus: var(--green-800);
+    --error: var(--garnet);
+    --field-bg: var(--ivory-50);
+    --field-border: rgb(98 62 17 / 0.42);
+    --foil-text: var(--foil-on-light);
+    color-scheme: light;
+  }
+  .surface-ivory {
+    --bg: var(--ivory-50);
+    --bg-raised: #fff;
+  }
+
+  :root {
+    /* Bronze foil for large text on light surfaces (darkest stop keeps ≥ 4.2:1). */
+    --foil-on-light: linear-gradient(105deg, #4a2e0a 0%, #623e11 28%, #8d6127 46%, #623e11 64%, #4a2e0a 100%);
+  }
+}

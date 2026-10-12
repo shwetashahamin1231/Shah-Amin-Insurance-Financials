@@ -1,0 +1,144 @@
+/* ════════════════════════════════════════════════════════════════════
+   DESIGN TOKENS — the Shah & Amin design system in one file.
+   Colours were measured from the logo (see CLAUDE.md for the contrast
+   table). Components should use the *semantic* variables at the bottom
+   (--bg, --text, --accent …) so they adapt to whichever surface they
+   sit on.
+   ════════════════════════════════════════════════════════════════════ */
+
+@layer tokens {
+  :root {
+    /* ── Brand green (★ green-800 = logo green) ── */
+    --green-950: #061206;
+    --green-900: #0e240f;
+    --green-800: #1a3719;
+    --green-700: #20401e;
+    --green-600: #345431;
+    --green-500: #50714b;
+    --green-100: #dce4d6;
+
+    /* ── Brand gold (★ gold-600 = logo gold) ── */
+    --gold-900: #4a2e0a;
+    --gold-800: #623e11; /* "bronze": gold-toned TEXT on light surfaces (7.3:1 on paper) */
+    --gold-700: #8d6127; /* large text on paper only (4.2:1) */
+    --gold-600: #af8243; /* ornaments; large display text on green (3.8:1) */
+    --gold-500: #c49d64; /* gold text on green (5.2:1) */
+    --gold-400: #ddb579; /* small gold text on green (6.8:1); gold button fill */
+    --gold-300: #efcb90; /* foil highlight; focus ring on dark */
+    --gold-200: #f6e2b8; /* sheen specular */
+    --gold-100: #fbf1dc;
+
+    /* ── Ivory & paper (★ paper-200 = logo paper) ── */
+    --ivory-50: #fbf7ef;
+    --ivory-100: #f6eedd; /* body text on green (11.3:1) */
+    --ivory-muted: #cfc6b0; /* secondary text on green (7.7:1) */
+    --paper-200: #ede1cb;
+    --paper-300: #e2d3b6;
+    --paper-400: #cbb894;
+    --ink-muted: #465244; /* secondary text on paper (6.4:1) */
+
+    /* ── Feedback ── */
+    --garnet: #8e2a1f; /* errors on light (6.5:1) */
+    --blush: #f2a493; /* errors on green (6.6:1) */
+
+    /* ── Metallic foil ──
+       --foil is for decoration and text on light surfaces.
+       --foil-on-dark never dips below #AF8243, so foil text on green stays legible. */
+    --foil: linear-gradient(105deg, #8d6127 0%, #af8243 18%, #ddb579 34%, #f6e2b8 44%, #ddb579 54%, #af8243 70%, #efcb90 86%, #8d6127 100%);
+    --foil-on-dark: linear-gradient(105deg, #af8243 0%, #c49d64 16%, #ddb579 32%, #f6e2b8 44%, #ddb579 56%, #c49d64 72%, #efcb90 86%, #af8243 100%);
+    --foil-hairline: linear-gradient(90deg, transparent, #af8243 12%, #efcb90 50%, #af8243 88%, transparent);
+
+    /* ── Typography (font files + metric fallbacks come from Astro's Fonts API) ── */
+    --ff-display: var(--font-display), 'Cormorant Garamond', Georgia, serif;
+    --ff-body: var(--font-body), 'Jost', 'Helvetica Neue', Arial, sans-serif;
+
+    /* Fluid sizes scale linearly between 360px and 1440px viewports. */
+    --fs-display: clamp(3rem, 1.667rem + 5.926vw, 7rem); /* 48 → 112 */
+    --fs-h1: clamp(2.75rem, 1.917rem + 3.704vw, 5.25rem); /* 44 → 84 */
+    --fs-h2: clamp(2.25rem, 1.75rem + 2.222vw, 3.75rem); /* 36 → 60 */
+    --fs-h3: clamp(1.75rem, 1.542rem + 0.926vw, 2.375rem); /* 28 → 38 */
+    --fs-h4: 1.5rem; /* 24 */
+    --fs-lead: clamp(1.25rem, 1.167rem + 0.37vw, 1.5rem); /* 20 → 24 */
+    --fs-body: clamp(1.0625rem, 1.021rem + 0.185vw, 1.1875rem); /* 17 → 19 */
+    --fs-small: clamp(0.9375rem, 0.917rem + 0.093vw, 1rem); /* 15 → 16 */
+    --fs-label: 0.875rem; /* 14, uppercase + tracked */
+
+    --lh-display: 1.02;
+    --lh-heading: 1.1;
+    --lh-body: 1.65;
+    --tracking-label: 0.18em;
+    --measure: 68ch;
+
+    /* ── Space (4px base) ── */
+    --space-3xs: 0.25rem; /* 4 */
+    --space-2xs: 0.5rem; /* 8 */
+    --space-xs: 0.75rem; /* 12 */
+    --space-s: 1rem; /* 16 */
+    --space-m: 1.5rem; /* 24 */
+    --space-l: 2rem; /* 32 */
+    --space-xl: 3rem; /* 48 */
+    --space-2xl: 4rem; /* 64 */
+    --space-3xl: 6rem; /* 96 */
+    --space-4xl: 8rem; /* 128 */
+    --space-5xl: 10rem; /* 160 */
+    --section-pad: clamp(5rem, 3.333rem + 7.407vw, 10rem); /* 80 → 160 */
+
+    /* ── Layout ── */
+    --container: 80rem; /* 1280 */
+    --container-narrow: 52rem;
+    --gutter: clamp(1.25rem, 0.333rem + 4.074vw, 4rem); /* 20 → 64 */
+    --header-h: 5.5rem; /* main bar height at rest */
+    --utility-h: 2.5rem; /* top utility bar (desktop) */
+
+    /* ── Shape ── */
+    --radius-0: 0;
+    --radius-s: 2px;
+    --radius-round: 999px;
+    --hairline: 1px;
+
+    /* ── Shadows (warm green-black) ── */
+    --shadow-s: 0 1px 2px rgb(6 18 6 / 0.12);
+    --shadow-m: 0 2px 4px rgb(6 18 6 / 0.1), 0 18px 40px -16px rgb(6 18 6 / 0.38);
+    --shadow-l: 0 4px 8px rgb(6 18 6 / 0.12), 0 32px 64px -24px rgb(6 18 6 / 0.5);
+    --shadow-poster: 0 2px 6px rgb(6 18 6 / 0.18), 0 28px 60px -20px rgb(6 18 6 / 0.55);
+
+    /* ── Motion ── */
+    --ease-silk: cubic-bezier(0.16, 1, 0.3, 1); /* GSAP expo.out — entrances */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1); /* UI */
+    --ease-inout: cubic-bezier(0.65, 0, 0.35, 1); /* curtains, page transitions */
+    --dur-press: 160ms;
+    --dur-hover: 240ms;
+    --dur-ui: 400ms;
+    --dur-reveal: 900ms;
+    --dur-draw: 1400ms;
+
+    /* ── Layers ── */
+    --z-raised: 10;
+    --z-peacock: 80;
+    --z-fab: 90;
+    --z-header: 100;
+    --z-menu: 200;
+    --z-dialog: 300;
+    --z-intro: 400;
+    --z-cursor: 450;
+    --z-grain: 500;
+
+    /* ── Default (green) surface semantics ── */
+    --bg: var(--green-800);
+    --bg-raised: var(--green-700);
+    --text: var(--ivory-100);
+    --text-muted: var(--ivory-muted);
+    --heading: var(--ivory-100);
+    --accent: var(--gold-400); /* small gold text */
+    --accent-large: var(--gold-600); /* gold display text ≥ 24px */
+    --rule: rgb(175 130 67 / 0.45); /* gold hairline */
+    --rule-strong: var(--gold-600);
+    --focus: var(--gold-300);
+    --error: var(--blush);
+    --field-bg: rgb(6 18 6 / 0.35);
+    --field-border: rgb(221 181 121 / 0.45);
+    --foil-text: var(--foil-on-dark);
+
+    color-scheme: dark;
+  }
+}

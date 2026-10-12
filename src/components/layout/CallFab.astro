@@ -1,0 +1,182 @@
+---
+/**
+ * Floating "Call" button for phones and tablets. Opens a bottom sheet where
+ * the visitor chooses which advisor to call (tap-to-call links).
+ */
+import Icon from '../ui/Icon.astro';
+import { ADVISOR_LIST, HOURS } from '../../config/site';
+---
+
+<div class="call-fab" data-intro-inert>
+  <button class="call-fab__btn" type="button" aria-haspopup="dialog" aria-controls="call-sheet" data-dialog-open="call-sheet">
+    <Icon name="phone-call" size={24} />
+    <span class="call-fab__label">Call us</span>
+  </button>
+</div>
+
+<dialog class="call-sheet surface-ivory" id="call-sheet" aria-labelledby="call-sheet-title" data-backdrop-close>
+  <div class="call-sheet__grip" aria-hidden="true"></div>
+  <h2 id="call-sheet-title" class="call-sheet__title">Who would you like to call?</h2>
+  <ul class="call-sheet__list" role="list">
+    {
+      ADVISOR_LIST.map((a) => (
+        <li>
+          <a class="call-sheet__option" href={`tel:${a.phoneHref}`}>
+            <span class="call-sheet__avatar" aria-hidden="true">{a.initials}</span>
+            <span class="call-sheet__text">
+              <span class="call-sheet__name">{a.name}</span>
+              <span class="call-sheet__role">{a.title}</span>
+              <span class="call-sheet__phone num">{a.phone}</span>
+            </span>
+            <Icon name="phone" class="call-sheet__icon" />
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  <p class="call-sheet__hours small">{HOURS.summary}. {HOURS.holidayNote}.</p>
+  <button class="call-sheet__cancel" type="button" data-dialog-close>Cancel</button>
+</dialog>
+
+<style>
+  .call-fab {
+    position: fixed;
+    inset-inline-end: max(1rem, env(safe-area-inset-right));
+    inset-block-end: max(1rem, env(safe-area-inset-bottom));
+    z-index: var(--z-fab);
+    view-transition-name: call-fab;
+  }
+  @media (min-width: 64rem) {
+    .call-fab {
+      display: none;
+    }
+  }
+  .call-fab__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-block-size: 56px;
+    padding-inline: 1.1rem 1.3rem;
+    border-radius: var(--radius-round);
+    color: var(--green-900);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background-image: var(--foil-on-dark);
+    background-size: 200% 100%;
+    box-shadow:
+      inset 0 0 0 1px rgb(255 247 225 / 0.45),
+      0 10px 28px -8px rgb(6 18 6 / 0.65),
+      0 0 0 4px rgb(14 36 15 / 0.35);
+  }
+
+  .call-sheet {
+    position: fixed;
+    inset: auto 0 0 0;
+    inline-size: 100%;
+    max-inline-size: 34rem;
+    margin: 0 auto;
+    padding: 0.75rem var(--gutter) max(1.25rem, env(safe-area-inset-bottom));
+    border: 0;
+    border-block-start: 2px solid var(--gold-600);
+    box-shadow: 0 -20px 50px -20px rgb(6 18 6 / 0.6);
+    transform: translateY(100%);
+    transition:
+      transform 480ms var(--ease-silk),
+      overlay 480ms allow-discrete,
+      display 480ms allow-discrete;
+  }
+  .call-sheet[open] {
+    transform: none;
+  }
+  @starting-style {
+    .call-sheet[open] {
+      transform: translateY(100%);
+    }
+  }
+  .call-sheet::backdrop {
+    background: rgb(6 18 6 / 0);
+    transition: background-color 400ms var(--ease-out), overlay 480ms allow-discrete, display 480ms allow-discrete;
+  }
+  .call-sheet[open]::backdrop {
+    background: rgb(6 18 6 / 0.6);
+  }
+  @starting-style {
+    .call-sheet[open]::backdrop {
+      background: rgb(6 18 6 / 0);
+    }
+  }
+  .call-sheet__grip {
+    inline-size: 2.5rem;
+    block-size: 4px;
+    margin: 0 auto 0.75rem;
+    border-radius: 2px;
+    background: var(--paper-400);
+  }
+  .call-sheet__title {
+    font-size: 1.75rem;
+    margin-block-end: var(--space-s);
+  }
+  .call-sheet__list {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .call-sheet__option {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1rem;
+    text-decoration: none;
+    color: var(--green-900);
+    background: var(--paper-200);
+    box-shadow: inset 0 0 0 1px rgb(141 97 39 / 0.35);
+  }
+  .call-sheet__avatar {
+    display: grid;
+    place-items: center;
+    inline-size: 52px;
+    block-size: 52px;
+    flex: none;
+    border-radius: 50%;
+    font-family: var(--ff-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--gold-300);
+    background: var(--green-800);
+    box-shadow: inset 0 0 0 1px var(--gold-600);
+  }
+  .call-sheet__text {
+    display: grid;
+    line-height: 1.3;
+  }
+  .call-sheet__name {
+    font-weight: 600;
+  }
+  .call-sheet__role {
+    font-size: var(--fs-small);
+    color: var(--ink-muted);
+  }
+  .call-sheet__phone {
+    font-size: 1.125rem;
+    color: var(--gold-800);
+    font-weight: 500;
+  }
+  .call-sheet__option :global(.call-sheet__icon) {
+    margin-inline-start: auto;
+    font-size: 1.5rem;
+    color: var(--green-800);
+  }
+  .call-sheet__hours {
+    margin-block: var(--space-s) var(--space-xs);
+    color: var(--ink-muted);
+  }
+  .call-sheet__cancel {
+    inline-size: 100%;
+    min-block-size: 48px;
+    font-weight: 500;
+    color: var(--green-800);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+</style>

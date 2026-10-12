@@ -1,0 +1,53 @@
+---
+/**
+ * Engraved divider built from the logo's leaf:  rule · ◆ · leaf · ◆ · rule
+ * `draw` lets the motion system draw the rules in on scroll.
+ */
+interface Props {
+  width?: number;
+  align?: 'center' | 'start';
+  draw?: boolean;
+  class?: string;
+}
+const { width = 220, align = 'center', draw = true, class: className } = Astro.props;
+const uid = `orn-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<svg
+  class:list={['ornament', `ornament--${align}`, className]}
+  viewBox="0 0 240 24"
+  width={width}
+  height={width * 0.1}
+  aria-hidden="true"
+  focusable="false"
+  data-draw-group={draw ? '' : undefined}
+>
+  <defs>
+    <linearGradient id={`${uid}-l`} gradientUnits="userSpaceOnUse" x1="0" y1="12" x2="94" y2="12">
+      <stop offset="0" stop-color="currentColor" stop-opacity="0"></stop>
+      <stop offset="1" stop-color="currentColor"></stop>
+    </linearGradient>
+    <linearGradient id={`${uid}-r`} gradientUnits="userSpaceOnUse" x1="240" y1="12" x2="146" y2="12">
+      <stop offset="0" stop-color="currentColor" stop-opacity="0"></stop>
+      <stop offset="1" stop-color="currentColor"></stop>
+    </linearGradient>
+  </defs>
+  <path d="M0 12H94" stroke={`url(#${uid}-l)`} stroke-width="1" pathLength="1" data-draw={draw ? '' : undefined}></path>
+  <path d="M240 12H146" stroke={`url(#${uid}-r)`} stroke-width="1" pathLength="1" data-draw={draw ? '' : undefined}></path>
+  <path d="M101 9l3 3-3 3-3-3z M139 9l3 3-3 3-3-3z" fill="currentColor"></path>
+  <g transform="rotate(38 120 12)">
+    <path d="M120 2.5c7.2 3.6 8.4 12.4 0 19-8.4-6.6-7.2-15.4 0-19z" fill="currentColor"></path>
+    <path d="M120 5v15" stroke="var(--bg, #1a3719)" stroke-width="1" fill="none"></path>
+  </g>
+</svg>
+
+<style>
+  .ornament {
+    display: block;
+    color: var(--rule-strong);
+    overflow: visible;
+  }
+  .ornament--center {
+    margin-inline: auto;
+  }
+</style>

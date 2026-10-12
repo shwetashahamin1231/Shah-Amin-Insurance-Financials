@@ -1,0 +1,101 @@
+---
+/**
+ * The page shell used by every page: <head> (SEO, fonts, icons), header,
+ * main content, footer, floating Call button, mobile menu, peacock mascot,
+ * film grain, and the site scripts.
+ *
+ *   <BaseLayout title="About Us" description="…">…</BaseLayout>
+ */
+import '../styles/global.css';
+import { Font } from 'astro:assets';
+import HeadScripts from '../components/layout/HeadScripts.astro';
+import Seo from '../components/layout/Seo.astro';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import MobileMenu from '../components/layout/MobileMenu.astro';
+import CallFab from '../components/layout/CallFab.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  imageAlt?: string;
+  noindex?: boolean;
+  schema?: Record<string, unknown> | Record<string, unknown>[];
+  /** Home page only: enables the signature intro on the first page of a visit. */
+  intro?: boolean;
+  /** Extra class on <body>. */
+  bodyClass?: string;
+}
+
+const { title, description, image, imageAlt, noindex = false, schema, intro = false, bodyClass } = Astro.props;
+
+// Prefetch likely next pages on hover; prerender only on a deliberate press.
+const speculationRules = JSON.stringify({
+  prefetch: [
+    {
+      where: { and: [{ href_matches: '/*' }, { not: { href_matches: '/posters/*' } }, { not: { selector_matches: '[download], [target=_blank]' } }] },
+      eagerness: 'moderate',
+    },
+  ],
+  prerender: [
+    {
+      where: { and: [{ href_matches: '/*' }, { not: { href_matches: '/posters/*' } }, { not: { selector_matches: '[download], [target=_blank]' } }] },
+      eagerness: 'conservative',
+    },
+  ],
+});
+---
+
+<!doctype html>
+<html lang="en" class="no-js" data-intro={intro ? '' : undefined}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <HeadScripts />
+    <Font cssVariable="--font-display" preload={[{ weight: 500, style: 'normal', subset: 'latin' }]} />
+    <Font cssVariable="--font-body" preload={[{ weight: 400, style: 'normal', subset: 'latin' }]} />
+    <Seo title={title} description={description} image={image} imageAlt={imageAlt} noindex={noindex} schema={schema} />
+    <script is:inline type="speculationrules" set:html={speculationRules} />
+    <slot name="head" />
+  </head>
+  <body class:list={['surface-green', bodyClass]}>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <Header />
+    <main id="main" tabindex="-1" data-intro-inert>
+      <slot />
+    </main>
+    <Footer />
+    <MobileMenu />
+    <CallFab />
+    <slot name="overlay" />
+    <div id="peacock-root" data-peacock-root></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <script>
+      import '../scripts/main';
+    </script>
+
+    <style>
+      .skip-link {
+        position: fixed;
+        inset-block-start: 0.75rem;
+        inset-inline-start: 0.75rem;
+        z-index: calc(var(--z-intro) + 1);
+        padding: 0.85rem 1.25rem;
+        background: var(--gold-400);
+        color: var(--green-900);
+        font-weight: 600;
+        text-decoration: none;
+        transform: translateY(-160%);
+        transition: transform var(--dur-ui) var(--ease-silk);
+      }
+      .skip-link:focus {
+        transform: none;
+      }
+      main:focus {
+        outline: none;
+      }
+    </style>
+  </body>
+</html>

@@ -1,0 +1,124 @@
+/* ════════════════════════════════════════════════════════════════════
+   MOTION — initial states for scroll animations + the cursor accent.
+   Elements start at 1% opacity (not 0) so they still count as painted for
+   page-speed metrics. If the motion script never loads, a failsafe reveals
+   everything after ~2.6s.
+   ════════════════════════════════════════════════════════════════════ */
+
+@property --sweep {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 360deg;
+}
+
+@layer base {
+  html.js [data-reveal],
+  html.js:not(.reduce-motion) [data-split],
+  html.js:not(.reduce-motion) [data-hero-split] {
+    opacity: 0.01;
+  }
+  html.js:not(.reduce-motion) [data-reveal]:not([data-reveal='fade']) {
+    transform: translate3d(0, 26px, 0);
+  }
+  html.js:not(.reduce-motion) [data-draw] {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  html.js:not(.reduce-motion) [data-rosette] {
+    --sweep: 0deg;
+  }
+
+  /* Failsafe: reveal everything if the motion script hasn't taken over. */
+  html.js:not(.motion-ready) :is([data-reveal], [data-split], [data-hero-split]) {
+    animation: sa-failsafe-show 0.6s ease 2.6s forwards;
+  }
+  html.js:not(.motion-ready) [data-draw] {
+    animation: sa-failsafe-draw 0.6s ease 2.6s forwards;
+  }
+  html.js:not(.motion-ready) [data-rosette] {
+    animation: sa-failsafe-sweep 0.01s 2.6s forwards;
+  }
+  @keyframes sa-failsafe-show {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes sa-failsafe-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes sa-failsafe-sweep {
+    to {
+      --sweep: 360deg;
+    }
+  }
+
+  /* Split text helpers (GSAP SplitText). */
+  .split-line,
+  .split-word {
+    will-change: transform;
+  }
+
+  /* Rosette sweep: a conic mask reveals the engraving around the circle. */
+  [data-rosette] {
+    -webkit-mask-image: conic-gradient(from -90deg, #000 var(--sweep), transparent calc(var(--sweep) + 0.5deg));
+    mask-image: conic-gradient(from -90deg, #000 var(--sweep), transparent calc(var(--sweep) + 0.5deg));
+  }
+
+  /* ── Cursor accent (desktop only, created by scripts/motion/cursor.ts) ── */
+  .cursor-ring {
+    position: fixed;
+    inset: 0 auto auto 0;
+    z-index: var(--z-cursor);
+    inline-size: 14px;
+    block-size: 14px;
+    margin: -7px 0 0 -7px;
+    border-radius: 50%;
+    border: 1px solid var(--gold-400);
+    pointer-events: none;
+    opacity: 0;
+    display: grid;
+    place-items: center;
+    transition:
+      opacity 300ms var(--ease-out),
+      inline-size 400ms var(--ease-silk),
+      block-size 400ms var(--ease-silk),
+      margin 400ms var(--ease-silk),
+      background-color 300ms var(--ease-out),
+      border-color 300ms;
+  }
+  .cursor-ring.is-visible {
+    opacity: 0.9;
+  }
+  .cursor-ring.is-hover {
+    inline-size: 44px;
+    block-size: 44px;
+    margin: -22px 0 0 -22px;
+    border-color: var(--gold-300);
+    background: rgb(221 181 121 / 0.08);
+  }
+  .cursor-ring.is-view {
+    inline-size: 72px;
+    block-size: 72px;
+    margin: -36px 0 0 -36px;
+    background: rgb(14 36 15 / 0.82);
+  }
+  .cursor-ring__label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold-300);
+    opacity: 0;
+    transition: opacity 250ms;
+  }
+  .cursor-ring.is-view .cursor-ring__label {
+    opacity: 1;
+  }
+
+  html.scroll-locked {
+    overflow: hidden;
+  }
+}

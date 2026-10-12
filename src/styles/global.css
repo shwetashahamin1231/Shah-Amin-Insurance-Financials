@@ -1,0 +1,12 @@
+/* Global stylesheet: imported once by BaseLayout. Order of layers matters —
+   later layers win. Component styles (scoped <style> in .astro files) sit
+   outside these layers, so they always override the defaults below. */
+@layer reset, tokens, base, layout, components, utilities;
+
+@import './tokens.css';
+@import './base.css';
+@import './type.css';
+@import './textures.css';
+@import './utilities.css';
+@import './motion.css';
+@import './transitions.css';

@@ -1,0 +1,403 @@
+---
+/**
+ * Site footer — every page. Booking call-to-action, quick links, hours,
+ * both phone numbers, email, licenses & required disclaimers, and the
+ * Motion / Peacock preference switches (src/scripts/preferences.ts).
+ * All business details come from src/config/site.ts.
+ */
+import Logo from '../brand/Logo.astro';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import Ornament from '../ui/Ornament.astro';
+import { FOOTER_NAV, LEGAL_NAV, BOOK_HREF } from '../../data/nav';
+import { ADVISOR_LIST, HOURS, SITE, COMPLIANCE, formattedAddress, mapLinks, yearsInBusiness } from '../../config/site';
+import { url } from '../../lib/url';
+
+const address = formattedAddress();
+const maps = mapLinks();
+const year = new Date().getFullYear();
+---
+
+<footer class="footer surface-deep" data-intro-inert data-footer>
+  <!-- Call to action band -->
+  <section class="footer__cta guilloche-field" aria-labelledby="footer-cta-title">
+    <div class="container footer__cta-inner">
+      <div class="footer__cta-copy">
+        <p class="eyebrow eyebrow--rule">Family-owned since {SITE.foundedYear}</p>
+        <h2 id="footer-cta-title" class="footer__cta-title" data-split>
+          Let’s plan your next <em>chapter</em>, together.
+        </h2>
+        <p class="footer__cta-lead">
+          {yearsInBusiness()} years of guiding families through insurance, retirement and Medicare decisions — one conversation at a time.
+        </p>
+      </div>
+      <div class="footer__cta-actions">
+        <Button href={BOOK_HREF} variant="gold" size="l" magnetic icon="calendar-check" iconPosition="start">Book an Appointment</Button>
+        <div class="footer__cta-calls">
+          {
+            ADVISOR_LIST.map((a) => (
+              <a href={`tel:${a.phoneHref}`} class="footer__cta-call">
+                <span class="footer__cta-who">{a.name}</span>
+                <span class="footer__cta-num num">{a.phone}</span>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container footer__main">
+    <div class="footer__brand">
+      <Logo size={64} />
+      <p class="footer__statement">
+        Protecting families, preserving futures. Personal, plain-English guidance on life insurance, retirement income, health coverage and Medicare.
+      </p>
+      <Ornament width={180} align="start" draw={false} />
+    </div>
+
+    {
+      FOOTER_NAV.map((col) => (
+        <nav class="footer__col" aria-label={col.title}>
+          <h2 class="footer__heading">{col.title}</h2>
+          <ul role="list" class="footer__links">
+            {col.links.map((l) => (
+              <li>
+                <a href={url(l.href)}>{l.label}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ))
+    }
+
+    <div class="footer__col footer__contact">
+      <h2 class="footer__heading">Visit &amp; contact</h2>
+      <dl class="footer__dl">
+        <div>
+          <dt><Icon name="clock" /> Hours</dt>
+          <dd>
+            {HOURS.summary}<br /><span class="muted">{HOURS.holidayNote}</span>
+          </dd>
+        </div>
+        {
+          ADVISOR_LIST.map((a) => (
+            <div>
+              <dt>
+                <Icon name="phone" /> {a.name}
+              </dt>
+              <dd>
+                <a href={`tel:${a.phoneHref}`} class="num">
+                  {a.phone}
+                </a>
+              </dd>
+            </div>
+          ))
+        }
+        <div>
+          <dt><Icon name="envelope" /> Email</dt>
+          <dd><a href={`mailto:${SITE.email}`}>{SITE.email}</a></dd>
+        </div>
+        <div>
+          <dt><Icon name="map-pin" /> Office</dt>
+          <dd>
+            {
+              address ? (
+                <a href={maps.view} target="_blank" rel="noopener">
+                  {address}
+                </a>
+              ) : (
+                <span class="muted">Office address coming soon</span>
+              )
+            }
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  <!-- Licenses & required disclaimers -->
+  <section class="container footer__legal" aria-labelledby="footer-legal-title">
+    <h2 id="footer-legal-title" class="visually-hidden">Licenses and disclaimers</h2>
+    <ul role="list" class="footer__licenses">
+      {
+        COMPLIANCE.licenses.map((l) => (
+          <li>
+            <strong>{l.name}</strong> — {l.detail}
+          </li>
+        ))
+      }
+    </ul>
+    <p>{COMPLIANCE.medicareDisclaimer}</p>
+    <p>{COMPLIANCE.governmentDisclaimer} {COMPLIANCE.generalDisclaimer}</p>
+    {COMPLIANCE.securitiesDisclaimer && <p>{COMPLIANCE.securitiesDisclaimer}</p>}
+  </section>
+
+  <div class="footer__bottom">
+    <div class="container footer__bottom-inner">
+      <p>© {year} {SITE.legalName}. All rights reserved.</p>
+      <ul role="list" class="footer__legal-links">
+        {
+          LEGAL_NAV.map((l) => (
+            <li>
+              <a href={url(l.href)}>{l.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+      <div class="footer__prefs" role="group" aria-label="Display preferences">
+        <button type="button" class="pref" data-pref="motion" aria-pressed="true">
+          <span class="pref__track" aria-hidden="true"><span class="pref__thumb"></span></span>
+          <span>Motion <span class="pref__state" data-pref-state>on</span></span>
+        </button>
+        <button type="button" class="pref" data-pref="peacock" aria-pressed="true">
+          <span class="pref__track" aria-hidden="true"><span class="pref__thumb"></span></span>
+          <span>Peacock <span class="pref__state" data-pref-state>shown</span></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    position: relative;
+    border-block-start: 1px solid rgb(175 130 67 / 0.35);
+  }
+
+  /* ── CTA band ── */
+  .footer__cta {
+    padding-block: clamp(4rem, 3rem + 5vw, 7.5rem);
+    border-block-end: 1px solid rgb(175 130 67 / 0.25);
+    background-image: radial-gradient(80% 120% at 85% 0%, rgb(80 113 75 / 0.25), transparent 60%);
+  }
+  .footer__cta-inner {
+    display: grid;
+    gap: var(--space-xl);
+    align-items: end;
+  }
+  @media (min-width: 64rem) {
+    .footer__cta-inner {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: var(--space-3xl);
+    }
+  }
+  .footer__cta-copy > * + * {
+    margin-block-start: var(--space-m);
+  }
+  .footer__cta-title {
+    font-size: var(--fs-h1);
+    max-width: 14ch;
+  }
+  .footer__cta-lead {
+    font-size: var(--fs-lead);
+    color: var(--ivory-muted);
+    max-width: 36em;
+  }
+  .footer__cta-actions {
+    display: grid;
+    gap: var(--space-l);
+    justify-items: start;
+  }
+  .footer__cta-calls {
+    display: grid;
+    gap: var(--space-s);
+    inline-size: 100%;
+  }
+  .footer__cta-call {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.25rem 1rem;
+    padding-block: 0.85rem;
+    border-block-end: 1px solid rgb(175 130 67 / 0.3);
+    color: var(--ivory-100);
+    text-decoration: none;
+    transition: color var(--dur-hover) var(--ease-out), border-color var(--dur-hover);
+  }
+  .footer__cta-call:hover {
+    color: var(--gold-300);
+    border-block-end-color: var(--gold-500);
+  }
+  .footer__cta-who {
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--gold-400);
+  }
+  .footer__cta-num {
+    font-family: var(--ff-display);
+    font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
+    font-weight: 500;
+  }
+
+  /* ── Main columns ── */
+  .footer__main {
+    display: grid;
+    gap: var(--space-xl) var(--space-l);
+    padding-block: var(--space-3xl) var(--space-2xl);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  }
+  @media (min-width: 75rem) {
+    .footer__main {
+      grid-template-columns: 1.35fr 0.8fr 1.1fr 1.35fr;
+    }
+  }
+  .footer__brand > * + * {
+    margin-block-start: var(--space-m);
+  }
+  .footer__statement {
+    color: var(--ivory-muted);
+    max-width: 30em;
+  }
+  .footer__heading {
+    font-family: var(--ff-body);
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--gold-400);
+    margin-block-end: var(--space-m);
+  }
+  .footer__links {
+    display: grid;
+    gap: 0.15rem;
+  }
+  .footer__links a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 40px;
+    color: var(--ivory-100);
+    text-decoration: none;
+    background: linear-gradient(var(--gold-400), var(--gold-400)) 0 85% / 0 1px no-repeat;
+    transition: background-size 450ms var(--ease-silk), color var(--dur-hover);
+  }
+  .footer__links a:hover {
+    color: var(--gold-300);
+    background-size: 100% 1px;
+  }
+  .footer__dl {
+    display: grid;
+    gap: var(--space-s);
+  }
+  .footer__dl dt {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 0.875rem;
+    letter-spacing: 0.06em;
+    color: var(--gold-400);
+  }
+  .footer__dl dd {
+    margin-inline-start: 1.75em;
+  }
+  .footer__dl a {
+    color: var(--ivory-100);
+    text-decoration: underline;
+    text-decoration-color: rgb(175 130 67 / 0.55);
+    text-underline-offset: 0.22em;
+  }
+  .footer__dl a:hover {
+    color: var(--gold-300);
+  }
+
+  /* ── Legal ── */
+  .footer__legal {
+    display: grid;
+    gap: var(--space-s);
+    padding-block: var(--space-l);
+    border-block-start: 1px solid rgb(175 130 67 / 0.22);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--ivory-muted);
+  }
+  .footer__licenses {
+    display: grid;
+    gap: 0.25rem;
+  }
+  .footer__licenses strong {
+    color: var(--ivory-100);
+    font-weight: 500;
+  }
+
+  /* ── Bottom bar ── */
+  .footer__bottom {
+    background: var(--green-950);
+    border-block-start: 1px solid rgb(175 130 67 / 0.22);
+    font-size: 0.9375rem;
+    color: var(--ivory-muted);
+  }
+  .footer__bottom-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s) var(--space-l);
+    padding-block: var(--space-m);
+    /* Leave room for the floating Call button on phones. */
+    padding-block-end: max(var(--space-m), 5.5rem);
+  }
+  @media (min-width: 64rem) {
+    .footer__bottom-inner {
+      padding-block-end: var(--space-m);
+    }
+  }
+  .footer__legal-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+  }
+  .footer__legal-links a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    color: var(--ivory-100);
+    text-decoration: underline;
+    text-decoration-color: rgb(175 130 67 / 0.55);
+    text-underline-offset: 0.22em;
+  }
+  .footer__prefs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs) var(--space-m);
+  }
+  .pref {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-block-size: 44px;
+    color: var(--ivory-100);
+    font-size: 0.9375rem;
+  }
+  .pref__track {
+    position: relative;
+    inline-size: 2.5rem;
+    block-size: 1.4rem;
+    border-radius: var(--radius-round);
+    background: rgb(6 18 6 / 0.6);
+    box-shadow: inset 0 0 0 1px rgb(175 130 67 / 0.6);
+    transition: background-color var(--dur-ui) var(--ease-out);
+  }
+  .pref__thumb {
+    position: absolute;
+    inset-block-start: 0.2rem;
+    inset-inline-start: 0.2rem;
+    inline-size: 1rem;
+    block-size: 1rem;
+    border-radius: 50%;
+    background: var(--ivory-muted);
+    transition: transform var(--dur-ui) var(--ease-silk), background-color var(--dur-ui);
+  }
+  .pref[aria-pressed='true'] .pref__track {
+    background: rgb(175 130 67 / 0.35);
+  }
+  .pref[aria-pressed='true'] .pref__thumb {
+    transform: translateX(1.1rem);
+    background: var(--gold-300);
+  }
+  .pref__state {
+    color: var(--gold-400);
+  }
+</style>
