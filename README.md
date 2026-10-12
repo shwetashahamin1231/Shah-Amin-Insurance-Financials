@@ -73,7 +73,8 @@ Only needed if an original image changes.
 
 - Shweta Shah Amin's biography, and both advisors' official titles
 - Business email address and office address
-- License numbers (state + NPN) and the Medicare disclaimer counts (organizations / plans)
+- NPN and resident license numbers for each advisor (licensed states are already listed in `src/config/site.ts`)
+- The Medicare disclaimer counts (organizations / plans)
 - Google review link and real client reviews
 - Apps Script web-app URLs for bookings and RSVPs
 - Details for the October 2 and October 17 events

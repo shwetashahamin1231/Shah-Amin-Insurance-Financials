@@ -12,7 +12,7 @@ Flagship site for a family-owned insurance & financial services practice (founde
 ## Where things live (single sources of truth)
 | What | File |
 |---|---|
-| Phones, emails, titles, address, hours, holidays rule, review link, licenses, disclaimers | `src/config/site.ts` |
+| Phones, emails, titles, address, hours, holidays rule, licensed states, review link, licenses, disclaimers | `src/config/site.ts` |
 | Apps Script URLs + booking rules | `src/config/forms.ts` |
 | Services list (names, order, icons, summaries) | `src/data/services.ts` · long copy in `src/content/services/<slug>.md` |
 | Advisor bios | `src/content/team/*.md` (Shweta: `bioComingSoon: true` until filled) |
@@ -24,6 +24,10 @@ Flagship site for a family-owned insurance & financial services practice (founde
 | Navigation | `src/data/nav.ts` |
 | Design tokens | `src/styles/tokens.css` |
 | Internal links | always `url('/path/')` from `src/lib/url.ts` (base-path safe) |
+| Booking / RSVP forms | `src/components/forms/*`, engine in `src/scripts/forms/*`, date logic in `src/lib/{time,holidays,slots,hours,ics,validation}.ts` (tests in `tests/`) |
+| Peacock mascot | `src/components/Peacock.astro` + `src/scripts/peacock/*` (test page `/dev/peacock/`) |
+| Apps Script (Google Sheets) | `apps-script/bookings`, `apps-script/rsvps`, setup guide `apps-script/SETUP.md` |
+| QA tooling | `node scripts/qa/run-qa.mjs shots|perf`, `node scripts/qa/lighthouse.mjs` (against `npm run preview`) |
 
 ## Design system
 ### Colour (measured from the logo — ★ = exact logo colour)
