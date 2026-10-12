@@ -62,21 +62,22 @@ const order = ['rings', 'monogram', 'wordmark', 'tagline', 'leaf'] as const;
     mask: url('../../assets/patterns/guilloche-tile.svg') 0 0 / 240px repeat;
   }
   .intro__lineart {
+    /* A 720px box at the top-left corner; the intro script moves and scales it
+       over the hero medallion with transforms, then makes it visible. */
     position: fixed;
-    /* Positioned over the hero medallion by the intro script (CSS vars below). */
-    inset-block-start: var(--lineart-top, 50%);
-    inset-inline-start: var(--lineart-left, 50%);
-    inline-size: var(--lineart-size, min(60vw, 26rem));
-    block-size: var(--lineart-size, min(60vw, 26rem));
-    translate: var(--lineart-translate, -50% -50%);
+    inset: 0 auto auto 0;
+    inline-size: 720px;
+    block-size: 720px;
+    transform-origin: 0 0;
     z-index: calc(var(--z-intro) + 1);
     overflow: visible;
     pointer-events: none;
+    visibility: hidden;
   }
   .intro__lineart path {
     fill: none;
     stroke: var(--gold-400);
-    stroke-width: 2; /* viewBox units (720) — renders ≈1px at hero size */
+    stroke-width: 2; /* in the 720px box — renders ≈1px at hero size after scaling */
     stroke-linejoin: round;
     stroke-linecap: round;
     stroke-dasharray: 1;

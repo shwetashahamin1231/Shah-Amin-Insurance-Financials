@@ -95,7 +95,7 @@ function flushReveals() {
   const reduced = isReducedMotion();
   const tween = gsap.fromTo(
     batch,
-    { opacity: 0.01, y: reduced ? 0 : (_i, el: HTMLElement) => (el.dataset.reveal === 'fade' ? 0 : 26) },
+    { opacity: 0, y: reduced ? 0 : (_i, el: HTMLElement) => (el.dataset.reveal === 'fade' ? 0 : 26) },
     {
       opacity: 1,
       y: 0,

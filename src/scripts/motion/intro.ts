@@ -57,13 +57,13 @@ export async function playIntro({ lenis, playHeroSplit, markRevealed }: IntroDep
   const header = document.querySelector<HTMLElement>('[data-header]');
 
   // Place the line art exactly over the real medallion (and keep it there on resize).
+  // Transforms only (translate/scale), so moving it never counts as a layout shift.
   const place = () => {
     if (!medallion || !lineart) return;
     const r = medallion.getBoundingClientRect();
-    lineart.style.setProperty('--lineart-top', `${r.top}px`);
-    lineart.style.setProperty('--lineart-left', `${r.left}px`);
-    lineart.style.setProperty('--lineart-size', `${r.width}px`);
-    lineart.style.setProperty('--lineart-translate', '0 0');
+    lineart.style.translate = `${r.left}px ${r.top}px`;
+    lineart.style.scale = String(r.width / 720);
+    lineart.style.visibility = 'visible';
   };
   place();
   window.addEventListener('resize', place);
@@ -76,7 +76,7 @@ export async function playIntro({ lenis, playHeroSplit, markRevealed }: IntroDep
     titleTween = playHeroSplit(title, 0);
     titleTween?.pause(0);
   }
-  gsap.set(reveals, { opacity: 0.01, y: (_i, el: HTMLElement) => (el.dataset.reveal === 'fade' ? 0 : 22) });
+  gsap.set(reveals, { opacity: 0, y: (_i, el: HTMLElement) => (el.dataset.reveal === 'fade' ? 0 : 22) });
   if (header) gsap.set(header, { opacity: 0, y: -18 });
   if (shine) gsap.set(shine, { xPercent: -70 });
   // The skip button fades in via CSS; hand it to GSAP so it can fade out again.

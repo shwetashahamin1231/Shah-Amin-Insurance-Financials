@@ -1,8 +1,8 @@
 /* ════════════════════════════════════════════════════════════════════
    MOTION — initial states for scroll animations + the cursor accent.
-   Elements start at 1% opacity (not 0) so they still count as painted for
-   page-speed metrics. If the motion script never loads, a failsafe reveals
-   everything after ~2.6s.
+   Hero headings start at 1% opacity (not 0) so they still count as painted
+   for page-speed metrics. If the motion script never loads, a failsafe
+   reveals everything after ~2.6s.
    ════════════════════════════════════════════════════════════════════ */
 
 @property --sweep {
@@ -12,8 +12,12 @@
 }
 
 @layer base {
+  /* Below-the-fold content waits fully hidden (accessibility checkers skip it);
+     the page-hero heading waits at 1% so it still counts as painted for LCP. */
   html.js [data-reveal]:not(.is-revealed),
-  html.js:not(.reduce-motion) [data-split],
+  html.js:not(.reduce-motion) [data-split] {
+    opacity: 0;
+  }
   html.js:not(.reduce-motion) [data-hero-split] {
     opacity: 0.01;
   }
