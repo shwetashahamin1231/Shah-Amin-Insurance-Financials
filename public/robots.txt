@@ -1,0 +1,7 @@
+# Shah & Amin Financial Services
+User-agent: *
+Allow: /
+Disallow: /styleguide/
+Disallow: /dev/
+
+Sitemap: https://www.shahaminfinancial.com/sitemap-index.xml

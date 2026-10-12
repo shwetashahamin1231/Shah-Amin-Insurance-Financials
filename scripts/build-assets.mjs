@@ -294,6 +294,27 @@ async function buildIcons(medallionPng, mono) {
   const favSvg = `${vb}<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${(r - 2).toFixed(1)}" fill="${C.green800}"/><circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${(r * 0.94).toFixed(1)}" fill="none" stroke="${C.gold600}" stroke-width="${(r * 0.035).toFixed(1)}"/><g fill="${C.gold400}" fill-rule="evenodd"><path d="${mono.greenMono}"/><path d="${mono.goldMono}"/></g></svg>`;
   await writeFile(p('public/favicon.svg'), favSvg);
   await sharp(Buffer.from(favSvg)).resize(32, 32).png().toFile(p('public/favicon-32.png'));
+  // favicon.ico (browsers request it by default): an ICO wrapper around 32px and 16px PNGs.
+  const pngs = await Promise.all([32, 16].map((n) => sharp(Buffer.from(favSvg)).resize(n, n).png().toBuffer()));
+  const header = Buffer.alloc(6 + 16 * pngs.length);
+  header.writeUInt16LE(0, 0); // reserved
+  header.writeUInt16LE(1, 2); // type: icon
+  header.writeUInt16LE(pngs.length, 4);
+  let offset = header.length;
+  pngs.forEach((png, i) => {
+    const size = i === 0 ? 32 : 16;
+    const e = 6 + i * 16;
+    header.writeUInt8(size, e);
+    header.writeUInt8(size, e + 1);
+    header.writeUInt8(0, e + 2); // palette
+    header.writeUInt8(0, e + 3);
+    header.writeUInt16LE(1, e + 4); // colour planes
+    header.writeUInt16LE(32, e + 6); // bits per pixel
+    header.writeUInt32LE(png.length, e + 8);
+    header.writeUInt32LE(offset, e + 12);
+    offset += png.length;
+  });
+  await writeFile(p('public/favicon.ico'), Buffer.concat([header, ...pngs]));
   await sharp(Buffer.from(favSvg)).resize(512, 512).png().toFile(p('.qa/favicon-preview.png'));
 
   // App icons: the real medallion on deep green with breathing room.
