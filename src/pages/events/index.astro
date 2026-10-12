@@ -1,0 +1,207 @@
+---
+/**
+ * Events list — upcoming first, then past events. Everything comes from
+ * src/data/events.ts; past events are detected automatically.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/ui/PageHero.astro';
+import EventCard from '../../components/events/EventCard.astro';
+import PosterFrame from '../../components/events/PosterFrame.astro';
+import Button from '../../components/ui/Button.astro';
+import Ornament from '../../components/ui/Ornament.astro';
+import { EVENTS } from '../../data/events';
+import { sortEvents, formatEventDate, formatEventTime, formatVenue } from '../../lib/events';
+
+const { upcoming, past } = sortEvents(EVENTS);
+const featured = upcoming.find((e) => e.poster);
+const others = upcoming.filter((e) => e !== featured);
+const fv = featured ? formatVenue(featured.venue) : null;
+---
+
+<BaseLayout
+  title="Events & Seminars"
+  description="Join Shah & Amin Financial Services at upcoming breakfasts, seminars and member events in New Jersey. See details, download posters and RSVP online."
+>
+  <PageHero
+    eyebrow="Events & seminars"
+    title="Gatherings worth <em>marking on your calendar</em>"
+    lead="Breakfasts, seminars and member events where you can learn about your options, ask questions in person and meet our team. Guests are always welcome."
+  />
+
+  {
+    featured && featured.poster && (
+      <section class="section surface-paper featured" aria-labelledby="featured-title">
+        <div class="container featured__inner">
+          <div class="featured__poster" data-reveal>
+            <PosterFrame poster={featured.poster} title={featured.title} mode="link" href={`/events/${featured.slug}/`} priority />
+          </div>
+          <div class="featured__copy stack">
+            <p class="eyebrow eyebrow--rule" data-reveal>
+              Featured event
+            </p>
+            <h2 id="featured-title" class="featured__title" data-split>
+              {featured.title}
+            </h2>
+            {featured.highlight && (
+              <p class="featured__highlight" data-reveal>
+                {featured.highlight}
+              </p>
+            )}
+            <dl class="featured__facts" data-reveal>
+              <div>
+                <dt>Date</dt>
+                <dd>{formatEventDate(featured)}</dd>
+              </div>
+              <div>
+                <dt>Time</dt>
+                <dd>{formatEventTime(featured)}</dd>
+              </div>
+              {fv && (
+                <div>
+                  <dt>Location</dt>
+                  <dd>
+                    {fv.name}
+                    <br />
+                    <span class="muted">{fv.address}</span>
+                  </dd>
+                </div>
+              )}
+            </dl>
+            <p class="featured__summary" data-reveal>
+              {featured.summary}
+            </p>
+            <div class="cluster" data-reveal>
+              <Button href={`/events/${featured.slug}/#rsvp`} icon="arrow-right" magnetic>
+                RSVP now
+              </Button>
+              <Button href={`/events/${featured.slug}/`} variant="outline">
+                Event details &amp; poster
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section" aria-labelledby="upcoming-title">
+    <div class="container stack stack-l">
+      <div class="list-head">
+        <p class="eyebrow eyebrow--rule" data-reveal>Coming up</p>
+        <h2 id="upcoming-title" data-split>Upcoming <em>events</em></h2>
+      </div>
+      {
+        upcoming.length ? (
+          <div class="event-list">
+            {(others.length ? others : upcoming).map((e) => (
+              <div data-reveal>
+                <EventCard event={e} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p class="empty" data-reveal>
+            New events are announced throughout the year. Call us or check back soon.
+          </p>
+        )
+      }
+    </div>
+  </section>
+
+  {
+    past.length > 0 && (
+      <section class="section section--tight surface-deep" aria-labelledby="past-title">
+        <div class="container stack stack-l">
+          <div class="list-head">
+            <p class="eyebrow eyebrow--rule" data-reveal>
+              Thank you for joining us
+            </p>
+            <h2 id="past-title" data-split>
+              Past <em>events</em>
+            </h2>
+          </div>
+          <div class="event-list">
+            {past.map((e) => (
+              <div data-reveal>
+                <EventCard event={e} />
+              </div>
+            ))}
+          </div>
+          <Ornament width={220} />
+          <p class="center" data-reveal>
+            <Button href="/gallery/" variant="ghost" icon="arrow-right">
+              See photos in our gallery
+            </Button>
+          </p>
+        </div>
+      </section>
+    )
+  }
+</BaseLayout>
+
+<style>
+  .featured__inner {
+    display: grid;
+    gap: var(--space-3xl);
+    align-items: center;
+  }
+  @media (min-width: 64rem) {
+    .featured__inner {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--space-4xl);
+    }
+  }
+  .featured__poster {
+    max-inline-size: 30rem;
+    inline-size: 100%;
+    justify-self: center;
+  }
+  .featured__title {
+    font-size: var(--fs-h1);
+  }
+  .featured__highlight {
+    font-family: var(--ff-display);
+    font-size: var(--fs-h4);
+    font-style: italic;
+    color: var(--accent-large);
+  }
+  .featured__facts {
+    display: grid;
+    gap: var(--space-s);
+    padding-block: var(--space-m);
+    border-block: 1px solid var(--rule);
+  }
+  .featured__facts div {
+    display: grid;
+    grid-template-columns: 7rem 1fr;
+    gap: var(--space-s);
+  }
+  .featured__facts dt {
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--accent);
+    padding-block-start: 0.2em;
+  }
+  .featured__summary {
+    color: var(--text-muted);
+    max-width: 38em;
+  }
+  .list-head {
+    display: grid;
+    gap: var(--space-s);
+  }
+  .event-list {
+    display: grid;
+    gap: var(--space-m);
+  }
+  @media (min-width: 64rem) {
+    .event-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .empty {
+    color: var(--text-muted);
+  }
+</style>

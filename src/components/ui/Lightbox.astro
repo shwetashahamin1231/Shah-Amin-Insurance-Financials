@@ -1,0 +1,232 @@
+---
+/**
+ * Accessible lightbox (native <dialog>): opens from any element with
+ * data-dialog-open="<id>". For galleries, pass several images; arrow keys,
+ * on-screen buttons and swipe move between them. Escape closes.
+ */
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import Icon from './Icon.astro';
+
+export interface LightboxImage {
+  src: ImageMetadata;
+  alt: string;
+  caption?: string;
+}
+interface Props {
+  id: string;
+  images: LightboxImage[];
+  /** Optional download link (e.g. poster). */
+  download?: { href: string; label: string; filename?: string };
+  label: string;
+}
+const { id, images, download, label } = Astro.props;
+const multi = images.length > 1;
+---
+
+<dialog class="lightbox" id={id} aria-label={label} data-lightbox data-backdrop-close data-lenis-prevent>
+  <div class="lightbox__bar">
+    {multi && <p class="lightbox__count" aria-live="polite"><span data-lightbox-index>1</span> / {images.length}</p>}
+    <div class="lightbox__tools">
+      {
+        download && (
+          <a class="lightbox__tool" href={download.href} download={download.filename ?? ''}>
+            <Icon name="download" /> <span>{download.label}</span>
+          </a>
+        )
+      }
+      <button type="button" class="lightbox__tool lightbox__close" data-dialog-close aria-label="Close">
+        <Icon name="x" size={22} />
+      </button>
+    </div>
+  </div>
+
+  <div class="lightbox__stage">
+    {
+      images.map((img, i) => (
+        <figure class="lightbox__figure" data-lightbox-slide hidden={i !== 0}>
+          <Picture src={img.src} alt={img.alt} widths={[640, 1024, img.src.width]} sizes="92vw" formats={['avif', 'webp']} loading="lazy" class="lightbox__img" />
+          {img.caption && <figcaption class="lightbox__caption">{img.caption}</figcaption>}
+        </figure>
+      ))
+    }
+  </div>
+
+  {
+    multi && (
+      <>
+        <button type="button" class="lightbox__nav lightbox__nav--prev" data-lightbox-prev aria-label="Previous photo">
+          <Icon name="caret-left" size={28} />
+        </button>
+        <button type="button" class="lightbox__nav lightbox__nav--next" data-lightbox-next aria-label="Next photo">
+          <Icon name="caret-right" size={28} />
+        </button>
+      </>
+    )
+  }
+</dialog>
+
+<script>
+  // Gallery navigation (prev/next, arrow keys, swipe) for every multi-image lightbox.
+  document.querySelectorAll<HTMLDialogElement>('[data-lightbox]').forEach((dialog) => {
+    const slides = Array.from(dialog.querySelectorAll<HTMLElement>('[data-lightbox-slide]'));
+    if (slides.length < 2) return;
+    const indexEl = dialog.querySelector('[data-lightbox-index]');
+    let index = 0;
+    const show = (i: number) => {
+      index = (i + slides.length) % slides.length;
+      slides.forEach((s, n) => (s.hidden = n !== index));
+      if (indexEl) indexEl.textContent = String(index + 1);
+    };
+    dialog.querySelector('[data-lightbox-prev]')?.addEventListener('click', () => show(index - 1));
+    dialog.querySelector('[data-lightbox-next]')?.addEventListener('click', () => show(index + 1));
+    dialog.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') show(index - 1);
+      if (e.key === 'ArrowRight') show(index + 1);
+    });
+    let startX = 0;
+    dialog.addEventListener('touchstart', (e) => (startX = e.touches[0].clientX), { passive: true });
+    dialog.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 50) show(index + (dx < 0 ? 1 : -1));
+    });
+    // Openers can choose the starting slide: data-lightbox-start="3"
+    document.querySelectorAll<HTMLElement>(`[data-dialog-open="${dialog.id}"]`).forEach((opener) =>
+      opener.addEventListener('click', () => show(Number(opener.dataset.lightboxStart ?? 0))),
+    );
+  });
+</script>
+
+<style>
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    max-inline-size: none;
+    max-block-size: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgb(6 18 6 / 0.94);
+    color: var(--ivory-100);
+    opacity: 0;
+    transition:
+      opacity 350ms var(--ease-out),
+      overlay 350ms allow-discrete,
+      display 350ms allow-discrete;
+  }
+  .lightbox[open] {
+    opacity: 1;
+    display: grid;
+    grid-template-rows: auto 1fr;
+  }
+  @starting-style {
+    .lightbox[open] {
+      opacity: 0;
+    }
+  }
+  .lightbox::backdrop {
+    background: transparent;
+  }
+  .lightbox__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+    padding: var(--space-s) var(--gutter);
+  }
+  .lightbox__count {
+    font-size: var(--fs-small);
+    letter-spacing: 0.12em;
+    color: var(--ivory-muted);
+  }
+  .lightbox__tools {
+    display: flex;
+    gap: var(--space-xs);
+    margin-inline-start: auto;
+  }
+  .lightbox__tool {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-block-size: 44px;
+    min-inline-size: 44px;
+    padding-inline: 0.9rem;
+    color: var(--ivory-100);
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    box-shadow: inset 0 0 0 1px rgb(221 181 121 / 0.5);
+    border-radius: var(--radius-s);
+  }
+  .lightbox__tool:hover {
+    color: var(--gold-300);
+    box-shadow: inset 0 0 0 1px var(--gold-300);
+  }
+  .lightbox__close {
+    padding-inline: 0;
+  }
+  .lightbox__stage {
+    display: grid;
+    place-items: center;
+    padding: 0 var(--gutter) var(--space-l);
+    min-block-size: 0;
+  }
+  .lightbox__figure {
+    display: grid;
+    gap: var(--space-s);
+    justify-items: center;
+    max-block-size: 100%;
+    margin: 0;
+    transform: scale(0.97);
+    transition: transform 500ms var(--ease-silk);
+  }
+  .lightbox[open] .lightbox__figure {
+    transform: none;
+  }
+  @starting-style {
+    .lightbox[open] .lightbox__figure {
+      transform: scale(0.97);
+    }
+  }
+  .lightbox__figure :global(picture) {
+    display: contents;
+  }
+  .lightbox__figure :global(img) {
+    max-inline-size: min(100%, 64rem);
+    max-block-size: calc(100svh - 9rem);
+    inline-size: auto;
+    block-size: auto;
+    object-fit: contain;
+    border: 1px solid rgb(175 130 67 / 0.6);
+    box-shadow: 0 30px 80px -30px rgb(0 0 0 / 0.8);
+  }
+  .lightbox__caption {
+    font-size: var(--fs-small);
+    color: var(--ivory-muted);
+    text-align: center;
+  }
+  .lightbox__nav {
+    position: fixed;
+    inset-block-start: 50%;
+    translate: 0 -50%;
+    display: grid;
+    place-items: center;
+    inline-size: 52px;
+    block-size: 52px;
+    border-radius: 50%;
+    color: var(--gold-300);
+    background: rgb(14 36 15 / 0.85);
+    box-shadow: inset 0 0 0 1px rgb(221 181 121 / 0.55);
+  }
+  .lightbox__nav--prev {
+    inset-inline-start: max(0.75rem, env(safe-area-inset-left));
+  }
+  .lightbox__nav--next {
+    inset-inline-end: max(0.75rem, env(safe-area-inset-right));
+  }
+</style>
