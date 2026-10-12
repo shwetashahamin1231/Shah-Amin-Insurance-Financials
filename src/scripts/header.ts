@@ -46,15 +46,17 @@ export function initHeader(): void {
     item.addEventListener('focusout', (e) => {
       if (!item.contains(e.relatedTarget as Node | null)) setOpen(item, false);
     });
-    item.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
-        setOpen(item, false);
-        toggle.focus();
-      }
-    });
   });
 
   document.addEventListener('click', (e) => {
     if (openItem && !openItem.contains(e.target as Node)) setOpen(openItem, false);
+  });
+  // Escape closes an open dropdown wherever focus is.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !openItem) return;
+    const item = openItem;
+    const hadFocus = item.contains(document.activeElement);
+    setOpen(item, false);
+    if (hadFocus) item.querySelector<HTMLButtonElement>('[data-nav-toggle]')?.focus();
   });
 }
