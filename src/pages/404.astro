@@ -1,0 +1,70 @@
+---
+/** Friendly "page not found" with ways back into the site. */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/ui/Button.astro';
+import Ornament from '../components/ui/Ornament.astro';
+import { ADVISOR_LIST } from '../config/site';
+---
+
+<BaseLayout title="Page not found" description="The page you were looking for could not be found." noindex>
+  <section class="nf surface-depth guilloche-field">
+    <div class="container nf__inner">
+      <p class="nf__code" aria-hidden="true">404</p>
+      <h1 class="nf__title" data-hero-split>This page has taken <em>a different path</em></h1>
+      <p class="lead nf__lead" data-reveal>The page you were looking for has moved or no longer exists. Here are a few good places to continue:</p>
+      <div class="cluster nf__actions" data-reveal>
+        <Button href="/" icon="arrow-right">Home</Button>
+        <Button href="/services/" variant="outline">Our services</Button>
+        <Button href="/book/" variant="outline">Book an Appointment</Button>
+      </div>
+      <Ornament width={200} />
+      <p class="nf__call" data-reveal>
+        Or call us: {ADVISOR_LIST.map((a, i) => (
+          <>
+            {i > 0 && ' · '}
+            <a class="text-link" href={`tel:${a.phoneHref}`}>{a.firstName} {a.phone}</a>
+          </>
+        ))}
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    min-block-size: 100svh;
+    display: grid;
+    align-items: center;
+    padding-block: calc(var(--header-total) + 3rem) 4rem;
+  }
+  .nf__inner {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-m);
+    text-align: center;
+  }
+  .nf__code {
+    font-family: var(--ff-display);
+    font-size: clamp(6rem, 4rem + 10vw, 12rem);
+    font-weight: 500;
+    line-height: 0.9;
+    background-image: var(--foil-on-dark);
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .nf__title {
+    font-size: var(--fs-h1);
+    max-width: 18ch;
+  }
+  .nf__lead {
+    color: var(--ivory-muted);
+  }
+  .nf__actions {
+    justify-content: center;
+  }
+  .nf__call {
+    color: var(--ivory-muted);
+  }
+</style>

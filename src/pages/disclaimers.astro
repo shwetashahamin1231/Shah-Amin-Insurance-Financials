@@ -1,0 +1,62 @@
+---
+/**
+ * Disclaimers, licenses and accessibility statement. Wording comes from
+ * COMPLIANCE in src/config/site.ts so the footer and this page always match.
+ * TODO: compliance review before launch.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/ui/PageHero.astro';
+import { ADVISOR_LIST, COMPLIANCE, SITE } from '../config/site';
+---
+
+<BaseLayout title="Disclaimers & Licenses" description="Licensing information, Medicare marketing disclaimers and our accessibility commitment at Shah & Amin Financial Services.">
+  <PageHero eyebrow="Disclaimers" title="Disclaimers &amp; <em>licenses</em>" lead="The fine print, written as plainly as we can." />
+
+  <section class="section surface-paper">
+    <div class="container--narrow prose legal">
+      <h2>Licenses</h2>
+      <ul>
+        {
+          COMPLIANCE.licenses.map((l) => (
+            <li>
+              <strong>{l.name}</strong> — {l.detail}
+            </li>
+          ))
+        }
+      </ul>
+
+      <h2>Medicare</h2>
+      <p>{COMPLIANCE.medicareDisclaimer}</p>
+      <p>{COMPLIANCE.governmentDisclaimer}</p>
+      <p>
+        Medicare figures shown on this website (premiums, deductibles and limits) are for the year stated next to them and change every year. Please confirm current amounts at
+        <a href="https://www.medicare.gov" target="_blank" rel="noopener">Medicare.gov</a> or with us before making decisions.
+      </p>
+
+      <h2>General</h2>
+      <p>{COMPLIANCE.generalDisclaimer}</p>
+      {COMPLIANCE.securitiesDisclaimer && <p>{COMPLIANCE.securitiesDisclaimer}</p>}
+      <p>
+        Information on this website is educational and is not a recommendation for any particular product. Coverage is subject to the terms, conditions and exclusions of the
+        policy issued by the insurance company. Links to other websites are provided for convenience; we are not responsible for their content.
+      </p>
+
+      <h2>Accessibility</h2>
+      <p>
+        We want everyone to be able to use this website comfortably, and we design it to meet the Web Content Accessibility Guidelines (WCAG) 2.2, level AA. You can turn
+        animations off at any time with the <strong>Motion</strong> switch at the bottom of every page, and hide the peacock mascot with the <strong>Peacock</strong> switch.
+      </p>
+      <p>
+        If anything on the site is difficult to use, please call {ADVISOR_LIST[0].firstName} at <a href={`tel:${ADVISOR_LIST[0].phoneHref}`}>{ADVISOR_LIST[0].phone}</a> or
+        {ADVISOR_LIST[1].firstName} at <a href={`tel:${ADVISOR_LIST[1].phoneHref}`}>{ADVISOR_LIST[1].phone}</a>, or email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> — we
+        will gladly help and fix the problem.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .legal {
+    font-size: var(--fs-body);
+  }
+</style>

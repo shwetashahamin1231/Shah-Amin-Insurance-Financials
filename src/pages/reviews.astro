@@ -1,0 +1,177 @@
+---
+/**
+ * Reviews — real client reviews from src/data/reviews.ts only.
+ * The summary (average and count) is calculated from that list; nothing is
+ * shown until there are real reviews. No review markup is added for search
+ * engines (Google does not show self-published reviews for businesses).
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/ui/PageHero.astro';
+import ReviewCard from '../components/reviews/ReviewCard.astro';
+import Button from '../components/ui/Button.astro';
+import Icon from '../components/ui/Icon.astro';
+import Ornament from '../components/ui/Ornament.astro';
+import { REVIEWS } from '../data/reviews';
+import { ADVISOR_LIST, SITE } from '../config/site';
+
+const count = REVIEWS.length;
+const average = count ? REVIEWS.reduce((s, r) => s + r.rating, 0) / count : 0;
+const reviewUrl = SITE.googleReviewUrl;
+---
+
+<BaseLayout title="Client Reviews" description="Read what clients say about working with Shah & Amin Financial Services, and share your own experience with a review.">
+  <PageHero eyebrow="Client reviews" title="In our clients’ <em>own words</em>" lead="Our practice has grown through the trust of the families we serve and the friends they introduce to us.">
+    {
+      reviewUrl ? (
+        <Button href={reviewUrl} icon="star" iconPosition="start" magnetic>
+          Leave us a review
+        </Button>
+      ) : null
+    }
+  </PageHero>
+
+  <section class="section surface-paper" aria-label="Reviews">
+    <div class="container">
+      {
+        count ? (
+          <div class="stack stack-xl">
+            <div class="summary" data-reveal>
+              <p class="summary__score num">{average.toFixed(1)}</p>
+              <div>
+                <div class="summary__stars" role="img" aria-label={`Average rating ${average.toFixed(1)} out of 5`}>
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <svg viewBox="0 0 24 24" class:list={['summary__star', { 'is-on': i < Math.round(average) }]} aria-hidden="true">
+                      <path d="M12 2.6l2.83 6.07 6.67.77-4.94 4.53 1.33 6.57L12 17.27l-5.89 3.27 1.33-6.57L2.5 9.44l6.67-.77z" />
+                    </svg>
+                  ))}
+                </div>
+                <p class="summary__count">
+                  Based on {count} review{count === 1 ? '' : 's'}
+                </p>
+              </div>
+            </div>
+            <div class="reviews-grid">
+              {REVIEWS.map((r) => (
+                <div data-reveal>
+                  <ReviewCard review={r} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div class="empty" data-reveal>
+            <Icon name="quotes" size={56} class="empty__mark" />
+            <h2 class="empty__title">
+              Be among the first to <em>share your story</em>
+            </h2>
+            <p class="empty__lead">
+              We are collecting reviews from the clients we have helped over the years. If we have helped your family, your words would mean a great deal to us — and to
+              families looking for an advisor they can trust.
+            </p>
+            <Ornament width={200} />
+            {reviewUrl ? (
+              <Button href={reviewUrl} icon="star" iconPosition="start">
+                Leave us a review on Google
+              </Button>
+            ) : (
+              <div class="empty__contact">
+                <p>Our online review link is coming soon. In the meantime, we would love to hear from you directly:</p>
+                <div class="cluster">
+                  <Button href={`mailto:${SITE.email}?subject=${encodeURIComponent('My experience with Shah & Amin')}`} variant="outline" icon="envelope" iconPosition="start">
+                    Email us
+                  </Button>
+                  {ADVISOR_LIST.map((a) => (
+                    <Button href={`tel:${a.phoneHref}`} variant="ghost" icon="phone" iconPosition="start">
+                      Call {a.firstName}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-l);
+    padding-block-end: var(--space-l);
+    border-block-end: 1px solid var(--rule);
+  }
+  .summary__score {
+    font-family: var(--ff-display);
+    font-size: clamp(4rem, 3rem + 4vw, 6rem);
+    font-weight: 500;
+    line-height: 1;
+    color: var(--heading);
+  }
+  .summary__stars {
+    display: flex;
+    gap: 0.25rem;
+  }
+  .summary__star {
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    fill: transparent;
+    stroke: var(--gold-700);
+    stroke-width: 1.2;
+  }
+  .summary__star.is-on {
+    fill: var(--gold-500);
+    stroke: var(--gold-600);
+  }
+  .summary__count {
+    color: var(--text-muted);
+  }
+  .reviews-grid {
+    columns: 1;
+    column-gap: var(--space-l);
+  }
+  .reviews-grid > div {
+    break-inside: avoid;
+    margin-block-end: var(--space-l);
+  }
+  @media (min-width: 48rem) {
+    .reviews-grid {
+      columns: 2;
+    }
+  }
+  @media (min-width: 75rem) {
+    .reviews-grid {
+      columns: 3;
+    }
+  }
+  .empty {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-m);
+    max-inline-size: 44rem;
+    margin-inline: auto;
+    text-align: center;
+  }
+  .empty :global(.empty__mark) {
+    color: var(--gold-700);
+  }
+  .empty__title {
+    font-size: var(--fs-h2);
+  }
+  .empty__lead {
+    font-size: var(--fs-lead);
+    color: var(--text-muted);
+  }
+  .empty__contact {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-m);
+    color: var(--text-muted);
+  }
+  .empty__contact .cluster {
+    justify-content: center;
+  }
+</style>

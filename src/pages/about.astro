@@ -1,0 +1,376 @@
+---
+/**
+ * About / Our Team — the practice story and both advisor profiles.
+ * Bios live in src/content/team/*.md (Shweta's shows "coming soon" until filled).
+ */
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/ui/PageHero.astro';
+import Portrait from '../components/team/Portrait.astro';
+import Button from '../components/ui/Button.astro';
+import Icon from '../components/ui/Icon.astro';
+import Ornament from '../components/ui/Ornament.astro';
+import { ADVISORS, SITE, yearsInBusiness } from '../config/site';
+import { url } from '../lib/url';
+
+const team = (await getCollection('team')).sort((a, b) => a.data.order - b.data.order);
+const members = await Promise.all(team.map(async (entry) => ({ entry, advisor: ADVISORS[entry.data.advisor], Content: (await render(entry)).Content })));
+const years = yearsInBusiness();
+
+const site = Astro.site ?? new URL(SITE.url);
+const abs = (p: string) => new URL(url(p), site).toString();
+const schema = members.map(({ advisor }) => ({
+  '@type': 'Person',
+  name: advisor.name,
+  jobTitle: advisor.title,
+  telephone: advisor.phoneHref,
+  worksFor: { '@id': `${abs('/')}#agency` },
+  ...(advisor.id === 'gautam' ? { description: `Founded ${SITE.name} in ${SITE.foundedYear}.` } : {}),
+}));
+
+const values = [
+  { n: 'I', title: 'We listen first', text: 'Every conversation starts with your goals, your family and your budget — not with a product.' },
+  { n: 'II', title: 'We explain plainly', text: 'Clear, jargon-free answers, and as much time as you need to feel sure about a decision.' },
+  { n: 'III', title: 'We stay close', text: 'Life changes. When it does, you have a familiar voice to call — seven days a week.' },
+];
+---
+
+<BaseLayout
+  title="About Us & Our Team"
+  description={`Family-owned since ${SITE.foundedYear}. Meet Gautam Shah and Shweta Shah Amin of Shah & Amin Financial Services — insurance, retirement and Medicare guidance in plain English.`}
+  schema={schema}
+>
+  <PageHero
+    eyebrow="About us"
+    title="A family practice, <em>since 2000</em>"
+    lead="For more than a quarter century, families have trusted us to help protect what matters most — with patience, honesty and plain English."
+  >
+    <a href="#gautam-shah" class="jump">Meet our advisors <Icon name="arrow-right" /></a>
+  </PageHero>
+
+  <section class="section surface-paper story" aria-labelledby="story-title">
+    <div class="container story__inner">
+      <div class="story__copy">
+        <p class="eyebrow eyebrow--rule" data-reveal>Our story</p>
+        <h2 id="story-title" class="story__title" data-split>Built on <em>trust</em>, one family at a time</h2>
+        <div class="prose" data-reveal>
+          <p>
+            Gautam Shah founded Shah &amp; Amin Financial Services in {SITE.foundedYear} with a simple idea: people deserve an advisor who listens, explains every option
+            clearly, and is still there years later when life changes.
+          </p>
+          <p>
+            Today Gautam and Shweta Shah Amin carry that idea forward together, helping individuals and families with life insurance, annuities, IRAs and 401(k)s, health
+            insurance, Medicare plans, long-term care and disability income insurance.
+          </p>
+          <p>We are open seven days a week, because the questions that matter most rarely wait for a convenient time.</p>
+        </div>
+      </div>
+
+      <div class="timeline" data-draw-group>
+        <svg class="timeline__line" viewBox="0 0 2 100" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M1 0V100" pathLength="1" data-draw></path>
+        </svg>
+        <ol class="timeline__list" role="list" aria-label="Our history">
+        <li class="timeline__item" data-reveal>
+          <span class="timeline__year num">{SITE.foundedYear}</span>
+          <p class="timeline__text">Gautam Shah opens Shah &amp; Amin Financial Services.</p>
+        </li>
+        <li class="timeline__item" data-reveal>
+          <span class="timeline__year num">{years} years</span>
+          <p class="timeline__text">Many clients served across life insurance, retirement, health coverage and Medicare.</p>
+        </li>
+        <li class="timeline__item" data-reveal>
+          <span class="timeline__year">Today</span>
+          <p class="timeline__text">Gautam and Shweta Shah Amin — two advisors, one promise, open seven days a week.</p>
+        </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section values guilloche-field" aria-labelledby="values-title">
+    <div class="container">
+      <div class="values__head">
+        <p class="eyebrow eyebrow--rule" data-reveal>What you can expect</p>
+        <h2 id="values-title" data-split>Three promises we <em>keep</em></h2>
+      </div>
+      <ol class="values__list" role="list">
+        {
+          values.map((v) => (
+            <li class="values__item" data-reveal>
+              <span class="values__num">{v.n}</span>
+              <h3 class="values__title">{v.title}</h3>
+              <p class="values__text">{v.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section surface-ivory team" aria-labelledby="team-title">
+    <div class="container">
+      <div class="team__head">
+        <p class="eyebrow eyebrow--rule" data-reveal>Our team</p>
+        <h2 id="team-title" data-split>Meet your <em>advisors</em></h2>
+      </div>
+
+      {
+        members.map(({ entry, advisor, Content }, i) => (
+          <article class:list={['profile', { 'profile--reverse': i % 2 === 1 }]} id={entry.id} aria-labelledby={`${entry.id}-name`}>
+            <div class="profile__portrait" data-reveal>
+              <Portrait initials={advisor.initials} name={advisor.name} headshot={entry.data.headshot} alt={entry.data.headshotAlt} size="l" />
+            </div>
+            <div class="profile__body">
+              <p class="profile__title" data-reveal>
+                {advisor.title}
+              </p>
+              <h3 id={`${entry.id}-name`} class="profile__name" data-split>
+                {advisor.name}
+              </h3>
+              <Ornament width={160} align="start" />
+              {entry.data.bioComingSoon ? (
+                <div class="coming-soon" data-reveal>
+                  <p class="coming-soon__title">Biography coming soon</p>
+                  <p class="coming-soon__text">We are putting the finishing touches on {advisor.firstName}’s profile. In the meantime, you are welcome to call or email {advisor.firstName} directly.</p>
+                </div>
+              ) : (
+                <div class="prose profile__bio" data-reveal>
+                  <Content />
+                </div>
+              )}
+              {entry.data.specialties.length > 0 && (
+                <ul class="profile__tags" role="list" aria-label={`${advisor.firstName}’s areas of focus`} data-reveal>
+                  {entry.data.specialties.map((s) => (
+                    <li>{s}</li>
+                  ))}
+                </ul>
+              )}
+              <div class="profile__actions" data-reveal>
+                <Button href={`tel:${advisor.phoneHref}`} icon="phone" iconPosition="start">
+                  {advisor.phone}
+                </Button>
+                <Button href={`mailto:${advisor.email}`} variant="outline" icon="envelope" iconPosition="start">
+                  Email {advisor.firstName}
+                </Button>
+                <Button href={`/book/?advisor=${advisor.id}`} variant="ghost" icon="calendar-check" iconPosition="start">
+                  Book with {advisor.firstName}
+                </Button>
+              </div>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .jump {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-block-size: 44px;
+    color: var(--gold-300);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-decoration: underline;
+    text-underline-offset: 0.3em;
+    text-decoration-color: rgb(221 181 121 / 0.5);
+  }
+
+  .story__inner {
+    display: grid;
+    gap: var(--space-3xl);
+    align-items: start;
+  }
+  @media (min-width: 64rem) {
+    .story__inner {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: var(--space-4xl);
+    }
+  }
+  .story__copy > * + * {
+    margin-block-start: var(--space-m);
+  }
+  .story__title {
+    font-size: var(--fs-h1);
+    max-width: 14ch;
+  }
+
+  .timeline {
+    position: relative;
+    padding-inline-start: var(--space-xl);
+  }
+  .timeline__list {
+    display: grid;
+    gap: var(--space-xl);
+  }
+  .timeline__line {
+    position: absolute;
+    inset-block: 0.6rem 0.6rem;
+    inset-inline-start: 0.4rem;
+    inline-size: 2px;
+    block-size: calc(100% - 1.2rem);
+    overflow: visible;
+  }
+  .timeline__line path {
+    stroke: var(--gold-700);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+  }
+  .timeline__item {
+    position: relative;
+  }
+  .timeline__item::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: calc(-1 * var(--space-xl) + 0.05rem);
+    inset-block-start: 0.55rem;
+    inline-size: 0.75rem;
+    block-size: 0.75rem;
+    rotate: 45deg;
+    background: var(--paper-200);
+    border: 1px solid var(--gold-700);
+  }
+  .timeline__year {
+    display: block;
+    font-family: var(--ff-display);
+    font-size: var(--fs-h3);
+    font-weight: 600;
+    color: var(--gold-800);
+    line-height: 1.1;
+  }
+  .timeline__text {
+    color: var(--text-muted);
+  }
+
+  .values__head,
+  .team__head {
+    display: grid;
+    gap: var(--space-m);
+    margin-block-end: var(--space-2xl);
+  }
+  .values__head h2,
+  .team__head h2 {
+    font-size: var(--fs-h1);
+  }
+  .values__list {
+    display: grid;
+    gap: var(--space-xl);
+  }
+  @media (min-width: 56rem) {
+    .values__list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .values__item {
+    padding-block-start: var(--space-l);
+    border-block-start: 1px solid var(--rule-strong);
+  }
+  .values__num {
+    font-family: var(--ff-display);
+    font-size: 2.5rem;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--gold-500);
+  }
+  .values__title {
+    margin-block: var(--space-s) var(--space-xs);
+    font-size: var(--fs-h3);
+  }
+  .values__text {
+    color: var(--ivory-muted);
+  }
+
+  .profile {
+    display: grid;
+    gap: var(--space-2xl);
+    align-items: start;
+    padding-block: var(--space-2xl);
+    scroll-margin-top: calc(var(--header-h) + 2rem);
+  }
+  .profile + .profile {
+    border-block-start: 1px solid var(--rule);
+  }
+  @media (min-width: 64rem) {
+    .profile {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--space-4xl);
+      padding-block: var(--space-3xl);
+    }
+    .profile--reverse .profile__portrait {
+      order: 2;
+    }
+    .profile__portrait {
+      position: sticky;
+      inset-block-start: calc(var(--header-h) + 2.5rem);
+    }
+  }
+  .profile__portrait {
+    max-inline-size: 26rem;
+    inline-size: 100%;
+  }
+  .profile__body > * + * {
+    margin-block-start: var(--space-m);
+  }
+  .profile__title {
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .profile__name {
+    font-size: var(--fs-h1);
+  }
+  .profile__bio {
+    font-size: var(--fs-body);
+  }
+  .profile__bio :global(p:first-child)::first-letter {
+    float: left;
+    font-family: var(--ff-display);
+    font-size: 4.4em;
+    line-height: 0.82;
+    padding: 0.06em 0.12em 0 0;
+    color: var(--gold-700);
+    font-weight: 500;
+  }
+  .coming-soon {
+    position: relative;
+    padding: var(--space-xl) var(--space-l);
+    background: var(--paper-200);
+    border: 1px solid rgb(141 97 39 / 0.45);
+    outline: 1px solid rgb(141 97 39 / 0.25);
+    outline-offset: -9px;
+    text-align: center;
+  }
+  .coming-soon__title {
+    font-family: var(--ff-display);
+    font-size: var(--fs-h3);
+    font-style: italic;
+    color: var(--gold-800);
+  }
+  .coming-soon__text {
+    margin-block-start: var(--space-xs);
+    color: var(--text-muted);
+  }
+  .profile__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .profile__tags li {
+    padding: 0.35rem 0.8rem;
+    font-size: 0.9375rem;
+    color: var(--green-800);
+    border: 1px solid rgb(141 97 39 / 0.45);
+    background: var(--ivory-50);
+  }
+  .profile__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s) var(--space-m);
+    padding-block-start: var(--space-xs);
+  }
+</style>

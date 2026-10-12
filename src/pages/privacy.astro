@@ -1,0 +1,87 @@
+---
+/**
+ * Privacy policy — a plain-English starting point. Have your compliance
+ * contact or attorney review it before launch (TODO).
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/ui/PageHero.astro';
+import { ADVISOR_LIST, SITE } from '../config/site';
+import { url } from '../lib/url';
+---
+
+<BaseLayout title="Privacy Policy" description="How Shah & Amin Financial Services collects, uses and protects the information you share through this website.">
+  <PageHero eyebrow="Privacy" title="Privacy <em>policy</em>" lead="Last updated October 11, 2026." />
+
+  <section class="section surface-paper">
+    <div class="container--narrow prose legal">
+      <p class="legal__note">This policy is a draft provided for review by our compliance advisor before publication.</p>
+
+      <h2>Who we are</h2>
+      <p>
+        This website is operated by {SITE.name} (“we”, “us”). If you have any questions about this policy, call {ADVISOR_LIST[0].name} at
+        <a href={`tel:${ADVISOR_LIST[0].phoneHref}`}>{ADVISOR_LIST[0].phone}</a>, {ADVISOR_LIST[1].name} at <a href={`tel:${ADVISOR_LIST[1].phoneHref}`}>{ADVISOR_LIST[1].phone}</a>, or email
+        <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
+      </p>
+
+      <h2>Information we collect</h2>
+      <p>We only collect information you choose to give us through this website:</p>
+      <ul>
+        <li><strong>Appointment requests:</strong> your name, email, phone number, preferred date and time, preferred advisor, topic, meeting type and any message you add.</li>
+        <li><strong>Event RSVPs:</strong> your name, email, phone number, the event, number of guests and any notes.</li>
+      </ul>
+      <p>
+        Please do not send Social Security numbers, Medicare numbers, medical details or account numbers through the website. We will collect anything like that securely
+        when we speak with you.
+      </p>
+
+      <h2>How we use it</h2>
+      <ul>
+        <li>To confirm and prepare for your appointment or event reservation.</li>
+        <li>To answer your questions and follow up on your request.</li>
+        <li>To keep records required for our business.</li>
+      </ul>
+      <p>We do not sell your personal information, and we do not use it for unrelated marketing without your permission.</p>
+
+      <h2>Where it is stored</h2>
+      <p>
+        Form submissions are stored in a private Google Sheet in our Google account, using Google Apps Script. Google processes this information under its own terms and
+        privacy policy. Only our team has access to it.
+      </p>
+
+      <h2>Cookies and similar technology</h2>
+      <p>
+        This website does not use advertising or tracking cookies. It remembers two display preferences on your own device — whether animations are on and whether the
+        peacock mascot is shown — so the site looks the way you like next time. The map on our <a href={url('/contact/')}>Contact page</a> only loads (and Google may set
+        cookies) if you choose to show it.
+      </p>
+
+      <h2>Your choices</h2>
+      <p>You can ask us at any time to see, correct or delete the information you have sent through this website. Contact us using the details above.</p>
+
+      <h2>Security</h2>
+      <p>
+        We use reputable services and limit access to the people who need it. No method of sending information over the internet is completely secure, so please share
+        sensitive details by phone or in person.
+      </p>
+
+      <h2>Children</h2>
+      <p>This website is not directed to children under 13, and we do not knowingly collect their information.</p>
+
+      <h2>Changes to this policy</h2>
+      <p>If we update this policy, we will change the date at the top of this page.</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .legal {
+    font-size: var(--fs-body);
+  }
+  .legal__note {
+    padding: var(--space-s) var(--space-m);
+    border-inline-start: 2px solid var(--gold-700);
+    background: rgb(141 97 39 / 0.08);
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+  }
+</style>

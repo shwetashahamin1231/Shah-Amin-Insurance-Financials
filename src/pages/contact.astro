@@ -1,0 +1,365 @@
+---
+/**
+ * Contact — both advisors side by side (tap to call / email), office address,
+ * hours with a live "open now" status, a map that loads only when asked
+ * (keeps Google's cookies and weight off the page), and booking.
+ * All details come from src/config/site.ts.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/ui/PageHero.astro';
+import Button from '../components/ui/Button.astro';
+import Icon from '../components/ui/Icon.astro';
+import Ornament from '../components/ui/Ornament.astro';
+import { ADVISOR_LIST, HOURS, SITE, formattedAddress, mapLinks } from '../config/site';
+
+const address = formattedAddress();
+const maps = mapLinks();
+---
+
+<BaseLayout
+  title="Contact Us"
+  description="Call Gautam Shah at (973) 722-9191 or Shweta Shah Amin at (732) 543-9835, email us, or book an appointment. Open 7 days a week, 11 AM – 7 PM Eastern."
+>
+  <PageHero
+    eyebrow="Contact us"
+    title="We’d love to <em>hear from you</em>"
+    lead="Call either advisor directly, send us an email, or book a time that suits you. We are open seven days a week."
+  />
+
+  <section class="section surface-paper" aria-labelledby="advisors-title">
+    <div class="container">
+      <h2 id="advisors-title" class="visually-hidden">Our advisors</h2>
+      <ul class="cards" role="list">
+        {
+          ADVISOR_LIST.map((a) => (
+            <li class="card" data-reveal>
+              <div class="card__head">
+                <span class="card__monogram" aria-hidden="true">
+                  {a.initials}
+                </span>
+                <div>
+                  <h3 class="card__name">{a.name}</h3>
+                  <p class="card__title">{a.title}</p>
+                </div>
+              </div>
+              <a class="card__phone" href={`tel:${a.phoneHref}`} aria-label={`Call ${a.name} at ${a.phone}`}>
+                <Icon name="phone" />
+                <span class="num">{a.phone}</span>
+              </a>
+              <a class="card__email text-link" href={`mailto:${a.email}`}>
+                <Icon name="envelope" /> {a.email}
+              </a>
+              <div class="card__actions">
+                <Button href={`tel:${a.phoneHref}`} icon="phone-call" iconPosition="start">
+                  Call {a.firstName}
+                </Button>
+                <Button href={`/book/?advisor=${a.id}`} variant="outline" icon="calendar-check" iconPosition="start">
+                  Book with {a.firstName}
+                </Button>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section surface-deep office" aria-labelledby="office-title">
+    <div class="container office__inner">
+      <div class="office__info">
+        <p class="eyebrow eyebrow--rule" data-reveal>Visit &amp; hours</p>
+        <h2 id="office-title" class="office__title" data-split>Our <em>office</em></h2>
+
+        <div class="office__block" data-reveal>
+          <h3 class="office__label"><Icon name="map-pin" /> Address</h3>
+          {
+            address ? (
+              <p class="office__value">
+                {address}
+                <br />
+                <a class="text-link" href={maps.directions} target="_blank" rel="noopener">
+                  Get directions <Icon name="arrow-square-out" />
+                </a>
+              </p>
+            ) : (
+              <p class="office__value">Our office address will be posted here soon. Call either advisor and we will be glad to help you find us.</p>
+            )
+          }
+        </div>
+
+        <div class="office__block" data-reveal>
+          <h3 class="office__label"><Icon name="clock" /> Hours</h3>
+          <p class="office__value">
+            Monday – Sunday, 11:00 AM – 7:00 PM Eastern<br />
+            <span class="muted">{HOURS.holidayNote}</span>
+          </p>
+          <p class="office__status" data-open-status hidden></p>
+        </div>
+
+        <div class="office__block" data-reveal>
+          <h3 class="office__label"><Icon name="envelope" /> Email</h3>
+          <p class="office__value"><a class="text-link" href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
+        </div>
+
+        <div class="office__cta" data-reveal>
+          <Button href="/book/" size="l" icon="calendar-check" iconPosition="start" magnetic>Book an Appointment</Button>
+        </div>
+      </div>
+
+      <div class="map" data-reveal>
+        <div class="map__frame" data-map>
+          <div class="map__placeholder">
+            <span class="map__pin" aria-hidden="true"><Icon name="map-pin" size={30} /></span>
+            <Ornament width={160} draw={false} />
+            {
+              address ? (
+                <>
+                  <p class="map__text">{address}</p>
+                  <button type="button" class="map__load" data-map-load data-src={maps.embed}>
+                    Show interactive map
+                  </button>
+                  <p class="map__privacy">Loads Google Maps, which may set cookies.</p>
+                </>
+              ) : (
+                <p class="map__text">Map coming soon</p>
+              )
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  // Load the Google map only when the visitor asks for it.
+  document.querySelector<HTMLButtonElement>('[data-map-load]')?.addEventListener('click', (e) => {
+    const btn = e.currentTarget as HTMLButtonElement;
+    const frame = document.querySelector<HTMLElement>('[data-map]');
+    if (!frame || !btn.dataset.src) return;
+    const iframe = document.createElement('iframe');
+    iframe.src = btn.dataset.src;
+    iframe.title = 'Map showing the Shah & Amin Financial Services office';
+    iframe.loading = 'lazy';
+    iframe.referrerPolicy = 'no-referrer-when-downgrade';
+    iframe.className = 'map__iframe';
+    frame.replaceChildren(iframe);
+  });
+</script>
+
+<style>
+  .cards {
+    display: grid;
+    gap: var(--space-l);
+  }
+  @media (min-width: 56rem) {
+    .cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-xl);
+    }
+  }
+  .card {
+    position: relative;
+    display: grid;
+    gap: var(--space-m);
+    align-content: start;
+    padding: clamp(1.75rem, 1.25rem + 2vw, 3rem);
+    background: var(--ivory-50);
+    border: 1px solid rgb(141 97 39 / 0.45);
+    outline: 1px solid rgb(141 97 39 / 0.25);
+    outline-offset: -10px;
+    box-shadow: var(--shadow-m);
+  }
+  .card__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-m);
+  }
+  .card__monogram {
+    display: grid;
+    place-items: center;
+    flex: none;
+    inline-size: 76px;
+    block-size: 76px;
+    border-radius: 50%;
+    font-family: var(--ff-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--gold-300);
+    background: var(--green-800);
+    box-shadow: 0 0 0 1px var(--gold-600), 0 0 0 5px var(--ivory-50), 0 0 0 6px rgb(141 97 39 / 0.4);
+  }
+  .card__name {
+    font-size: var(--fs-h3);
+  }
+  .card__title {
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .card__phone {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--ff-display);
+    font-size: clamp(2.25rem, 1.8rem + 1.8vw, 3rem);
+    font-weight: 500;
+    line-height: 1.1;
+    color: var(--heading);
+    text-decoration: none;
+    padding-block: var(--space-xs);
+    border-block: 1px solid var(--rule);
+  }
+  .card__phone :global(.icon) {
+    font-size: 0.7em;
+    color: var(--gold-700);
+  }
+  .card__phone:hover {
+    color: var(--gold-800);
+  }
+  .card__email {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-self: start;
+    min-block-size: 44px;
+    overflow-wrap: anywhere;
+  }
+  .card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+  }
+
+  .office__inner {
+    display: grid;
+    gap: var(--space-3xl);
+    align-items: start;
+  }
+  @media (min-width: 64rem) {
+    .office__inner {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: var(--space-4xl);
+    }
+  }
+  .office__info > * + * {
+    margin-block-start: var(--space-l);
+  }
+  .office__title {
+    font-size: var(--fs-h1);
+  }
+  .office__block {
+    padding-block-start: var(--space-m);
+    border-block-start: 1px solid var(--rule);
+  }
+  .office__label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--ff-body);
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-block-end: 0.5rem;
+  }
+  .office__value {
+    font-size: var(--fs-lead);
+    line-height: 1.55;
+  }
+  .office__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-block-start: var(--space-s);
+    padding: 0.4rem 0.85rem;
+    font-weight: 500;
+    color: var(--gold-300);
+    border: 1px solid rgb(221 181 121 / 0.45);
+  }
+  .office__status::before {
+    content: '';
+    inline-size: 0.55rem;
+    block-size: 0.55rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .office__status[data-open='true'] {
+    color: #a8dba2;
+    border-color: rgb(168 219 162 / 0.45);
+  }
+
+  .map__frame {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--gold-600);
+    outline: 1px solid rgb(175 130 67 / 0.35);
+    outline-offset: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-l);
+    background: var(--green-900);
+  }
+  .map__placeholder {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: var(--space-s);
+    padding: var(--space-l);
+    text-align: center;
+    isolation: isolate;
+    background: radial-gradient(70% 60% at 50% 45%, rgb(80 113 75 / 0.4), transparent 70%);
+  }
+  .map__placeholder::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--gold-500);
+    opacity: 0.09;
+    -webkit-mask: url('../assets/patterns/guilloche-tile.svg') 0 0 / 220px repeat;
+    mask: url('../assets/patterns/guilloche-tile.svg') 0 0 / 220px repeat;
+  }
+  .map__pin {
+    display: grid;
+    place-items: center;
+    inline-size: 64px;
+    block-size: 64px;
+    border-radius: 50%;
+    color: var(--gold-300);
+    box-shadow: inset 0 0 0 1px rgb(221 181 121 / 0.6);
+  }
+  .map__text {
+    font-family: var(--ff-display);
+    font-size: 1.75rem;
+    font-style: italic;
+    color: var(--ivory-100);
+  }
+  .map__load {
+    min-block-size: 48px;
+    padding-inline: 1.25rem;
+    color: var(--green-900);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    background-image: var(--foil-on-dark);
+    background-size: 200% 100%;
+    border-radius: var(--radius-s);
+  }
+  .map__privacy {
+    font-size: 0.875rem;
+    color: var(--ivory-muted);
+  }
+  .map__frame :global(.map__iframe) {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    border: 0;
+  }
+</style>

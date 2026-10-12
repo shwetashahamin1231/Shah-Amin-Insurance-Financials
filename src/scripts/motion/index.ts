@@ -5,12 +5,16 @@
  *   data-reveal            fade up into view (data-reveal="fade" = no movement)
  *   data-split             heading reveals line by line when scrolled into view
  *   data-hero-split        page-hero heading: words rise in right after load
- *   data-draw (in an svg[data-draw-group])  stroke draws itself (needs pathLength="1")
+ *   data-draw (in an element with data-draw-group)  stroke draws itself (needs pathLength="1")
  *   data-count="26"        number counts up from 0
+ *   data-odometer          digits spin into place (see components/ui/Odometer.astro)
  *   data-parallax="0.15"   decorative layer drifts at a different speed
  *   data-rosette           guilloché rosette sweeps in (conic mask)
  *   data-magnetic          button follows the cursor slightly (desktop)
  *
+ * "Play once when visible" effects use a single IntersectionObserver, so they
+ * fire correctly however the visitor arrives (top of page, #anchor link,
+ * back/forward). Continuous effects (parallax) use ScrollTrigger.
  * Everything degrades to the final state for reduced motion, and the CSS in
  * src/styles/motion.css reveals content anyway if this file never loads.
  */
@@ -26,6 +30,8 @@ gsap.defaults({ ease: 'expo.out', duration: 0.9 });
 const root = document.documentElement;
 let lenis: Lenis | null = null;
 let pointerExtras: { destroy: () => void }[] = [];
+/** Every one-shot animation, so the Motion switch can jump them to the end. */
+const oneShots: gsap.core.Animation[] = [];
 
 /* ───────────── Smooth scrolling ───────────── */
 function lenisRaf(time: number) {
@@ -45,6 +51,30 @@ function stopLenis() {
   lenis = null;
 }
 
+/* ───────────── "When visible" observer ───────────── */
+const pending = new Map<Element, () => void>();
+let viewObserver: IntersectionObserver | null = null;
+
+/** Run `cb` once, the first time `el` enters the viewport (immediately if it already is). */
+export function onEnterView(el: Element, cb: () => void): void {
+  if (!viewObserver) {
+    viewObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const fn = pending.get(entry.target);
+          viewObserver?.unobserve(entry.target);
+          pending.delete(entry.target);
+          fn?.();
+        }
+      },
+      { rootMargin: '0px 0px -4% 0px' },
+    );
+  }
+  pending.set(el, cb);
+  viewObserver.observe(el);
+}
+
 /* ───────────── Reveals ───────────── */
 /** Lock elements in their final state and drop the inline animation styles. */
 export function markRevealed(els: Element[] | NodeListOf<Element>) {
@@ -52,30 +82,47 @@ export function markRevealed(els: Element[] | NodeListOf<Element>) {
   gsap.set(els, { clearProps: 'opacity,transform' });
 }
 
+let revealQueue: HTMLElement[] = [];
+let revealScheduled = false;
+function flushReveals() {
+  revealScheduled = false;
+  const batch = revealQueue.splice(0).sort((a, b) => {
+    const ra = a.getBoundingClientRect();
+    const rb = b.getBoundingClientRect();
+    return ra.top - rb.top || ra.left - rb.left;
+  });
+  if (!batch.length) return;
+  const reduced = isReducedMotion();
+  const tween = gsap.fromTo(
+    batch,
+    { opacity: 0.01, y: reduced ? 0 : (_i, el: HTMLElement) => (el.dataset.reveal === 'fade' ? 0 : 26) },
+    {
+      opacity: 1,
+      y: 0,
+      duration: reduced ? 0.45 : 1,
+      ease: reduced ? 'power1.out' : 'expo.out',
+      stagger: reduced ? 0 : 0.09,
+      overwrite: true,
+      onComplete: () => markRevealed(batch),
+    },
+  );
+  oneShots.push(tween);
+}
+function queueReveal(el: HTMLElement) {
+  revealQueue.push(el);
+  if (!revealScheduled) {
+    revealScheduled = true;
+    requestAnimationFrame(flushReveals);
+  }
+}
+
 function initReveals() {
   // While the home intro plays, it reveals the hero itself.
   const introPlaying = root.classList.contains('intro-play') && !root.classList.contains('intro-done');
-  const els = gsap.utils.toArray<HTMLElement>('[data-reveal]').filter((el) => !(introPlaying && el.closest('[data-intro-hero]')));
-  if (!els.length) return;
-  const reduced = isReducedMotion();
-  ScrollTrigger.batch(els, {
-    start: 'top 97%',
-    once: true,
-    onEnter: (batch) =>
-      gsap.fromTo(
-        batch,
-        { opacity: 0.01, y: reduced ? 0 : (_i, el: HTMLElement) => (el.dataset.reveal === 'fade' ? 0 : 26) },
-        {
-          opacity: 1,
-          y: 0,
-          duration: reduced ? 0.45 : 1,
-          ease: reduced ? 'power1.out' : 'expo.out',
-          stagger: reduced ? 0 : 0.09,
-          overwrite: true,
-          onComplete: () => markRevealed(batch as HTMLElement[]),
-        },
-      ),
-  });
+  gsap.utils
+    .toArray<HTMLElement>('[data-reveal]')
+    .filter((el) => !el.classList.contains('is-revealed') && !(introPlaying && el.closest('[data-intro-hero]')))
+    .forEach((el) => onEnterView(el, () => queueReveal(el)));
 }
 
 /* ───────────── Split headings ───────────── */
@@ -84,6 +131,8 @@ function splitOnScroll(el: HTMLElement) {
     gsap.set(el, { opacity: 1 });
     return;
   }
+  let entered = false;
+  let tween: gsap.core.Tween | null = null;
   SplitText.create(el, {
     type: 'lines',
     mask: 'lines',
@@ -92,14 +141,15 @@ function splitOnScroll(el: HTMLElement) {
     autoSplit: true,
     onSplit(self) {
       gsap.set(el, { opacity: 1 });
-      return gsap.from(self.lines, {
-        yPercent: 108,
-        duration: 1.15,
-        stagger: 0.1,
-        ease: 'expo.out',
-        scrollTrigger: { trigger: el, start: 'top 88%', once: true },
-      });
+      tween = gsap.from(self.lines, { yPercent: 108, duration: 1.15, stagger: 0.1, ease: 'expo.out', paused: true });
+      oneShots.push(tween);
+      if (entered) tween.progress(1); // re-split (fonts/resize) after it already played
+      return tween;
     },
+  });
+  onEnterView(el, () => {
+    entered = true;
+    tween?.play();
   });
 }
 
@@ -119,6 +169,7 @@ export function playHeroSplit(el: HTMLElement, delay = 0): gsap.core.Tween | nul
     onSplit(self) {
       gsap.set(el, { opacity: 1 });
       tween = gsap.from(self.words, { yPercent: 115, duration: 1.2, stagger: 0.06, ease: 'expo.out', delay });
+      oneShots.push(tween);
       return tween;
     },
   });
@@ -139,38 +190,39 @@ async function initSplits() {
 
 /* ───────────── Line drawing ───────────── */
 function initDraw() {
-  gsap.utils.toArray<SVGElement>('[data-draw-group]').forEach((group) => {
+  gsap.utils.toArray<Element>('[data-draw-group]').forEach((group) => {
     const paths = group.querySelectorAll<SVGGeometryElement>('[data-draw]');
     if (!paths.length) return;
     if (isReducedMotion()) {
       gsap.set(paths, { strokeDashoffset: 0 });
       return;
     }
-    gsap.fromTo(
-      paths,
-      { strokeDasharray: 1, strokeDashoffset: 1 },
-      { strokeDashoffset: 0, duration: 1.6, ease: 'power2.inOut', stagger: 0.12, scrollTrigger: { trigger: group, start: 'top 92%', once: true } },
-    );
+    const tween = gsap.fromTo(paths, { strokeDasharray: 1, strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.6, ease: 'power2.inOut', stagger: 0.12, paused: true });
+    oneShots.push(tween);
+    onEnterView(group, () => tween.play());
   });
 }
 
 /* ───────────── Count-ups ───────────── */
 function initCounters() {
+  if (isReducedMotion()) return;
   gsap.utils.toArray<HTMLElement>('[data-count]').forEach((el) => {
     const end = Number(el.dataset.count);
-    if (!Number.isFinite(end) || isReducedMotion()) return;
+    if (!Number.isFinite(end)) return;
     const start = Number(el.dataset.countFrom ?? 0);
     const state = { v: start };
     el.textContent = String(start);
-    gsap.to(state, {
+    const tween = gsap.to(state, {
       v: end,
       duration: 2,
       ease: 'power3.out',
-      scrollTrigger: { trigger: el, start: 'top 92%', once: true },
+      paused: true,
       onUpdate: () => {
         el.textContent = String(Math.round(state.v));
       },
     });
+    oneShots.push(tween);
+    onEnterView(el, () => tween.play());
   });
 }
 
@@ -178,15 +230,14 @@ function initCounters() {
 function initOdometers() {
   if (isReducedMotion()) return;
   gsap.utils.toArray<HTMLElement>('[data-odometer]').forEach((el) => {
+    const tl = gsap.timeline({ paused: true });
     el.querySelectorAll<HTMLElement>('.odo__strip').forEach((strip, i) => {
       const d = Number(getComputedStyle(strip.parentElement as HTMLElement).getPropertyValue('--d')) || 0;
       // y: 0 overrides the CSS resting offset so only yPercent drives the spin.
-      gsap.fromTo(
-        strip,
-        { y: 0, yPercent: 0 },
-        { y: 0, yPercent: -(10 + d) * 5, duration: 2.1, ease: 'power3.inOut', delay: i * 0.12, scrollTrigger: { trigger: el, start: 'top 92%', once: true } },
-      );
+      tl.fromTo(strip, { y: 0, yPercent: 0 }, { y: 0, yPercent: -(10 + d) * 5, duration: 2.1, ease: 'power3.inOut', immediateRender: true }, i * 0.12);
     });
+    oneShots.push(tl);
+    onEnterView(el, () => tl.play());
   });
 }
 
@@ -211,7 +262,9 @@ function initRosettes() {
       el.style.setProperty('--sweep', '360deg');
       return;
     }
-    gsap.fromTo(el, { '--sweep': '0deg' }, { '--sweep': '360deg', duration: 2.4, ease: 'power2.inOut', scrollTrigger: { trigger: el, start: 'top 90%', once: true } });
+    const tween = gsap.fromTo(el, { '--sweep': '0deg' }, { '--sweep': '360deg', duration: 2.4, ease: 'power2.inOut', paused: true });
+    oneShots.push(tween);
+    onEnterView(el, () => tween.play());
   });
 }
 
@@ -232,6 +285,9 @@ function onMotionChange() {
     stopLenis();
     stopPointerExtras();
     // Jump every pending animation to its end state.
+    viewObserver?.disconnect();
+    pending.clear();
+    oneShots.forEach((a) => a.progress(1));
     ScrollTrigger.getAll().forEach((st) => {
       st.animation?.progress(1);
       st.kill();
@@ -269,8 +325,7 @@ export async function initMotion(): Promise<void> {
   window.addEventListener('sa:motion-change', onMotionChange);
   window.addEventListener('sa:scroll-lock', () => lenis?.stop());
   window.addEventListener('sa:scroll-unlock', () => lenis?.start());
-  // Evaluate every trigger now (fires reveals for content already in view), and
-  // again after late layout changes (fonts, images) if the page is still loading.
+  // Parallax positions: recalculate after fonts and images settle.
   requestAnimationFrame(() => ScrollTrigger.refresh());
   if (document.readyState !== 'complete') window.addEventListener('load', () => ScrollTrigger.refresh(), { once: true });
   document.fonts?.ready.then(() => ScrollTrigger.refresh());
