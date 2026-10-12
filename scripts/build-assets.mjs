@@ -192,28 +192,28 @@ async function buildPatterns() {
   // Hero rosette: hollow centre (logo sits inside), woven braids, sweeping loops.
   const c = 450;
   const hero = [
-    ...rosetteBand(c, c, 428, 7, 72, 4, 900),
-    rippleRing(c, c, 446, 0, 1, 0, 360),
-    rippleRing(c, c, 410, 0, 1, 0, 360),
-    ...annularRosette(c, c, 250, 398, 4, 24, 7, 100),
-    ...rosetteBand(c, c, 236, 5, 48, 3, 640),
+    ...rosetteBand(c, c, 428, 7, 72, 4, 720),
+    rippleRing(c, c, 446, 0, 1, 0, 240),
+    rippleRing(c, c, 410, 0, 1, 0, 240),
+    ...annularRosette(c, c, 250, 398, 4, 24, 7, 96),
+    ...rosetteBand(c, c, 236, 5, 48, 3, 480),
   ];
   // Colour-agnostic files use currentColor; CSS mask-image recolours them anywhere.
   await writeFile(path.join(dir, 'rosette-hero.svg'), svgDoc(900, 900, paths(hero)));
 
   // Corner / section rosette: full flower, lighter weight.
   await writeFile(path.join(dir, 'rosette-flower.svg'), svgDoc(600, 600, paths([
-    ...rosette(300, 300, 560, 4, 18, 7, 120),
-    ...rosetteBand(300, 300, 288, 4, 60, 3, 720),
+    ...rosette(300, 300, 560, 4, 18, 7, 80),
+    ...rosetteBand(300, 300, 288, 4, 60, 3, 540),
   ])));
 
   // Seamless horizontal wave band for dividers and certificate borders.
-  await writeFile(path.join(dir, 'wave-band.svg'), svgDoc(1200, 60, paths(waveBand(1200, 60, 6, 14, 520)), 'preserveAspectRatio="none"'));
+  await writeFile(path.join(dir, 'wave-band.svg'), svgDoc(1200, 60, paths(waveBand(1200, 60, 6, 14, 380)), 'preserveAspectRatio="none"'));
 
   // Seamless background tile: interlaced ripple rings on a 240px grid (tiles in both directions).
   const tile = [];
   for (const [x, y] of [[0, 0], [240, 0], [0, 240], [240, 240], [120, 120]]) {
-    tile.push(...rosetteBand(x, y, 96, 6, 24, 3, 360));
+    tile.push(...rosetteBand(x, y, 96, 6, 24, 3, 220));
   }
   await writeFile(path.join(dir, 'guilloche-tile.svg'), svgDoc(240, 240, paths(tile)));
 
