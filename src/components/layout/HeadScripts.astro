@@ -32,14 +32,14 @@
     if (store('localStorage', 'sa-peacock') === 'hidden') d.classList.add('peacock-hidden');
 
     // Intro: only on the first page of a visit, never on back/forward or in-site navigation.
-    if (d.hasAttribute('data-intro')) {
+    if (d.hasAttribute('data-intro-art')) {
       var nav = performance.getEntriesByType ? performance.getEntriesByType('navigation')[0] : null;
       var fromSite = document.referrer && document.referrer.indexOf(location.origin) === 0;
       var seen = store('sessionStorage', 'sa-visited') === '1';
       if (!seen && !fromSite && !(nav && nav.type === 'back_forward') && !d.classList.contains('reduce-motion')) {
         d.classList.add('intro-play');
         // Start downloading the logo line art right away (only first visits need it).
-        var art = d.getAttribute('data-intro');
+        var art = d.getAttribute('data-intro-art');
         if (art && window.fetch) window.__saLineart = fetch(art).then(function (r) { return r.text(); });
         // Failsafe: never leave the curtain up if the main script fails to load.
         setTimeout(function () {
