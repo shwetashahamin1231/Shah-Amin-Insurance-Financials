@@ -8,6 +8,7 @@ Flagship site for a family-owned insurance & financial services practice (founde
 - Fonts via Astro Fonts API (`astro.config.ts` → `fonts`), self-hosted with metric fallbacks.
 - `npm run dev` (port 4321) · `npm run build` · `npm run preview` (4322) · `npm run check` · `npm test` (Vitest) · `npm run assets` (regenerates brand assets from `docs/reference/`).
 - `.claude/launch.json` has `dev` and `preview` configs for the browser pane.
+- Hosting: GitHub Pages via Actions (`.github/workflows/deploy.yml`) from `shwetashahamin1231/Shah-Amin-Insurance-Financials`; live at **https://www.shahandamin.com** (GoDaddy DNS). The client pushes with GitHub Desktop.
 
 ## Where things live (single sources of truth)
 | What | File |

@@ -171,13 +171,13 @@ describe('getOpenStatus (Eastern Time)', () => {
 
 describe('calendar files (.ics) and Google Calendar links', () => {
   const event = {
-    uid: 'member-appreciation-breakfast-2026@shahaminfinancial.com',
+    uid: 'member-appreciation-breakfast-2026@shahandamin.com',
     title: 'Member Appreciation Breakfast',
     start: etToUtc('2026-10-19', '10:00'),
     end: etToUtc('2026-10-19', '12:00'),
     location: 'Guru Palace, 2215 US-1, North Brunswick Township, NJ 08902',
     description: 'Breakfast; chai, and a presentation\non Clover plans for 2027.',
-    url: 'https://www.shahaminfinancial.com/events/member-appreciation-breakfast-2026/',
+    url: 'https://www.shahandamin.com/events/member-appreciation-breakfast-2026/',
   };
 
   it('writes UTC times and escapes text', () => {

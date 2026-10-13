@@ -4,4 +4,4 @@ Allow: /
 Disallow: /styleguide/
 Disallow: /dev/
 
-Sitemap: https://www.shahaminfinancial.com/sitemap-index.xml
+Sitemap: https://www.shahandamin.com/sitemap-index.xml

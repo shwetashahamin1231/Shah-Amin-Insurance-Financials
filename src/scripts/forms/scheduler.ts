@@ -399,7 +399,7 @@ export function initScheduler(root: HTMLElement): void {
     const phones = ADVISOR_LIST.map((a) => `${a.firstName} ${a.phone}`).join(' or ');
     const kind = meeting === 'In person' ? 'in-person' : meeting.toLowerCase();
     const entry: CalendarEvent = {
-      uid: `booking-${date}-${time.replace(':', '')}-${Math.random().toString(36).slice(2, 10)}@${location.hostname || 'shahaminfinancial.com'}`,
+      uid: `booking-${date}-${time.replace(':', '')}-${Math.random().toString(36).slice(2, 10)}@${location.hostname || 'shahandamin.com'}`,
       title: `Appointment request — ${SITE.shortName}`,
       start,
       end,

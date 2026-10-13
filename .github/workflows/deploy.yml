@@ -1,6 +1,7 @@
 # Builds the site and publishes it to GitHub Pages on every push to main.
 # One-time setup: GitHub repo → Settings → Pages → Source: "GitHub Actions".
-# Custom domain: add public/CNAME containing your domain (e.g. www.shahaminfinancial.com).
+# Custom domain: repo → Settings → Pages → Custom domain (www.shahandamin.com).
+# No CNAME file needed: GitHub ignores it for Actions deployments.
 name: Deploy to GitHub Pages
 
 on:

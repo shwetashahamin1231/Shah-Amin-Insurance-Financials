@@ -51,9 +51,12 @@ Put the photo in `src/assets/team/` (e.g. `gautam-shah.jpg`), then in that advis
 
 ## Publish the site (GitHub Pages)
 
-1. Create a GitHub repository and push this folder to it.
-2. In the repository: **Settings → Pages → Source: GitHub Actions**. The included workflow (`.github/workflows/deploy.yml`) builds and publishes the site on every push to `main`.
-3. Custom domain: create `public/CNAME` containing your domain (e.g. `www.shahaminfinancial.com`), set the same address as `url` in `src/config/site.ts`, update the sitemap line in `public/robots.txt`, and point the domain's DNS to GitHub Pages.
+The site lives at **https://www.shahandamin.com**, published from the GitHub repository `shwetashahamin1231/Shah-Amin-Insurance-Financials`.
+
+- **To publish a change:** in GitHub Desktop, commit it and click **Push origin**. The workflow (`.github/workflows/deploy.yml`) rebuilds the site and it is live about 2 minutes later (progress: the repository's **Actions** tab).
+- **GitHub settings:** **Settings → Pages**: Source **GitHub Actions**, Custom domain **www.shahandamin.com**, **Enforce HTTPS** ticked.
+- **GoDaddy DNS** for `shahandamin.com`: four **A** records for `@` → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`, and a **CNAME** for `www` → `shwetashahamin1231.github.io`. No forwarding.
+- **If the domain ever changes:** update `url` in `src/config/site.ts`, the sitemap line in `public/robots.txt`, the Custom domain on GitHub, and the DNS records.
 
 ---
 
@@ -72,12 +75,11 @@ Only needed if an original image changes.
 ## Still to fill in (placeholders on the site today)
 
 - Shweta Shah Amin's biography, and both advisors' official titles
-- Business email address and office address
+- Business email address (the site shows `info@shahandamin.com` — set that mailbox up, or change it in `src/config/site.ts`) and office address
 - NPN and resident license numbers for each advisor (licensed states are already listed in `src/config/site.ts`)
 - The Medicare disclaimer counts (organizations / plans)
 - Google review link and real client reviews
 - Apps Script web-app URLs for bookings and RSVPs
 - Details for the October 2 and October 17 events
 - Gallery photos and headshots
-- Final domain name
 - Compliance review of the disclaimers and privacy policy

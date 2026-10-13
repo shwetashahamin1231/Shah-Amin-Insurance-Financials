@@ -35,8 +35,8 @@ export const SITE = {
   shortName: 'Shah & Amin',
   legalName: 'Shah & Amin Financial Services',
 
-  /** Your live web address, no trailing slash. TODO: replace once the domain is chosen. */
-  url: 'https://www.shahaminfinancial.com',
+  /** Your live web address, no trailing slash. Must match Settings → Pages → Custom domain on GitHub. */
+  url: 'https://www.shahandamin.com',
 
   foundedYear: 2000,
   founder: 'Gautam Shah',
@@ -47,7 +47,7 @@ export const SITE = {
     'Family-owned insurance and retirement planning since 2000. Life insurance, annuities, IRAs, 401(k) rollovers, health insurance, Medicare plans, long-term care, disability income and travel insurance.',
 
   /** Main business email (also used on the contact page and in the footer). TODO */
-  email: 'info@shahaminfinancial.com',
+  email: 'info@shahandamin.com',
   emailIsPlaceholder: true,
 
   /** Office address. TODO: fill in. Leave `street` empty to hide the address everywhere. */
@@ -91,7 +91,7 @@ export const ADVISORS: Record<AdvisorId, Advisor> = {
     title: 'Founder & Principal Advisor', // TODO: confirm title
     phone: '(973) 722-9191',
     phoneHref: '+19737229191',
-    email: 'info@shahaminfinancial.com', // TODO: Gautam's own email, if different
+    email: 'info@shahandamin.com', // TODO: Gautam's own email, if different
     initials: 'GS',
   },
   shweta: {
@@ -101,7 +101,7 @@ export const ADVISORS: Record<AdvisorId, Advisor> = {
     title: 'Partner & Advisor', // TODO: confirm title
     phone: '(732) 543-9835',
     phoneHref: '+17325439835',
-    email: 'info@shahaminfinancial.com', // TODO: Shweta's own email, if different
+    email: 'info@shahandamin.com', // TODO: Shweta's own email, if different
     initials: 'SA',
   },
 };

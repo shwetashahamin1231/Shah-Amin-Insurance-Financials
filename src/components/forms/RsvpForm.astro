@@ -200,7 +200,7 @@ const maxGuests = preselected?.maxGuests ?? 6;
     const end = e.end ? new Date(e.end) : new Date(start.getTime() + 2 * 60 * 60 * 1000);
     const phones = ADVISOR_LIST.map((a) => `${a.firstName} ${a.phone}`).join(' or ');
     return {
-      uid: `${e.slug}@${location.hostname || 'shahaminfinancial.com'}`,
+      uid: `${e.slug}@${location.hostname || 'shahandamin.com'}`,
       title: e.title,
       start,
       end,

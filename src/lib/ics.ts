@@ -11,7 +11,7 @@
  */
 
 export interface CalendarEvent {
-  /** Unique, stable id, e.g. 'member-appreciation-breakfast-2026@shahaminfinancial.com'. */
+  /** Unique, stable id, e.g. 'member-appreciation-breakfast-2026@shahandamin.com'. */
   uid: string;
   title: string;
   start: Date;
