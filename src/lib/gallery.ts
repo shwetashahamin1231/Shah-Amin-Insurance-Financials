@@ -4,7 +4,6 @@
  */
 import type { ImageMetadata } from 'astro';
 import { GALLERY, type GalleryItem } from '../data/gallery';
-import { getEvent } from '../data/events';
 
 export interface GalleryPhoto extends GalleryItem {
   src: ImageMetadata;
@@ -14,7 +13,7 @@ export interface GalleryPhoto extends GalleryItem {
 const files = import.meta.glob<{ default: ImageMetadata }>('../assets/gallery/*.{jpg,jpeg,png,webp,avif,JPG,JPEG,PNG}', { eager: true });
 const byName = new Map(Object.entries(files).map(([path, mod]) => [path.split('/').pop() as string, mod.default]));
 
-/** All listed photos that have a file, in list order. Captions fall back to the event's title. */
+/** All listed photos that have a file, in list order. Only photos given a `caption` show one. */
 export function galleryPhotos(): GalleryPhoto[] {
   return GALLERY.flatMap((item) => {
     const src = byName.get(item.file);
@@ -22,8 +21,7 @@ export function galleryPhotos(): GalleryPhoto[] {
       console.warn(`[gallery] "${item.file}" is listed in src/data/gallery.ts but was not found in src/assets/gallery/`);
       return [];
     }
-    const event = item.event ? getEvent(item.event) : undefined;
-    return [{ ...item, src, caption: item.caption ?? event?.title }];
+    return [{ ...item, src }];
   });
 }
 
