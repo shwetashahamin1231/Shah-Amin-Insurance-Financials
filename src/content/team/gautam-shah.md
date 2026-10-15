@@ -2,7 +2,7 @@
 name: Gautam Shah
 advisor: gautam
 order: 1
-# headshot: ../../assets/team/gautam-shah.jpg   ← add a photo here, then remove the # at the start of this line
+headshot: ../../assets/team/gautam-shah.jpg
 headshotAlt: Portrait of Gautam Shah
 bioComingSoon: false
 specialties:

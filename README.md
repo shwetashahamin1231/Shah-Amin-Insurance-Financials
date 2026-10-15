@@ -81,5 +81,5 @@ Only needed if an original image changes.
 - Google review link and real client reviews
 - Apps Script web-app URLs for bookings and RSVPs
 - Details for the October 2 and October 17 events
-- Gallery photos and headshots
+- Gallery photos
 - Compliance review of the disclaimers and privacy policy

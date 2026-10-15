@@ -4,6 +4,7 @@
  * Bios live in src/content/team/*.md (Shweta's shows "coming soon" until filled).
  */
 import { getCollection, render } from 'astro:content';
+import { Picture, getImage } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/ui/PageHero.astro';
 import Portrait from '../components/team/Portrait.astro';
@@ -12,6 +13,7 @@ import Icon from '../components/ui/Icon.astro';
 import Ornament from '../components/ui/Ornament.astro';
 import { ADVISORS, SITE, licensedStatesText, yearsInBusiness } from '../config/site';
 import { url } from '../lib/url';
+import duoPhoto from '../assets/team/gautam-and-shweta.jpg';
 
 const team = (await getCollection('team')).sort((a, b) => a.data.order - b.data.order);
 const members = await Promise.all(team.map(async (entry) => ({ entry, advisor: ADVISORS[entry.data.advisor], Content: (await render(entry)).Content })));
@@ -19,14 +21,17 @@ const years = yearsInBusiness();
 
 const site = Astro.site ?? new URL(SITE.url);
 const abs = (p: string) => new URL(url(p), site).toString();
-const schema = members.map(({ advisor }) => ({
-  '@type': 'Person',
-  name: advisor.name,
-  jobTitle: advisor.title,
-  telephone: advisor.phoneHref,
-  worksFor: { '@id': `${abs('/')}#agency` },
-  ...(advisor.id === 'gautam' ? { description: `Founded ${SITE.name} in ${SITE.foundedYear}.` } : {}),
-}));
+const schema = await Promise.all(
+  members.map(async ({ entry, advisor }) => ({
+    '@type': 'Person',
+    name: advisor.name,
+    jobTitle: advisor.title,
+    telephone: advisor.phoneHref,
+    worksFor: { '@id': `${abs('/')}#agency` },
+    ...(entry.data.headshot ? { image: new URL((await getImage({ src: entry.data.headshot, width: 720, format: 'jpg' })).src, site).toString() } : {}),
+    ...(advisor.id === 'gautam' ? { description: `Founded ${SITE.name} in ${SITE.foundedYear}.` } : {}),
+  })),
+);
 
 const values = [
   { n: 'I', title: 'We listen first', text: 'Every conversation starts with your goals, your family and your budget — not with a product.' },
@@ -66,24 +71,40 @@ const values = [
         </div>
       </div>
 
-      <div class="timeline" data-draw-group>
-        <svg class="timeline__line" viewBox="0 0 2 100" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M1 0V100" pathLength="1" data-draw></path>
-        </svg>
-        <ol class="timeline__list" role="list" aria-label="Our history">
-        <li class="timeline__item" data-reveal>
-          <span class="timeline__year num">{SITE.foundedYear}</span>
-          <p class="timeline__text">Gautam Shah opens Shah &amp; Amin Financial Services.</p>
-        </li>
-        <li class="timeline__item" data-reveal>
-          <span class="timeline__year num">{years} years</span>
-          <p class="timeline__text">Many clients served across life insurance, retirement, health coverage and Medicare.</p>
-        </li>
-        <li class="timeline__item" data-reveal>
-          <span class="timeline__year">Today</span>
-          <p class="timeline__text">Gautam and Shweta Shah Amin — two advisors, one promise, open seven days a week.</p>
-        </li>
-        </ol>
+      <div class="story__aside">
+        <div class="timeline" data-draw-group>
+          <svg class="timeline__line" viewBox="0 0 2 100" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M1 0V100" pathLength="1" data-draw></path>
+          </svg>
+          <ol class="timeline__list" role="list" aria-label="Our history">
+          <li class="timeline__item" data-reveal>
+            <span class="timeline__year num">{SITE.foundedYear}</span>
+            <p class="timeline__text">Gautam Shah opens Shah &amp; Amin Financial Services.</p>
+          </li>
+          <li class="timeline__item" data-reveal>
+            <span class="timeline__year num">{years} years</span>
+            <p class="timeline__text">Many clients served across life insurance, retirement, health coverage and Medicare.</p>
+          </li>
+          <li class="timeline__item" data-reveal>
+            <span class="timeline__year">Today</span>
+            <p class="timeline__text">Gautam and Shweta Shah Amin — two advisors, one promise, open seven days a week.</p>
+          </li>
+          </ol>
+        </div>
+        <figure class="duo" data-reveal>
+          <div class="duo__frame">
+            <Picture
+              src={duoPhoto}
+              alt="Gautam Shah and Shweta Shah Amin side by side in a studio portrait"
+              widths={[480, 720, 960, 1280]}
+              sizes="(min-width: 80rem) 30rem, (min-width: 64rem) 38vw, 90vw"
+              formats={['avif', 'webp']}
+              fallbackFormat="jpg"
+              class="duo__img"
+            />
+          </div>
+          <figcaption class="duo__caption">Gautam Shah &amp; Shweta Shah Amin</figcaption>
+        </figure>
       </div>
     </div>
   </section>
@@ -196,6 +217,29 @@ const values = [
   .story__title {
     font-size: var(--fs-h1);
     max-width: 14ch;
+  }
+
+  /* Photo of both advisors, matted and framed like the certificate panels. */
+  .story__aside > .duo {
+    margin-block-start: var(--space-2xl);
+  }
+  .duo__frame {
+    padding: 10px;
+    background: var(--ivory-50);
+    border: 1px solid rgb(141 97 39 / 0.45);
+    outline: 1px solid rgb(141 97 39 / 0.3);
+    outline-offset: 6px;
+    box-shadow: var(--shadow-m);
+  }
+  .duo__frame :global(img) {
+    inline-size: 100%;
+    block-size: auto;
+  }
+  .duo__caption {
+    margin-block-start: var(--space-s);
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
   }
 
   .timeline {
