@@ -6,12 +6,17 @@
  *  Medicare Plans service page.
  *
  *  HOW TO EDIT
- *  • Every fall, CMS announces the next year's amounts. Update FIGURES:
- *    change `year`, then each number. Write money as plain numbers —
- *    202.9 (not "$202.90"), 1736 (not "1,736"). The page formats them.
- *  • Check that each `source` link still opens the current official page.
- *  • PART_D_NEXT_YEAR shows next year's drug-plan limits. Update it when
- *    new limits are published, or set it to null to hide that line.
+ *  • Every amount carries the year it applies to, and the page labels it.
+ *    CMS publishes next year's amounts at different times:
+ *      – Part D limits: April (Rate Announcement); base premium: late July
+ *      – Medigap K/L limits and high-deductible F/G amount: October
+ *      – Part A & Part B premiums, deductibles, income thresholds: mid-November
+ *    When a set is published, change that part's `year` and its numbers.
+ *    Write money as plain numbers — 202.9 (not "$202.90"), 1736 (not "1,736").
+ *  • AWAITING shows a note while Part A/B amounts for PLAN_YEAR are not out
+ *    yet. Set it to null once FIGURES.partA and partB are updated.
+ *  • Only use official CMS / Medicare.gov numbers — never estimates or
+ *    projections. Check that each `source` link opens the official page.
  *  • The wording on the page (lists, tables, answers) is further down.
  *    Keep it plain and educational: no "best" or "cheapest", no promises.
  *  • Enrollment dates (Oct 15 – Dec 7 etc.) are set by federal rules and
@@ -35,6 +40,10 @@ export interface Source {
 
 export const SOURCES = {
   cmsFactSheet: { label: 'CMS — 2026 Medicare Parts A & B premiums and deductibles', url: 'https://www.cms.gov/newsroom/fact-sheets/2026-medicare-parts-b-premiums-deductibles' },
+  partD2027: { label: 'CMS — CY 2027 Rate Announcement (Part D deductible and out-of-pocket threshold, Table V-6)', url: 'https://www.cms.gov/files/document/2027-announcement.pdf' },
+  partDBase2027: { label: 'CMS — 2027 Part D base beneficiary premium', url: 'https://www.cms.gov/newsroom/fact-sheets/medicare-part-d-2027-national-average-monthly-bid-amount-information' },
+  medigapKL2027: { label: 'CMS — 2027 out-of-pocket limits for Medigap Plans K & L', url: 'https://www.cms.gov/files/document/cy-2027-oop-limits-medigap-plans-kl.pdf' },
+  medigapHD2027: { label: 'CMS — 2027 deductible for high-deductible Medigap Plans F, G & J', url: 'https://www.cms.gov/files/document/cy-2027-medigap-high-deductible-options-fjg.pdf' },
   partDCosts: { label: 'Medicare.gov — Costs for Medicare drug coverage', url: 'https://www.medicare.gov/health-drug-plans/part-d/basics/costs' },
   medicareCosts: { label: 'Medicare.gov — Medicare costs', url: 'https://www.medicare.gov/basics/costs/medicare-costs' },
   medigapCompare: { label: 'Medicare.gov — Compare Medigap plan benefits', url: 'https://www.medicare.gov/health-drug-plans/medigap/basics/compare-plan-benefits' },
@@ -48,9 +57,13 @@ export const SOURCES = {
 
 /* ───────────── Yearly figures ───────────── */
 
+/** The plan year this guide is written for (coverage starting January 1). */
+export const PLAN_YEAR = 2027;
+
 export const FIGURES = {
-  year: 2026,
   partA: {
+    /** Year these amounts apply to (2027 amounts are announced by CMS in mid-November 2026). */
+    year: 2026,
     /** Most people pay no Part A premium (about 10 years of Medicare-taxed work, theirs or a spouse's). */
     premiumMostPeople: 0,
     /** 30–39 quarters of Medicare-covered work. */
@@ -68,6 +81,7 @@ export const FIGURES = {
     source: SOURCES.cmsFactSheet,
   },
   partB: {
+    year: 2026,
     /** Standard monthly premium. */
     premium: 202.9,
     deductible: 283,
@@ -78,37 +92,38 @@ export const FIGURES = {
     source: SOURCES.cmsFactSheet,
   },
   partD: {
-    maxDeductible: 615,
-    outOfPocketCap: 2100,
-    /** National base beneficiary premium — used to work out the Part D late penalty. */
-    basePremium: 38.99,
+    year: 2027,
+    /** Standard deductible: the most a plan can charge (CY 2027 Rate Announcement, Table V-6). */
+    maxDeductible: 700,
+    /** Annual out-of-pocket threshold (same table). */
+    outOfPocketCap: 2400,
+    /** National base beneficiary premium — used to work out the Part D late penalty (CMS, July 28, 2026). */
+    basePremium: 41.33,
     /** Covered insulin, per month's supply (set by law, not yearly). */
     insulinMonthlyCap: 35,
-    source: SOURCES.partDCosts,
+    source: SOURCES.partD2027,
   },
   medigap: {
-    planKLimit: 8000,
-    planLLimit: 4000,
+    year: 2027,
+    planKLimit: 8360,
+    planLLimit: 4180,
     /** High-deductible Plan F / Plan G: you pay this much first. */
-    highDeductible: 2950,
-    source: SOURCES.medigapCompare,
+    highDeductible: 3050,
+    source: SOURCES.medigapKL2027,
   },
 } as const;
 
-/** Next year's Part D limits (for plans starting in January). Set to null to hide. */
-export const PART_D_NEXT_YEAR: { year: number; maxDeductible: number; outOfPocketCap: number; source: Source } | null = {
-  year: 2027,
-  maxDeductible: 700,
-  outOfPocketCap: 2400,
-  source: SOURCES.partDCosts,
+/** While CMS has not yet published PLAN_YEAR's Part A & B amounts. Set to null once they are in FIGURES. */
+export const AWAITING: { year: number; what: string; expected: string } | null = {
+  year: PLAN_YEAR,
+  what: 'Part A and Part B premiums and deductibles',
+  expected: 'mid-November 2026',
 };
 
-const Y = FIGURES.year;
 const A = FIGURES.partA;
 const B = FIGURES.partB;
 const D = FIGURES.partD;
 const G = FIGURES.medigap;
-const NEXT = PART_D_NEXT_YEAR;
 
 /* ───────────── Who can get Medicare ───────────── */
 
@@ -150,6 +165,8 @@ export interface MedicarePart {
   summary: string;
   covers: string[];
   costs: PartCost[];
+  /** Year the dollar amounts in `costs` apply to (omit when there are none). */
+  costsYear?: number;
   note: string;
   source: Source;
 }
@@ -174,6 +191,7 @@ export const PARTS: MedicarePart[] = [
       { label: 'Days 91–150 (lifetime reserve days)', value: `${usd(A.lifetimeReserveDay)} a day` },
       { label: 'Skilled nursing days 21–100', value: `${usd(A.snfDays21to100)} a day` },
     ],
+    costsYear: A.year,
     note: 'Hospital days 1–60 cost $0 after the deductible. A benefit period starts the day you are admitted and ends after 60 days in a row without inpatient hospital or skilled nursing care — so the deductible can apply more than once in a year. You have 60 lifetime reserve days in total.',
     source: SOURCES.cmsFactSheet,
   },
@@ -195,6 +213,7 @@ export const PARTS: MedicarePart[] = [
       { label: 'Yearly deductible', value: usd(B.deductible) },
       { label: 'After the deductible', value: `Usually ${B.coinsurancePercent}% of the Medicare-approved amount` },
     ],
+    costsYear: B.year,
     note: 'Original Medicare has no yearly limit on what you pay out of pocket. That is why many people add a Medicare Supplement policy or choose a Medicare Advantage plan.',
     source: SOURCES.cmsFactSheet,
   },
@@ -231,19 +250,12 @@ export const PARTS: MedicarePart[] = [
     ],
     costs: [
       { label: 'Monthly premium', value: 'Varies by plan', note: 'Higher-income households pay an extra amount' },
-      {
-        label: 'Yearly deductible',
-        value: `No more than ${usd(D.maxDeductible)} in ${Y}`,
-        note: NEXT ? `No more than ${usd(NEXT.maxDeductible)} for plans in ${NEXT.year}` : undefined,
-      },
-      {
-        label: 'Yearly out-of-pocket cap',
-        value: `${usd(D.outOfPocketCap)} in ${Y}`,
-        note: `After that, $0 for covered drugs for the rest of the year${NEXT ? ` · ${usd(NEXT.outOfPocketCap)} in ${NEXT.year}` : ''}`,
-      },
+      { label: 'Yearly deductible', value: `No more than ${usd(D.maxDeductible)}`, note: 'Some plans have a lower deductible or none' },
+      { label: 'Yearly out-of-pocket cap', value: usd(D.outOfPocketCap), note: 'After that, $0 for covered drugs for the rest of the year' },
     ],
+    costsYear: D.year,
     note: 'If you go 63 days or more in a row without Part D or other creditable drug coverage after your Initial Enrollment Period, you may owe a late penalty for as long as you have drug coverage. Extra Help can lower drug costs for people with limited income and resources.',
-    source: SOURCES.partDCosts,
+    source: SOURCES.partD2027,
   },
 ];
 
@@ -321,8 +333,8 @@ export const MEDIGAP_BENEFITS: { benefit: string; detail?: string; coverage: Rec
   { benefit: 'Blood (first 3 pints)', coverage: all(100, { K: 50, L: 75 }) },
   { benefit: 'Part A hospice care coinsurance or copayment', coverage: all(100, { K: 50, L: 75 }) },
   { benefit: 'Skilled nursing facility coinsurance', coverage: all(100, { A: 0, B: 0, K: 50, L: 75 }) },
-  { benefit: 'Part A deductible', detail: `${usd(A.deductible)} per benefit period in ${Y}`, coverage: all(100, { A: 0, K: 50, L: 75, M: 50 }) },
-  { benefit: 'Part B deductible', detail: `${usd(B.deductible)} in ${Y}`, coverage: all(0, { C: 100, F: 100 }) },
+  { benefit: 'Part A deductible', detail: `${usd(A.deductible)} per benefit period in ${A.year}`, coverage: all(100, { A: 0, K: 50, L: 75, M: 50 }) },
+  { benefit: 'Part B deductible', detail: `${usd(B.deductible)} in ${B.year}`, coverage: all(0, { C: 100, F: 100 }) },
   { benefit: 'Part B excess charges', detail: 'Extra amounts some doctors may charge above Medicare’s approved amount', coverage: all(0, { F: 100, G: 100 }) },
   { benefit: 'Foreign travel emergency', detail: 'Up to plan limits', coverage: all(0, { C: 80, D: 80, F: 80, G: 80, M: 80, N: 80 }) },
 ];
@@ -336,8 +348,8 @@ export const MEDIGAP_OOP: Partial<Record<MedigapPlan, string>> = {
 export const MEDIGAP_NOTES: string[] = [
   `Plans C and F (marked *) can only be bought by people who were eligible for Medicare before January 1, 2020. If that includes you, you may still be able to buy them.`,
   `† Plan N pays 100% of Part B coinsurance, except for a copayment of up to $20 for some office visits and up to $50 for emergency room visits that don’t lead to an inpatient admission.`,
-  `Plans K and L: once you reach the yearly out-of-pocket limit (${usd(G.planKLimit)} for K and ${usd(G.planLLimit)} for L in ${Y}) and pay the Part B deductible, the plan pays 100% of covered services for the rest of the year.`,
-  `Plans F and G may also be offered with a high deductible: you pay the first ${usd(G.highDeductible)} of covered costs in ${Y} before the policy pays.`,
+  `Plans K and L: once you reach the yearly out-of-pocket limit (${usd(G.planKLimit)} for K and ${usd(G.planLLimit)} for L in ${G.year}) and pay the Part B deductible, the plan pays 100% of covered services for the rest of the year.`,
+  `Plans F and G may also be offered with a high deductible: you pay the first ${usd(G.highDeductible)} of covered costs in ${G.year} before the policy pays.`,
   'Foreign travel emergency: 80% of the cost of emergency care that begins during the first 60 days of a trip outside the U.S., after a $250 yearly deductible, up to a $50,000 lifetime limit.',
   'Medigap policies don’t include drug coverage — pair one with a Part D plan. They also can’t be used with a Medicare Advantage plan.',
 ];

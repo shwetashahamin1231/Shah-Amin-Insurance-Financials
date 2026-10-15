@@ -38,7 +38,7 @@ const describe = (c: MedigapCoverage) =>
   <div class="medigap__scroll" role="region" aria-labelledby="medigap-caption" tabindex="0" data-lenis-prevent>
     <table class="medigap__table">
       <caption id="medigap-caption" class="medigap__caption">
-        What each Medigap plan pays ({FIGURES.year}) — * Plans C and F are only for people eligible for Medicare before 2020
+        What each Medigap plan pays — * Plans C and F are only for people eligible for Medicare before 2020
       </caption>
       <thead>
         <tr>
@@ -96,7 +96,7 @@ const describe = (c: MedigapCoverage) =>
         <tr class="medigap__oop-row">
           <th scope="row" class="medigap__benefit">
             Yearly out-of-pocket limit
-            <span class="medigap__detail">{FIGURES.year} amounts</span>
+            <span class="medigap__detail">{FIGURES.medigap.year} amounts</span>
           </th>
           {
             MEDIGAP_PLANS.map((p) => (
@@ -139,6 +139,14 @@ const describe = (c: MedigapCoverage) =>
     {' · '}
     <a class="text-link" href={SOURCES.njShipMedigap.url} target="_blank" rel="noopener">
       {SOURCES.njShipMedigap.label}<span class="visually-hidden"> (opens in a new tab)</span>
+    </a>
+    {' · '}
+    <a class="text-link" href={SOURCES.medigapKL2027.url} target="_blank" rel="noopener">
+      {SOURCES.medigapKL2027.label}<span class="visually-hidden"> (opens in a new tab)</span>
+    </a>
+    {' · '}
+    <a class="text-link" href={SOURCES.medigapHD2027.url} target="_blank" rel="noopener">
+      {SOURCES.medigapHD2027.label}<span class="visually-hidden"> (opens in a new tab)</span>
     </a>
   </p>
 </div>

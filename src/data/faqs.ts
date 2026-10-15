@@ -17,7 +17,7 @@
  *  Phone numbers and hours are filled in from src/config/site.ts.
  * ════════════════════════════════════════════════════════════════════
  */
-import { ADVISORS, HOURS, SITE, licensedStatesText } from '../config/site';
+import { ADVISORS, COMPLIANCE, HOURS, SITE, licensedStatesText } from '../config/site';
 
 export interface Faq {
   id: string;
@@ -166,7 +166,7 @@ export const FAQ_CATEGORIES: FaqCategory[] = [
       {
         id: 'faq-every-plan',
         q: 'Do you offer every Medicare plan in my area?',
-        a: 'No. We represent a number of insurance companies, but not every plan available in your area. For information on all of your options, contact Medicare.gov, 1-800-MEDICARE (TTY 1-877-486-2048), or your local State Health Insurance Assistance Program (SHIP).',
+        a: `No. ${COMPLIANCE.medicareDisclaimer}`,
       },
       {
         id: 'faq-travel-abroad',
@@ -235,7 +235,7 @@ export const FAQ_CATEGORIES: FaqCategory[] = [
       {
         id: 'faq-rsvp',
         q: 'Do I need to RSVP for an event?',
-        a: 'Yes, please — it helps us plan seating and food. You can RSVP on each event’s page or by calling us.',
+        a: 'Yes, please — it helps us plan seating and refreshments. You can RSVP on each event’s page or by calling us.',
       },
     ],
   },

@@ -27,7 +27,7 @@ Other commands: `npm run build` (makes the final site in `dist/`), `npm run prev
 | Gallery photos | put files in `src/assets/gallery/`, list them in `src/data/gallery.ts` |
 | Client reviews | `src/data/reviews.ts` (real reviews only) |
 | FAQ questions | `src/data/faqs.ts` |
-| Medicare yearly figures (premiums, deductibles…) | `src/data/medicare.ts` |
+| Medicare yearly figures (premiums, deductibles…) — each with its year; Part A/B 2027 amounts arrive mid-November | `src/data/medicare.ts` |
 | Service names, order and one-line summaries | `src/data/services.ts` |
 | Full write-up for each service | `src/content/services/<service>.md` |
 | Advisor bios and headshots | `src/content/team/*.md` (photos go in `src/assets/team/`) |
@@ -76,8 +76,8 @@ Only needed if an original image changes.
 
 - Shweta Shah Amin's biography, and both advisors' official titles
 - Business email address (the site shows `info@shahandamin.com` — set that mailbox up, or change it in `src/config/site.ts`) and office address
-- NPN and resident license numbers for each advisor (licensed states are already listed in `src/config/site.ts`)
-- The Medicare disclaimer counts (organizations / plans)
+- NPN and New Jersey resident license number for each advisor (`licenses` in `src/config/site.ts`)
+- **Urgent:** the Medicare disclaimer counts — `MEDICARE_COUNTS` in `src/config/site.ts` (the site shows [#] until filled)
 - Google review link and real client reviews
 - Apps Script web-app URLs for bookings and RSVPs
 - Details for the October 2 and October 17 events

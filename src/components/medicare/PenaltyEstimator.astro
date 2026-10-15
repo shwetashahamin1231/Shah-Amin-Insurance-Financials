@@ -12,13 +12,14 @@ import { FIGURES, SOURCES } from '../../data/medicare';
 import { money, partBPenalty, partDPenalty } from '../../scripts/medicare/logic';
 
 const premium = FIGURES.partB.premium;
+const premiumYear = FIGURES.partB.year;
 const base = FIGURES.partD.basePremium;
-const year = FIGURES.year;
+const baseYear = FIGURES.partD.year;
 const b = partBPenalty(24, premium);
 const d = partDPenalty(14, base);
 ---
 
-<div class="penalty" data-penalty data-b-premium={premium} data-d-base={base} data-year={year}>
+<div class="penalty" data-penalty data-b-premium={premium} data-d-base={base} data-year={premiumYear}>
   <!-- Part B -->
   <form class="penalty__card" data-penalty-form="b">
     <h3 class="penalty__title">Part B <em>late penalty</em></h3>
@@ -48,7 +49,7 @@ const d = partDPenalty(14, base);
       <span class="penalty__big num" data-out="added">+{money(b.added)}</span>
       <span class="penalty__per">a month added to your Part B premium</span>
       <span class="penalty__line" data-out="detail">
-        {b.periods} full {b.periods === 1 ? 'year' : 'years'} × 10% = {b.percent}% of {money(premium)} · your {year} premium would be about {money(b.total)} a month
+        {b.periods} full {b.periods === 1 ? 'year' : 'years'} × 10% = {b.percent}% of {money(premium)} · your {premiumYear} premium would be about {money(b.total)} a month
       </span>
     </output>
   </form>
@@ -56,7 +57,7 @@ const d = partDPenalty(14, base);
   <!-- Part D -->
   <form class="penalty__card" data-penalty-form="d">
     <h3 class="penalty__title">Part D <em>late penalty</em></h3>
-    <p class="penalty__rule">1% of the national base premium ({money(base)} in {year}) for each full month without creditable drug coverage, rounded to the nearest 10¢.</p>
+    <p class="penalty__rule">1% of the national base premium ({money(base)} in {baseYear}) for each full month without creditable drug coverage, rounded to the nearest 10¢.</p>
     <div class="penalty__field">
       <label class="penalty__label" for="penalty-d-months">Months without drug coverage</label>
       <p class="penalty__hint" id="penalty-d-hint">Full months after your Initial Enrollment Period with no Part D or other creditable drug coverage (gaps of 63 days or more count).</p>

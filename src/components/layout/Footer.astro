@@ -136,7 +136,7 @@ const year = new Date().getFullYear();
         ))
       }
     </ul>
-    <p>{COMPLIANCE.medicareDisclaimer}</p>
+    <p class="footer__tpmo">{COMPLIANCE.medicareDisclaimer}</p>
     <p>{COMPLIANCE.governmentDisclaimer} {COMPLIANCE.generalDisclaimer}</p>
     {COMPLIANCE.securitiesDisclaimer && <p>{COMPLIANCE.securitiesDisclaimer}</p>}
   </section>
@@ -317,9 +317,13 @@ const year = new Date().getFullYear();
     gap: var(--space-s);
     padding-block: var(--space-l);
     border-block-start: 1px solid rgb(175 130 67 / 0.22);
-    font-size: 0.9375rem;
+    font-size: 1rem;
     line-height: 1.6;
     color: var(--ivory-muted);
+  }
+  /* The required Medicare disclaimer reads in full-strength ivory so it stands out. */
+  .footer__tpmo {
+    color: var(--ivory-100);
   }
   .footer__states strong {
     color: var(--ivory-100);

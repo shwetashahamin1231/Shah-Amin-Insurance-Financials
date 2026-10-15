@@ -6,7 +6,7 @@
 # ─────────────────────────────────────────────────────────────────────
 title: 'Medicare Plans'
 order: 6
-lead: 'Medicare gives you choices — and choices can be confusing. We compare Medicare Advantage, Medicare Supplement and Part D drug plans side by side, so you can decide with confidence.'
+lead: 'Medicare gives you choices — and choices can be confusing. We compare Medicare Advantage, Medicare Supplement and Part D drug plans from the companies we represent, side by side, so you can decide with confidence.'
 description: 'Compare Medicare Advantage, Medicare Supplement (Medigap) and Part D drug plans with a licensed, local advisor. Plain-English help for new and current members.'
 whoItsFor:
   - 'You are turning 65 soon, or retiring and leaving employer coverage'
@@ -23,7 +23,7 @@ highlights:
   - title: 'Part D drug plans'
     text: 'Standalone prescription coverage for people with Original Medicare, checked against your exact medications and pharmacy.'
   - title: 'Side-by-side comparisons'
-    text: 'Premiums, networks, drug costs and out-of-pocket limits compared in plain English.'
+    text: 'Premiums, networks, drug costs and out-of-pocket limits of plans from the companies we represent, compared in plain English.'
   - title: 'Enrollment on time'
     text: 'We help you sign up correctly and at the right time, so you avoid gaps in coverage and late penalties.'
   - title: 'A review every fall'
@@ -36,7 +36,7 @@ faqs:
   - q: 'What should I bring to a Medicare review?'
     a: 'Bring your Medicare card, a list of your doctors and your medications (with doses), the pharmacy you use, and any plan letters you have received. If you are still working, information about your employer coverage helps too.'
   - q: 'Do you offer every Medicare plan?'
-    a: 'No. We represent a number of insurance companies, but not every plan available in your area. For information on all of your options, you can contact Medicare.gov, 1-800-MEDICARE (TTY 1-877-486-2048), or your local State Health Insurance Assistance Program (SHIP).'
+    a: 'No. We do not offer every plan available in your area. Please contact Medicare.gov or 1-800-MEDICARE to get information on all of your options. The number of companies and plans we represent is shown in the disclaimer at the bottom of this page.'
 ---
 
 ## Your Medicare choices

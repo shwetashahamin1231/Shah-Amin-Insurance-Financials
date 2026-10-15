@@ -37,7 +37,7 @@ export const NAV: NavItem[] = [
     label: 'Events',
     href: '/events/',
     children: [
-      { label: 'Upcoming & past events', href: '/events/', description: 'Seminars, breakfasts and workshops' },
+      { label: 'Upcoming & past events', href: '/events/', description: 'Seminars, member events and workshops' },
       { label: 'Gallery', href: '/gallery/', description: 'Photos from our events' },
     ],
   },

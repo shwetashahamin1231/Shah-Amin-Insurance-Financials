@@ -7,7 +7,7 @@
  * Without JavaScript all four panels simply show one after another.
  */
 import Icon from '../ui/Icon.astro';
-import { PARTS, FIGURES } from '../../data/medicare';
+import { PARTS } from '../../data/medicare';
 ---
 
 <div class="parts" data-tabs>
@@ -68,7 +68,7 @@ import { PARTS, FIGURES } from '../../data/medicare';
             </ul>
           </div>
           <div class="parts__col">
-            <h4 class="parts__label">What it costs in {FIGURES.year}</h4>
+            <h4 class="parts__label">What it costs{p.costsYear && ` in ${p.costsYear}`}</h4>
             <dl class="parts__costs">
               {p.costs.map((c) => (
                 <div class="parts__cost">

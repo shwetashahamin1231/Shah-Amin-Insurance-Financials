@@ -135,18 +135,39 @@ export const HOURS = {
 } as const;
 
 /**
+ * Medicare plan counts for the required disclaimer below. TODO — needed before
+ * the site is promoted: how many insurance companies ("organizations") you
+ * represent for Medicare Advantage / Part D, and how many plans ("products")
+ * they offer in your area. Replace each null with a number, e.g. organizations: 6.
+ */
+export const MEDICARE_COUNTS: { organizations: number | null; products: number | null } = {
+  organizations: null,
+  products: null,
+};
+const count = (n: number | null) => (n === null ? '[#]' : String(n));
+
+/** "Licensed insurance producer · NPN 1234567 · NJ resident license #890" — parts appear once filled in. */
+function producerLine(npn: string, njLicense: string): string {
+  return ['Licensed insurance producer', npn && `NPN ${npn}`, njLicense && `New Jersey resident license #${njLicense}`].filter(Boolean).join(' · ');
+}
+
+/**
  * Licenses & disclaimers shown in the footer and on the Disclaimers page.
- * TODO: fill in license numbers and the Medicare plan counts, then have your
+ * TODO: fill in license numbers and MEDICARE_COUNTS above, then have your
  * compliance contact / FMO approve the final wording.
  */
 export const COMPLIANCE = {
+  /** TODO: put each advisor's NPN and New Jersey resident license number between the quotes. */
   licenses: [
-    { name: 'Gautam Shah', detail: 'Insurance producer · NPN [TODO] · resident license #[TODO]' },
-    { name: 'Shweta Shah Amin', detail: 'Insurance producer · NPN [TODO] · resident license #[TODO]' },
+    { name: 'Gautam Shah', detail: producerLine(/* NPN */ '', /* NJ license */ '') },
+    { name: 'Shweta Shah Amin', detail: producerLine(/* NPN */ '', /* NJ license */ '') },
   ],
-  /** CMS-required Third-Party Marketing Organization (TPMO) disclaimer. Replace the [#] counts. */
-  medicareDisclaimer:
-    'We do not offer every plan available in your area. Currently we represent [#] organizations which offer [#] products in your area. Please contact Medicare.gov, 1-800-MEDICARE (TTY 1-877-486-2048), or your local State Health Insurance Program (SHIP) to get information on all of your options.',
+  /**
+   * CMS-required Third-Party Marketing Organization (TPMO) disclaimer — standardized
+   * wording from 42 CFR 422.2267(e)(41) as revised for contract year 2027 (applies to
+   * marketing from October 1, 2026). Do not reword it; the counts come from MEDICARE_COUNTS.
+   */
+  medicareDisclaimer: `We do not offer every plan available in your area. Currently we represent ${count(MEDICARE_COUNTS.organizations)} organizations which offer ${count(MEDICARE_COUNTS.products)} products in your area. Please contact Medicare.gov or 1-800-MEDICARE to get information on all of your options.`,
   governmentDisclaimer:
     'Not connected with or endorsed by the United States government or the federal Medicare program.',
   generalDisclaimer:

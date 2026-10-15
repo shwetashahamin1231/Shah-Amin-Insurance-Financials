@@ -56,7 +56,7 @@ Networks matter as much as price. Before choosing, it is worth confirming:
 
 ## When you can enroll
 
-In New Jersey, individuals and families can buy coverage through **Get Covered New Jersey**, the state’s official marketplace, during the yearly open enrollment period, which generally runs from November 1 through January 31. Outside that window, a major life event — such as losing job-based coverage, getting married, having or adopting a child, or moving — may open a special enrollment period for a limited time after the event.
+In New Jersey, individuals and families can buy coverage through **Get Covered New Jersey**, the state’s official marketplace, during the yearly open enrollment period. For 2027 coverage, open enrollment runs from November 1, 2026 through January 31, 2027. Outside that window, a major life event — such as losing job-based coverage, getting married, having or adopting a child, or moving — may open a special enrollment period for a limited time after the event.
 
 New Jersey also requires most residents to have health coverage, or to pay a shared responsibility payment when they file their state income taxes, unless they qualify for an exemption.
 

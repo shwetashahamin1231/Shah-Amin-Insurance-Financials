@@ -1,24 +1,25 @@
 ---
 /**
- * The headline Medicare amounts for the year, as engraved figure tiles, plus
- * the income surcharge note, next year's Part D limits and the sources.
- * All numbers: FIGURES / PART_D_NEXT_YEAR in src/data/medicare.ts.
+ * The headline Medicare amounts as engraved figure tiles — each labelled with
+ * the year it applies to — plus the income note, a notice while next year's
+ * Part A/B amounts are unpublished, and the official sources.
+ * All numbers: FIGURES / AWAITING in src/data/medicare.ts.
  */
-import { FIGURES, PART_D_NEXT_YEAR, SOURCES } from '../../data/medicare';
+import { AWAITING, FIGURES, SOURCES } from '../../data/medicare';
 import { money } from '../../scripts/medicare/logic';
 
-const { partA: A, partB: B, partD: D, year } = FIGURES;
+const { partA: A, partB: B, partD: D } = FIGURES;
 const whole = (n: number) => money(n, !Number.isInteger(n));
 
 const tiles = [
-  { label: 'Part B standard premium', value: whole(B.premium), unit: 'per month' },
-  { label: 'Part B deductible', value: whole(B.deductible), unit: 'per year' },
-  { label: 'Part A hospital deductible', value: whole(A.deductible), unit: 'per benefit period' },
-  { label: 'Part A premium', value: whole(A.premiumMostPeople), unit: `for most people (otherwise ${whole(A.premiumReduced)} or ${whole(A.premiumFull)} a month)` },
-  { label: 'Part D deductible', value: whole(D.maxDeductible), unit: 'per year, at most' },
-  { label: 'Part D out-of-pocket cap', value: whole(D.outOfPocketCap), unit: 'per year for covered drugs' },
+  { year: D.year, label: 'Part D deductible', value: whole(D.maxDeductible), unit: 'per year, at most' },
+  { year: D.year, label: 'Part D out-of-pocket cap', value: whole(D.outOfPocketCap), unit: 'per year for covered drugs' },
+  { year: B.year, label: 'Part B standard premium', value: whole(B.premium), unit: 'per month' },
+  { year: B.year, label: 'Part B deductible', value: whole(B.deductible), unit: 'per year' },
+  { year: A.year, label: 'Part A hospital deductible', value: whole(A.deductible), unit: 'per benefit period' },
+  { year: A.year, label: 'Part A premium', value: whole(A.premiumMostPeople), unit: `for most people (otherwise ${whole(A.premiumReduced)} or ${whole(A.premiumFull)} a month)` },
 ];
-const sources = [SOURCES.cmsFactSheet, SOURCES.partDCosts, SOURCES.medicareCosts];
+const sources = [SOURCES.partD2027, SOURCES.partDBase2027, SOURCES.cmsFactSheet, SOURCES.medicareCosts];
 ---
 
 <div class="costs">
@@ -26,7 +27,7 @@ const sources = [SOURCES.cmsFactSheet, SOURCES.partDCosts, SOURCES.medicareCosts
     {
       tiles.map((t) => (
         <li class="tile" data-reveal>
-          <span class="tile__year">{year}</span>
+          <span class="tile__year">{t.year}</span>
           <span class="tile__label">{t.label}</span>
           <span class="tile__value num">{t.value}</span>
           <span class="tile__unit">{t.unit}</span>
@@ -36,19 +37,19 @@ const sources = [SOURCES.cmsFactSheet, SOURCES.partDCosts, SOURCES.medicareCosts
   </ul>
 
   <div class="costs__notes">
-    <p>
-      <strong>Higher incomes:</strong> the Part B and Part D premiums include an extra monthly amount if your income is above {whole(B.irmaaIndividualAbove)}
-      (individual tax return) or {whole(B.irmaaJointAbove)} (joint return).
-    </p>
     {
-      PART_D_NEXT_YEAR && (
+      AWAITING && (
         <p>
-          <strong>Looking ahead to {PART_D_NEXT_YEAR.year}:</strong> for Part D plans starting in January, the deductible can be no more than{' '}
-          {whole(PART_D_NEXT_YEAR.maxDeductible)} and the yearly out-of-pocket cap rises to {whole(PART_D_NEXT_YEAR.outOfPocketCap)}.
+          <strong>{AWAITING.year} {AWAITING.what}:</strong> not yet announced. The Centers for Medicare &amp; Medicaid Services usually publishes them in{' '}
+          {AWAITING.expected}. Until then, the {B.year} amounts are shown and labelled {B.year}.
         </p>
       )
     }
-    <p class="costs__change">Medicare amounts change every year. The figures above are for {year}.</p>
+    <p>
+      <strong>Higher incomes ({B.year}):</strong> the Part B and Part D premiums include an extra monthly amount if your income is above{' '}
+      {whole(B.irmaaIndividualAbove)} (individual tax return) or {whole(B.irmaaJointAbove)} (joint return).
+    </p>
+    <p class="costs__change">Medicare amounts change every year. Each figure above is labelled with the year it applies to.</p>
     <p class="costs__sources">
       Sources:{' '}
       {

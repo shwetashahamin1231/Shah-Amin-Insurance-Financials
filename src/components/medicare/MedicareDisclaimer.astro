@@ -8,7 +8,6 @@
  */
 import Icon from '../ui/Icon.astro';
 import { COMPLIANCE } from '../../config/site';
-import { FIGURES } from '../../data/medicare';
 
 interface Props {
   headingLevel?: 2 | 3;
@@ -32,8 +31,8 @@ const id = `disclaimer-${Math.random().toString(36).slice(2, 8)}`;
   {
     figuresNote && (
       <p>
-        Dollar amounts are {FIGURES.year} figures published by the Centers for Medicare &amp; Medicaid Services and Medicare.gov. They change every year, and
-        plan availability, costs and benefits vary by area. This guide is general education, not a description of every rule — please confirm the details for
+        Dollar amounts are official figures published by the Centers for Medicare &amp; Medicaid Services, each labelled with the year it applies to. They
+        change every year, and plan availability, costs and benefits vary by area. This guide is general education, not a description of every rule — please confirm the details for
         your own situation.
       </p>
     )

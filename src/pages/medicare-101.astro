@@ -25,8 +25,8 @@ import EnrollmentPeriods from '../components/medicare/EnrollmentPeriods.astro';
 import CostFigures from '../components/medicare/CostFigures.astro';
 import PenaltyEstimator from '../components/medicare/PenaltyEstimator.astro';
 import MedicareDisclaimer from '../components/medicare/MedicareDisclaimer.astro';
-import { ELIGIBILITY, FIGURES, HOW_WE_HELP, MISTAKES, RESOURCES, SITUATIONS } from '../data/medicare';
-import { ADVISORS, ADVISOR_LIST, HOURS, SITE } from '../config/site';
+import { ELIGIBILITY, HOW_WE_HELP, MISTAKES, PLAN_YEAR, RESOURCES, SITUATIONS } from '../data/medicare';
+import { ADVISORS, ADVISOR_LIST, COMPLIANCE, HOURS, SITE } from '../config/site';
 import { yearlyPeriodState } from '../scripts/medicare/logic';
 import { url } from '../lib/url';
 
@@ -37,7 +37,7 @@ const SECTIONS = [
   { id: 'compare', label: 'Original vs. Advantage' },
   { id: 'medigap', label: 'Medigap plans' },
   { id: 'enrollment', label: 'When to enroll' },
-  { id: 'costs', label: `${FIGURES.year} costs & penalties` },
+  { id: 'costs', label: 'Costs & penalties' },
   { id: 'mistakes', label: 'Common mistakes' },
   { id: 'situations', label: 'Your situation' },
   { id: 'help', label: 'How we help' },
@@ -71,12 +71,12 @@ const schema = [
 ---
 
 <BaseLayout
-  title={`Medicare 101: A Plain-English Guide (${FIGURES.year})`}
-  description="Medicare in plain English: Parts A–D, Medigap vs. Medicare Advantage, enrollment dates, 2026 costs and late penalties, with simple tools to find your dates."
+  title={`Medicare 101: A Plain-English Guide (${PLAN_YEAR})`}
+  description={`Medicare in plain English for ${PLAN_YEAR}: Parts A–D, Medigap vs. Medicare Advantage, enrollment dates, costs and late penalties, with simple tools to find your dates.`}
   schema={schema}
 >
   <PageHero
-    eyebrow={`Medicare 101 · Updated for ${FIGURES.year}`}
+    eyebrow={`Medicare 101 · Updated for ${PLAN_YEAR}`}
     title="Medicare, explained in <em>plain English</em>"
     lead="The parts, the plans, the deadlines and the costs — gathered into one calm, clear guide. Read at your own pace, then let us help with the decisions."
   >
@@ -84,6 +84,7 @@ const schema = [
     <Button href={`tel:${ADVISORS.gautam.phoneHref}`} variant="outline" icon="phone" iconPosition="start" data-dialog-open="call-sheet" aria-haspopup="dialog">
       Call Us
     </Button>
+    <p class="hero-tpmo">{COMPLIANCE.medicareDisclaimer}</p>
     <Fragment slot="aside">
       <PeriodStatus start={[10, 15]} end={[12, 7]} variant="card" name="Annual Enrollment Period">
         <p>
@@ -258,10 +259,10 @@ const schema = [
         <div class="guide__content">
           <header class="g-head">
             <p class="eyebrow eyebrow--rule" data-reveal>{num('costs')} · Costs</p>
-            <h2 id="costs-title" data-split>What Medicare costs in <em>{FIGURES.year}</em></h2>
+            <h2 id="costs-title" data-split>What Medicare <em>costs</em></h2>
             <p class="g-lead" data-reveal>
-              These are the standard amounts set each year for Original Medicare and Part D. Medicare Advantage and Medigap plans set their own premiums and
-              costs, which vary by plan and area.
+              These are the standard amounts set each year for Original Medicare and Part D, each labelled with the year it applies to. Medicare Advantage and
+              Medigap plans set their own premiums and costs, which vary by plan and area.
             </p>
           </header>
           <CostFigures />
@@ -945,5 +946,14 @@ const schema = [
   }
   .closing :global(.closing__disclaimer) {
     margin-inline: auto;
+  }
+  /* Required Medicare (TPMO) disclaimer, shown prominently under the hero buttons. */
+  .hero-tpmo {
+    flex: 1 1 100%;
+    max-inline-size: 62ch;
+    margin-block-start: var(--space-2xs);
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--text-muted);
   }
 </style>

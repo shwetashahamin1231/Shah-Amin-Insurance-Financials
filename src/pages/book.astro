@@ -9,7 +9,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/ui/PageHero.astro';
 import Icon from '../components/ui/Icon.astro';
 import BookingScheduler from '../components/forms/BookingScheduler.astro';
-import { ADVISOR_LIST, HOURS } from '../config/site';
+import { ADVISOR_LIST, COMPLIANCE, HOURS } from '../config/site';
 import { getNextClosure } from '../lib/holidays';
 import { addDays, formatDateNoYear, todayET } from '../lib/time';
 import { url } from '../lib/url';
@@ -69,6 +69,16 @@ const expectations = [
               ))
             }
           </ol>
+        </section>
+
+        <section class="book__card" aria-labelledby="book-medicare-title" data-reveal>
+          <h2 class="book__card-title" id="book-medicare-title"><Icon name="info" /> Medicare appointments</h2>
+          <ul class="book__notes" role="list">
+            <li>Before we discuss Medicare plans, we confirm with you which types of plans you would like to talk about (a short “Scope of Appointment”).</li>
+            <li>As Medicare requires, phone and video conversations about Medicare Advantage and Part D plans are recorded.</li>
+            <li>We talk about other products, such as life insurance or annuities, only at a separate appointment you ask for.</li>
+          </ul>
+          <p class="book__disclaimer">{COMPLIANCE.medicareDisclaimer}</p>
         </section>
 
         <section class="book__card" aria-labelledby="book-call-title" data-reveal>
@@ -317,5 +327,21 @@ const expectations = [
     margin-block-start: 0.15rem;
     font-size: 1.25rem;
     color: var(--accent);
+  }
+  .book__notes {
+    display: grid;
+    gap: var(--space-xs);
+    padding-inline-start: 1.1em;
+    list-style: disc;
+  }
+  .book__notes li::marker {
+    color: var(--accent);
+  }
+  .book__disclaimer {
+    margin-block-start: var(--space-s);
+    padding-block-start: var(--space-s);
+    border-block-start: 1px solid var(--rule);
+    font-size: 1rem;
+    color: var(--text-muted);
   }
 </style>

@@ -86,6 +86,12 @@ Flagship site for a family-owned insurance & financial services practice (founde
 - Original, plain-English copy. Never copy competitor wording (bpinsure.org was a topic reference only).
 - **No invented reviews, quotes, statistics, client counts or credentials.** Only facts the client provided. Years in business: `yearsInBusiness()`.
 - Compliance-friendly: no guarantees or superlatives ("best", "cheapest", "guaranteed income" without context). Medicare TPMO disclaimer + licenses come from `COMPLIANCE` in `site.ts`. Medicare figures live in `src/data/medicare.ts`, labelled by year with sources.
+- **CMS (Medicare marketing) rules — keep these:**
+  - TPMO disclaimer = exact CY 2027 wording from 42 CFR 422.2267(e)(41) (no SHIP reference); counts come from `MEDICARE_COUNTS`. Never reword it. It shows in the footer (every page), under the Medicare 101 hero, on the booking page and on Medicare service pages.
+  - Every Medicare amount carries its own `year`; only official CMS numbers, never projections. `AWAITING` shows the "not yet announced" note.
+  - No insurance-company (carrier) names, logos or branded photos anywhere unless the carrier has approved them.
+  - Events: no meals for prospective enrollees at marketing events (422.2263(b)(3)); don't invite "guests" to events where plans are presented; educational events must not present specific plans.
+  - Medicare appointments: Scope of Appointment before discussing plans; no cross-selling non-health products (annuities, life) in the same appointment; phone/video MA/PDP conversations are recorded.
 - Phone numbers (confirmed): Gautam Shah (973) 722-9191 · Shweta Shah Amin (732) 543-9835.
 
 ## Banned patterns

@@ -106,13 +106,13 @@ export const EVENTS: EventItem[] = [
       state: 'NJ',
       zip: '08902',
     },
-    summary: 'A morning to thank our members.',
+    summary: 'A thank-you morning for our current members.',
     description: [
-      'You are invited to our Member Appreciation Breakfast, a relaxed morning and a heartfelt thank-you to the members who have trusted us over the years.',
-      'Please RSVP below, or call us, to let us know you are coming.',
+      'A relaxed morning and a heartfelt thank-you to the members who have trusted us over the years.',
+      'This event is for current members. Please RSVP below, or call us, to let us know you are coming.',
     ],
     rsvp: true,
-    maxGuests: 6,
+    maxGuests: 2,
   },
 ];
 

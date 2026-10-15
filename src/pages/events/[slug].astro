@@ -139,7 +139,7 @@ const schema = [
                 {d.month} {d.year}
               </span>
               <Ornament width={150} draw={false} />
-              {status !== 'past' && <span class="date-plate__note">Poster coming soon</span>}
+              {status !== 'past' && event.detailsComingSoon && <span class="date-plate__note">Poster coming soon</span>}
             </div>
           )
         }
