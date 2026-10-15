@@ -20,7 +20,8 @@ import { url } from '../lib/url';
       <p>
         This website is operated by {SITE.name} (“we”, “us”). If you have any questions about this policy, call {ADVISOR_LIST[0].name} at
         <a href={`tel:${ADVISOR_LIST[0].phoneHref}`}>{ADVISOR_LIST[0].phone}</a>, {ADVISOR_LIST[1].name} at <a href={`tel:${ADVISOR_LIST[1].phoneHref}`}>{ADVISOR_LIST[1].phone}</a>, or email
-        <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
+        {ADVISOR_LIST[0].firstName} at <a href={`mailto:${ADVISOR_LIST[0].email}`}>{ADVISOR_LIST[0].email}</a> or {ADVISOR_LIST[1].firstName} at
+        <a href={`mailto:${ADVISOR_LIST[1].email}`}>{ADVISOR_LIST[1].email}</a>.
       </p>
 
       <h2>Information we collect</h2>

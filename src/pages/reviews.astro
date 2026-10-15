@@ -12,7 +12,7 @@ import Button from '../components/ui/Button.astro';
 import Icon from '../components/ui/Icon.astro';
 import Ornament from '../components/ui/Ornament.astro';
 import { REVIEWS } from '../data/reviews';
-import { ADVISOR_LIST, SITE } from '../config/site';
+import { ADVISOR_LIST, SITE, emailBothHref } from '../config/site';
 
 const count = REVIEWS.length;
 const average = count ? REVIEWS.reduce((s, r) => s + r.rating, 0) / count : 0;
@@ -77,7 +77,7 @@ const reviewUrl = SITE.googleReviewUrl;
               <div class="empty__contact">
                 <p>Our online review link is coming soon. In the meantime, we would love to hear from you directly:</p>
                 <div class="cluster">
-                  <Button href={`mailto:${SITE.email}?subject=${encodeURIComponent('My experience with Shah & Amin')}`} variant="outline" icon="envelope" iconPosition="start">
+                  <Button href={emailBothHref('My experience with Shah & Amin')} variant="outline" icon="envelope" iconPosition="start">
                     Email us
                   </Button>
                   {ADVISOR_LIST.map((a) => (

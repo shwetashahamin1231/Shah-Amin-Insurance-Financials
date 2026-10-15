@@ -16,7 +16,7 @@
  *  Markup: src/components/forms/BookingScheduler.astro
  * ════════════════════════════════════════════════════════════════════
  */
-import { ADVISORS, ADVISOR_LIST, SITE, formattedAddress } from '../../config/site';
+import { ADVISORS, ADVISOR_LIST, SITE } from '../../config/site';
 import { BOOKING, FORM_MESSAGES } from '../../config/forms';
 import { etToUtc, formatDateLong, formatDateNoYear, localSlotTime, localTimeZone } from '../../lib/time';
 import { getAvailableSlots, getDayStatus, groupByPeriod, isSlotBookable } from '../../lib/slots';
@@ -403,7 +403,7 @@ export function initScheduler(root: HTMLElement): void {
       title: `Appointment request — ${SITE.shortName}`,
       start,
       end,
-      location: meeting === 'In person' ? formattedAddress() || `${SITE.name}, New Jersey` : meeting === 'Phone' ? 'Phone call' : 'Video call (link to follow)',
+      location: meeting === 'In person' ? 'In person — place to be confirmed' : meeting === 'Phone' ? 'Phone call' : 'Video call (link to follow)',
       description: `Requested ${kind} appointment about ${topic}${advisor !== 'No preference' ? ` with ${advisor}` : ''}. Not confirmed yet — we will call or email you to confirm.\n\nQuestions or changes? Call ${phones}.`,
       url: `${location.origin}${location.pathname}`,
     };

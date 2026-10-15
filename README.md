@@ -21,7 +21,7 @@ Other commands: `npm run build` (makes the final site in `dist/`), `npm run prev
 
 | To change… | Edit this file |
 |---|---|
-| Phone numbers, emails, titles, office address, hours, Google review link, license numbers, disclaimers | `src/config/site.ts` |
+| Phone numbers, each advisor's email, titles, hours, Google review link, license numbers, disclaimers | `src/config/site.ts` |
 | Google Sheets (Apps Script) links for bookings and RSVPs | `src/config/forms.ts` (setup guide: `apps-script/SETUP.md`) |
 | Events (and posters) | `src/data/events.ts` |
 | Gallery photos | put files in `src/assets/gallery/`, list them in `src/data/gallery.ts` |
@@ -75,7 +75,6 @@ Only needed if an original image changes.
 ## Still to fill in (placeholders on the site today)
 
 - Shweta Shah Amin's biography, and both advisors' official titles
-- Business email address (the site shows `info@shahandamin.com` — set that mailbox up, or change it in `src/config/site.ts`) and office address
 - NPN and New Jersey resident license number for each advisor (`licenses` in `src/config/site.ts`)
 - **Urgent:** the Medicare disclaimer counts — `MEDICARE_COUNTS` in `src/config/site.ts` (the site shows [#] until filled)
 - Google review link and real client reviews

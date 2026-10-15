@@ -6,7 +6,7 @@
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/ui/PageHero.astro';
-import { ADVISOR_LIST, COMPLIANCE, SITE, licensedStatesText } from '../config/site';
+import { ADVISOR_LIST, COMPLIANCE, licensedStatesText } from '../config/site';
 ---
 
 <BaseLayout title="Disclaimers & Licenses" description="Licensing information, Medicare marketing disclaimers and our accessibility commitment at Shah & Amin Financial Services.">
@@ -49,7 +49,7 @@ import { ADVISOR_LIST, COMPLIANCE, SITE, licensedStatesText } from '../config/si
       </p>
       <p>
         If anything on the site is difficult to use, please call {ADVISOR_LIST[0].firstName} at <a href={`tel:${ADVISOR_LIST[0].phoneHref}`}>{ADVISOR_LIST[0].phone}</a> or
-        {ADVISOR_LIST[1].firstName} at <a href={`tel:${ADVISOR_LIST[1].phoneHref}`}>{ADVISOR_LIST[1].phone}</a>, or email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> — we
+        {ADVISOR_LIST[1].firstName} at <a href={`tel:${ADVISOR_LIST[1].phoneHref}`}>{ADVISOR_LIST[1].phone}</a>, or email <a href={`mailto:${ADVISOR_LIST[0].email}`}>{ADVISOR_LIST[0].email}</a> or <a href={`mailto:${ADVISOR_LIST[1].email}`}>{ADVISOR_LIST[1].email}</a> — we
         will gladly help and fix the problem.
       </p>
     </div>

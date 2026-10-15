@@ -46,18 +46,8 @@ export const SITE = {
   description:
     'Family-owned insurance and retirement planning since 2000. Life insurance, annuities, IRAs, 401(k) rollovers, health insurance, Medicare plans, long-term care, disability income and travel insurance.',
 
-  /** Main business email (also used on the contact page and in the footer). TODO */
-  email: 'info@shahandamin.com',
-  emailIsPlaceholder: true,
-
-  /** Office address. TODO: fill in. Leave `street` empty to hide the address everywhere. */
-  address: {
-    street: '',
-    city: '',
-    state: 'NJ',
-    zip: '',
-    country: 'US',
-  },
+  // No shared business email and no office: each advisor's own email is in ADVISORS below,
+  // and meetings are by phone, by video, or in person at a place that suits the client.
 
   /** States where we are licensed (shown in the footer, contact and disclaimers, and to search engines). */
   licensedStates: [
@@ -91,7 +81,7 @@ export const ADVISORS: Record<AdvisorId, Advisor> = {
     title: 'Founder & Principal Advisor', // TODO: confirm title
     phone: '(973) 722-9191',
     phoneHref: '+19737229191',
-    email: 'info@shahandamin.com', // TODO: Gautam's own email, if different
+    email: 'gautampanna.shah@gmail.com',
     initials: 'GS',
   },
   shweta: {
@@ -101,7 +91,7 @@ export const ADVISORS: Record<AdvisorId, Advisor> = {
     title: 'Partner & Advisor', // TODO: confirm title
     phone: '(732) 543-9835',
     phoneHref: '+17325439835',
-    email: 'info@shahandamin.com', // TODO: Shweta's own email, if different
+    email: 'shwetashahamin1231@gmail.com',
     initials: 'SA',
   },
 };
@@ -187,19 +177,8 @@ export function yearsInBusiness(now: Date = new Date()): number {
   return now.getFullYear() - SITE.foundedYear;
 }
 
-/** "123 Main St, North Brunswick, NJ 08902" — or '' while the address is a placeholder. */
-export function formattedAddress(): string {
-  const a = SITE.address;
-  if (!a.street) return '';
-  return `${a.street}, ${a.city}, ${a.state} ${a.zip}`.trim();
-}
-
-/** Google Maps links built from the address (no API key needed). */
-export function mapLinks() {
-  const q = encodeURIComponent(formattedAddress() || `${SITE.name}, ${SITE.homeState}`);
-  return {
-    view: `https://www.google.com/maps/search/?api=1&query=${q}`,
-    embed: `https://www.google.com/maps?q=${q}&output=embed`,
-    directions: `https://www.google.com/maps/dir/?api=1&destination=${q}`,
-  };
+/** "mailto:" link that writes to both advisors at once. */
+export function emailBothHref(subject?: string): string {
+  const to = ADVISOR_LIST.map((a) => a.email).join(',');
+  return `mailto:${to}${subject ? `?subject=${encodeURIComponent(subject)}` : ''}`;
 }

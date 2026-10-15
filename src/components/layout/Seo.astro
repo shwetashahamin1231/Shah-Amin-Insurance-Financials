@@ -28,7 +28,6 @@ const fullTitle = title === SITE.name ? `${SITE.name} — Insurance, Retirement 
 const ogImage = abs(image ?? '/og/default.jpg');
 const ogAlt = imageAlt ?? `${SITE.name} logo — a green and gold S&A monogram medallion`;
 
-const a = SITE.address;
 const agency: Record<string, unknown> = {
   '@type': 'InsuranceAgency',
   '@id': `${abs('/')}#agency`,
@@ -38,7 +37,6 @@ const agency: Record<string, unknown> = {
   image: abs('/og/default.jpg'),
   description: SITE.description,
   telephone: ADVISOR_LIST[0].phoneHref,
-  ...(SITE.emailIsPlaceholder ? {} : { email: SITE.email }),
   foundingDate: String(SITE.foundedYear),
   founder: { '@type': 'Person', name: SITE.founder },
   areaServed: SITE.licensedStates.map((st) => ({ '@type': 'State', name: st.name })),
@@ -51,10 +49,7 @@ const agency: Record<string, unknown> = {
       closes: HOURS.close,
     },
   ],
-  employee: ADVISOR_LIST.map((adv) => ({ '@type': 'Person', name: adv.name, jobTitle: adv.title, telephone: adv.phoneHref })),
-  ...(a.street
-    ? { address: { '@type': 'PostalAddress', streetAddress: a.street, addressLocality: a.city, addressRegion: a.state, postalCode: a.zip, addressCountry: a.country } }
-    : {}),
+  employee: ADVISOR_LIST.map((adv) => ({ '@type': 'Person', name: adv.name, jobTitle: adv.title, telephone: adv.phoneHref, email: adv.email })),
   ...(SITE.social.length ? { sameAs: SITE.social.map((s) => s.url) } : {}),
 };
 

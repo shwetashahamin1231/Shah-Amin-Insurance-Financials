@@ -12,7 +12,7 @@ import Logo from '../brand/Logo.astro';
 import Button from '../ui/Button.astro';
 import Icon from '../ui/Icon.astro';
 import { NAV, BOOK_HREF } from '../../data/nav';
-import { ADVISOR_LIST, HOURS, SITE } from '../../config/site';
+import { ADVISOR_LIST, HOURS } from '../../config/site';
 import { url, isCurrent } from '../../lib/url';
 
 const path = Astro.url.pathname;
@@ -40,12 +40,6 @@ const path = Astro.url.pathname;
             </li>
           ))
         }
-        <li>
-          <a href={`mailto:${SITE.email}`}>
-            <Icon name="envelope" />
-            <span>{SITE.email}</span>
-          </a>
-        </li>
       </ul>
     </div>
   </div>

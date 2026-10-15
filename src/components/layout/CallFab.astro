@@ -5,6 +5,7 @@
  */
 import Icon from '../ui/Icon.astro';
 import { ADVISOR_LIST, HOURS } from '../../config/site';
+import AdvisorAvatar from '../team/AdvisorAvatar.astro';
 ---
 
 <div class="call-fab" data-intro-inert>
@@ -22,7 +23,7 @@ import { ADVISOR_LIST, HOURS } from '../../config/site';
       ADVISOR_LIST.map((a) => (
         <li>
           <a class="call-sheet__option" href={`tel:${a.phoneHref}`}>
-            <span class="call-sheet__avatar" aria-hidden="true">{a.initials}</span>
+            <AdvisorAvatar advisor={a} size={52} />
             <span class="call-sheet__text">
               <span class="call-sheet__name">{a.name}</span>
               <span class="call-sheet__role">{a.title}</span>
@@ -131,20 +132,6 @@ import { ADVISOR_LIST, HOURS } from '../../config/site';
     color: var(--green-900);
     background: var(--paper-200);
     box-shadow: inset 0 0 0 1px rgb(141 97 39 / 0.35);
-  }
-  .call-sheet__avatar {
-    display: grid;
-    place-items: center;
-    inline-size: 52px;
-    block-size: 52px;
-    flex: none;
-    border-radius: 50%;
-    font-family: var(--ff-display);
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--gold-300);
-    background: var(--green-800);
-    box-shadow: inset 0 0 0 1px var(--gold-600);
   }
   .call-sheet__text {
     display: grid;

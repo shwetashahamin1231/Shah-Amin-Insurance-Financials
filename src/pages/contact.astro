@@ -1,20 +1,16 @@
 ---
 /**
- * Contact — both advisors side by side (tap to call / email), office address,
- * hours with a live "open now" status, a map that loads only when asked
- * (keeps Google's cookies and weight off the page), and booking.
- * All details come from src/config/site.ts.
+ * Contact — both advisors side by side (tap to call / email), then hours with
+ * a live "open now" status, where we are licensed and how we meet, and booking.
+ * There is no office: meetings are by phone, by video, or in person at a place
+ * that suits the client. All details come from src/config/site.ts.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/ui/PageHero.astro';
 import Button from '../components/ui/Button.astro';
 import Icon from '../components/ui/Icon.astro';
-import Ornament from '../components/ui/Ornament.astro';
 import AdvisorAvatar from '../components/team/AdvisorAvatar.astro';
-import { ADVISOR_LIST, HOURS, SITE, formattedAddress, licensedStatesText, mapLinks } from '../config/site';
-
-const address = formattedAddress();
-const maps = mapLinks();
+import { ADVISOR_LIST, HOURS, licensedStatesText } from '../config/site';
 ---
 
 <BaseLayout
@@ -24,7 +20,7 @@ const maps = mapLinks();
   <PageHero
     eyebrow="Contact us"
     title="We’d love to <em>hear from you</em>"
-    lead="Call either advisor directly, send us an email, or book a time that suits you. We are open seven days a week."
+    lead="Call or email either advisor directly, or book a time that suits you. We are open seven days a week."
   />
 
   <section class="section surface-paper" aria-labelledby="advisors-title">
@@ -64,28 +60,11 @@ const maps = mapLinks();
   </section>
 
   <section class="section surface-deep office" aria-labelledby="office-title">
-    <div class="container office__inner">
-      <div class="office__info">
-        <p class="eyebrow eyebrow--rule" data-reveal>Visit &amp; hours</p>
-        <h2 id="office-title" class="office__title" data-split>Our <em>office</em></h2>
+    <div class="container">
+      <p class="eyebrow eyebrow--rule" data-reveal>Hours &amp; meetings</p>
+      <h2 id="office-title" class="office__title" data-split>When and how <em>we meet</em></h2>
 
-        <div class="office__block" data-reveal>
-          <h3 class="office__label"><Icon name="map-pin" /> Address</h3>
-          {
-            address ? (
-              <p class="office__value">
-                {address}
-                <br />
-                <a class="text-link" href={maps.directions} target="_blank" rel="noopener">
-                  Get directions <Icon name="arrow-square-out" />
-                </a>
-              </p>
-            ) : (
-              <p class="office__value">Our office address will be posted here soon. Call either advisor and we will be glad to help you find us.</p>
-            )
-          }
-        </div>
-
+      <div class="office__grid">
         <div class="office__block" data-reveal>
           <h3 class="office__label"><Icon name="clock" /> Hours</h3>
           <p class="office__value">
@@ -96,40 +75,18 @@ const maps = mapLinks();
         </div>
 
         <div class="office__block" data-reveal>
-          <h3 class="office__label"><Icon name="certificate" /> Licensed in</h3>
-          <p class="office__value">{licensedStatesText()}. Meetings in person, by phone or by video.</p>
+          <h3 class="office__label"><Icon name="users-three" /> How we meet</h3>
+          <p class="office__value">By phone, by video, or in person at a place that suits you.</p>
         </div>
 
         <div class="office__block" data-reveal>
-          <h3 class="office__label"><Icon name="envelope" /> Email</h3>
-          <p class="office__value"><a class="text-link" href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
-        </div>
-
-        <div class="office__cta" data-reveal>
-          <Button href="/book/" size="l" icon="calendar-check" iconPosition="start" magnetic>Book an Appointment</Button>
+          <h3 class="office__label"><Icon name="certificate" /> Licensed in</h3>
+          <p class="office__value">{licensedStatesText()}.</p>
         </div>
       </div>
 
-      <div class="map" data-reveal>
-        <div class="map__frame" data-map>
-          <div class="map__placeholder">
-            <span class="map__pin" aria-hidden="true"><Icon name="map-pin" size={30} /></span>
-            <Ornament width={160} draw={false} />
-            {
-              address ? (
-                <>
-                  <p class="map__text">{address}</p>
-                  <button type="button" class="map__load" data-map-load data-src={maps.embed}>
-                    Show interactive map
-                  </button>
-                  <p class="map__privacy">Loads Google Maps, which may set cookies.</p>
-                </>
-              ) : (
-                <p class="map__text">Map coming soon</p>
-              )
-            }
-          </div>
-        </div>
+      <div class="office__cta" data-reveal>
+        <Button href="/book/" size="l" icon="calendar-check" iconPosition="start" magnetic>Book an Appointment</Button>
       </div>
     </div>
   </section>
@@ -139,21 +96,6 @@ const maps = mapLinks();
   import '../scripts/open-status';
 </script>
 
-<script>
-  // Load the Google map only when the visitor asks for it.
-  document.querySelector<HTMLButtonElement>('[data-map-load]')?.addEventListener('click', (e) => {
-    const btn = e.currentTarget as HTMLButtonElement;
-    const frame = document.querySelector<HTMLElement>('[data-map]');
-    if (!frame || !btn.dataset.src) return;
-    const iframe = document.createElement('iframe');
-    iframe.src = btn.dataset.src;
-    iframe.title = 'Map showing the Shah & Amin Financial Services office';
-    iframe.loading = 'lazy';
-    iframe.referrerPolicy = 'no-referrer-when-downgrade';
-    iframe.className = 'map__iframe';
-    frame.replaceChildren(iframe);
-  });
-</script>
 
 <style>
   .cards {
@@ -230,21 +172,20 @@ const maps = mapLinks();
     gap: var(--space-s);
   }
 
-  .office__inner {
+  .office__grid {
     display: grid;
-    gap: var(--space-3xl);
-    align-items: start;
+    gap: var(--space-l) var(--space-2xl);
   }
-  @media (min-width: 64rem) {
-    .office__inner {
-      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-      gap: var(--space-4xl);
+  @media (min-width: 56rem) {
+    .office__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
-  .office__info > * + * {
-    margin-block-start: var(--space-l);
+  .office__cta {
+    margin-block-start: var(--space-2xl);
   }
   .office__title {
+    margin-block: var(--space-m) var(--space-2xl);
     font-size: var(--fs-h1);
   }
   .office__block {
@@ -289,74 +230,4 @@ const maps = mapLinks();
     border-color: rgb(168 219 162 / 0.45);
   }
 
-  .map__frame {
-    position: relative;
-    aspect-ratio: 4 / 3;
-    border: 1px solid var(--gold-600);
-    outline: 1px solid rgb(175 130 67 / 0.35);
-    outline-offset: 8px;
-    overflow: hidden;
-    box-shadow: var(--shadow-l);
-    background: var(--green-900);
-  }
-  .map__placeholder {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    align-content: center;
-    gap: var(--space-s);
-    padding: var(--space-l);
-    text-align: center;
-    isolation: isolate;
-    background: radial-gradient(70% 60% at 50% 45%, rgb(80 113 75 / 0.4), transparent 70%);
-  }
-  .map__placeholder::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: var(--gold-500);
-    opacity: 0.09;
-    -webkit-mask: url('../assets/patterns/guilloche-tile.svg') 0 0 / 220px repeat;
-    mask: url('../assets/patterns/guilloche-tile.svg') 0 0 / 220px repeat;
-  }
-  .map__pin {
-    display: grid;
-    place-items: center;
-    inline-size: 64px;
-    block-size: 64px;
-    border-radius: 50%;
-    color: var(--gold-300);
-    box-shadow: inset 0 0 0 1px rgb(221 181 121 / 0.6);
-  }
-  .map__text {
-    font-family: var(--ff-display);
-    font-size: 1.75rem;
-    font-style: italic;
-    color: var(--ivory-100);
-  }
-  .map__load {
-    min-block-size: 48px;
-    padding-inline: 1.25rem;
-    color: var(--green-900);
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    font-size: 0.875rem;
-    background-image: var(--foil-on-dark);
-    background-size: 200% 100%;
-    border-radius: var(--radius-s);
-  }
-  .map__privacy {
-    font-size: 0.875rem;
-    color: var(--ivory-muted);
-  }
-  .map__frame :global(.map__iframe) {
-    position: absolute;
-    inset: 0;
-    inline-size: 100%;
-    block-size: 100%;
-    border: 0;
-  }
 </style>
