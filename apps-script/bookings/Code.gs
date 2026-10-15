@@ -13,6 +13,8 @@
  * ════════════════════════════════════════════════════════════════════
  */
 const SHEET_NAME = 'Bookings';
+/** Who gets an email for every appointment request. */
+const NOTIFY = ['gautampanna.shah@gmail.com', 'shwetashahamin1231@gmail.com'];
 const HEADERS = ['Timestamp', 'Name', 'Email', 'Phone', 'Date', 'Time (ET)', 'Advisor', 'Topic', 'Meeting type', 'Message', 'Page'];
 
 function doPost(e) {
@@ -63,6 +65,30 @@ function submitBooking(data) {
   } finally {
     lock.releaseLock();
   }
+
+  // Email alert. A problem sending it never loses the request (the row is already saved).
+  try {
+    MailApp.sendEmail({
+      to: NOTIFY.join(','),
+      subject: `New appointment request: ${name} — ${date} ${time}`,
+      body: [
+        `${name} asked for an appointment (not confirmed yet — please call or email them).`,
+        '',
+        `When: ${date}, ${time}`,
+        `Advisor: ${advisor}`,
+        `Topic: ${topic}`,
+        `Meeting: ${meetingType}`,
+        `Phone: ${phone}`,
+        `Email: ${email}`,
+        `Message: ${message || '(none)'}`,
+        '',
+        `Spreadsheet: ${SpreadsheetApp.getActiveSpreadsheet().getUrl()}`,
+      ].join('\n'),
+      replyTo: email,
+    });
+  } catch (err) {
+    console.warn('Booking email not sent: ' + err.message);
+  }
   return { ok: true, date: date, time: time };
 }
 
@@ -79,7 +105,8 @@ function getSheet_() {
   return sheet;
 }
 
-/** Run this once from the editor (▶ Run) to create the "Bookings" tab and grant permissions. */
+/** Run this once from the editor (▶ Run): creates the "Bookings" tab, grants permission to save rows and send email alerts, and sends a test email. */
 function setup() {
   getSheet_();
+  MailApp.sendEmail(NOTIFY.join(','), 'Appointment alerts are on', 'You will get an email like this for every appointment request from shahandamin.com.');
 }
