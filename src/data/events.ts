@@ -69,10 +69,10 @@ export const EVENTS: EventItem[] = [
     start: '2026-10-02T10:00:00-04:00', // TODO: real time
     timeTBA: true,
     venue: { name: 'Location to be announced' }, // TODO
-    summary: 'Thank you to everyone who joined us. Photos from this event will appear in our gallery.', // TODO
+    summary: 'Thank you to everyone who joined us. Photos from the morning are now in our gallery.', // TODO
     description: [
       // TODO: replace with the real event description.
-      'Thank you to everyone who spent the morning with us. Details and photos from this event will be added soon.',
+      'Thank you to everyone who spent the morning with us. A selection of photos from the day is below and in our gallery.',
     ],
     rsvp: false,
     detailsComingSoon: true,

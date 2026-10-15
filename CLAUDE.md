@@ -18,7 +18,7 @@ Flagship site for a family-owned insurance & financial services practice (founde
 | Services list (names, order, icons, summaries) | `src/data/services.ts` · long copy in `src/content/services/<slug>.md` |
 | Advisor bios | `src/content/team/*.md` (Shweta: `bioComingSoon: true` until filled) |
 | Events + posters | `src/data/events.ts` (status/past logic: `src/lib/events.ts`) |
-| Gallery | `src/data/gallery.ts` + images in `src/assets/gallery/` |
+| Gallery | `src/data/gallery.ts` + images in `src/assets/gallery/` (resolved by `src/lib/gallery.ts`; an event's photos also show on its event page) |
 | Reviews (real only) | `src/data/reviews.ts` |
 | FAQs | `src/data/faqs.ts` |
 | Medicare yearly figures | `src/data/medicare.ts` |

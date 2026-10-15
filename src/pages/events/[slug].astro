@@ -4,6 +4,7 @@
  * Shows the framed poster (opens full size in a lightbox, downloadable),
  * the details, add-to-calendar links and the RSVP form.
  */
+import { Picture } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PosterFrame from '../../components/events/PosterFrame.astro';
 import Lightbox from '../../components/ui/Lightbox.astro';
@@ -16,6 +17,7 @@ import { ADVISOR_LIST, SITE } from '../../config/site';
 import { dateParts, eventStatus, eventTimes, formatEventDate, formatEventTime, formatVenue, isRsvpOpen, venueMapUrl } from '../../lib/events';
 import { url } from '../../lib/url';
 import { googleCalendarUrl } from '../../lib/ics';
+import { eventPhotos } from '../../lib/gallery';
 
 export function getStaticPaths() {
   return EVENTS.map((event) => ({ params: { slug: event.slug }, props: { event } }));
@@ -32,6 +34,7 @@ const mapUrl = venueMapUrl(event.venue);
 const d = dateParts(event);
 const times = eventTimes(event);
 const statusLabel = { upcoming: 'Upcoming', today: 'Today', past: 'Past Event' }[status];
+const photos = eventPhotos(event.slug);
 
 const site = Astro.site ?? new URL(SITE.url);
 const abs = (p: string) => new URL(url(p), site).toString();
@@ -136,7 +139,7 @@ const schema = [
                 {d.month} {d.year}
               </span>
               <Ornament width={150} draw={false} />
-              <span class="date-plate__note">Poster coming soon</span>
+              {status !== 'past' && <span class="date-plate__note">Poster coming soon</span>}
             </div>
           )
         }
@@ -148,7 +151,7 @@ const schema = [
           {event.description.map((p) => <p>{p}</p>)}
         </div>
         {
-          event.detailsComingSoon && (
+          event.detailsComingSoon && status !== 'past' && (
             <p class="note" data-reveal>
               <Icon name="info" /> Final details for this event are on their way. Reserve your place and we will contact you with the specifics.
             </p>
@@ -195,6 +198,33 @@ const schema = [
       </div>
     </div>
   </section>
+
+  {
+    photos.length > 0 && (
+      <section class="section surface-deep event-photos" aria-labelledby="photos-title">
+        <div class="container">
+          <div class="event-photos__head">
+            <p class="eyebrow eyebrow--rule" data-reveal>Gallery</p>
+            <h2 id="photos-title" class="event-photos__title" data-split>
+              Photos from <em>the day</em>
+            </h2>
+          </div>
+          <ul class="event-photos__grid" role="list">
+            {photos.slice(0, 3).map((photo) => (
+              <li class="event-photos__item" data-reveal>
+                <Picture src={photo.src} alt={photo.alt} widths={[360, 540, 720]} sizes="(min-width: 56rem) 30vw, 92vw" formats={['avif', 'webp']} fallbackFormat="jpg" />
+              </li>
+            ))}
+          </ul>
+          <div class="event-photos__more" data-reveal>
+            <Button href="/gallery/" variant="outline" icon="arrow-right">
+              See all {photos.length} photos
+            </Button>
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   <section id="rsvp" class="section surface-paper rsvp" aria-labelledby="rsvp-title" data-event-detail data-start={event.start} data-end={event.end ?? ''} data-rsvp-closes={event.rsvpCloses ?? event.start} data-rsvp={event.rsvp ? '1' : '0'}>
     <div class="container--narrow rsvp__inner">
@@ -425,5 +455,37 @@ const schema = [
     outline: 1px solid rgb(141 97 39 / 0.25);
     outline-offset: -9px;
     box-shadow: var(--shadow-m);
+  }
+  /* Photos from a past event (from the gallery). */
+  .event-photos__head {
+    display: grid;
+    gap: var(--space-m);
+    margin-block-end: var(--space-xl);
+  }
+  .event-photos__title {
+    font-size: var(--fs-h2);
+  }
+  .event-photos__grid {
+    display: grid;
+    gap: var(--space-m);
+  }
+  @media (min-width: 56rem) {
+    .event-photos__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .event-photos__item {
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow-m);
+  }
+  .event-photos__item :global(img) {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .event-photos__more {
+    margin-block-start: var(--space-xl);
   }
 </style>
