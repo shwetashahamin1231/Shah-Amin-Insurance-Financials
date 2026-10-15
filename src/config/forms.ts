@@ -31,9 +31,9 @@ import { ADVISORS } from './site';
 
 export const APPS_SCRIPT: { bookings: string; rsvps: string } = {
   /** Appointment requests (Book an Appointment page). */
-  bookings: '',
+  bookings: 'https://script.google.com/macros/s/AKfycbzt31QUxDVhWFJDl9D1uahenKnunQhOveQfJKw9zhn9s-SaPbJJpd3dPP6qM4fmf_aIOA/exec',
   /** Event RSVPs (event pages). */
-  rsvps: '',
+  rsvps: 'https://script.google.com/macros/s/AKfycbzAJNKJq0OjPvQoauPgJQKOE9bPDbyE91WB9LK9iC2orWAQTNTPbQOJTfxsIktUXygs/exec',
 };
 
 /**
