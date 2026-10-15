@@ -25,21 +25,6 @@ export interface GalleryItem {
   event?: string;
 }
 
-const OCT2 = 'october-2-2026';
-
 export const GALLERY: GalleryItem[] = [
-  // October 2, 2026 client event (newest event first; add new photos above this group).
-  { file: '2026-10-02-01.jpg', alt: 'Gautam Shah and Shweta Shah Amin standing beside a Clover Health banner', caption: 'Gautam Shah & Shweta Shah Amin', event: OCT2 },
-  { file: '2026-10-02-02.jpg', alt: 'A presenter speaking to a full room of guests seated at round tables', caption: 'A full room for the presentation', event: OCT2 },
-  { file: '2026-10-02-03.jpg', alt: 'Guests lining up at a buffet table with a gold sequinned tablecloth', caption: 'Guests at the buffet', event: OCT2 },
-  { file: '2026-10-02-04.jpg', alt: 'Guests seated at a blue-draped table as servers bring food', caption: 'Around the table', event: OCT2 },
-  { file: '2026-10-02-05.jpg', alt: 'Guests at tables with gold centrepieces beneath a crystal chandelier', caption: 'Good food and good company', event: OCT2 },
-  { file: '2026-10-02-06.jpg', alt: 'Guests seated at their tables, listening to the presentation', caption: 'Listening in', event: OCT2 },
-  { file: '2026-10-02-07.jpg', alt: 'A presenter with a microphone answering questions from the audience', caption: 'Questions from the audience', event: OCT2 },
-  { file: '2026-10-02-08.jpg', alt: 'Guests sharing a meal at round tables in soft pink light', caption: 'Catching up over a meal', event: OCT2 },
-  { file: '2026-10-02-09.jpg', alt: 'Guests at their tables turned toward the front of the hall', caption: 'All eyes on the presentation', event: OCT2 },
-  { file: '2026-10-02-10.jpg', alt: 'A wide view of the banquet hall with guests at blue-draped tables', caption: 'The banquet hall', event: OCT2 },
-  { file: '2026-10-02-11.jpg', alt: 'A presenter speaking with a microphone beside a Clover Health banner', caption: 'The presentation', event: OCT2 },
-  { file: '2026-10-02-12.jpg', alt: 'Guests seated at round tables with gold tree centrepieces', caption: 'Settling in', event: OCT2 },
-  { file: '2026-10-02-13.jpg', alt: 'Guests talking with one another as the event wraps up', caption: 'Saying goodbye', event: OCT2 },
+  // Add photos here.
 ];

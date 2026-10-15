@@ -5,7 +5,7 @@
  *   1. Logo medallion  — circular crop of the logo with a transparent outside
  *   2. Logo line art   — gold outlines traced from the logo (for the intro "drawing")
  *   3. Textures        — film grain + linen/paper tiles
- *   4. Poster          — web copy for Astro to optimise + a high-quality JPG for download
+ *   4. (Posters are no longer generated here — see the note at section 5.)
  *   5. Favicons / app icons / web manifest
  *   6. Social share (Open Graph) image
  *
@@ -268,6 +268,9 @@ async function buildTextures() {
 }
 
 /* ───────────────────────── 5. Poster ───────────────────────── */
+// Not run by default: the October 19, 2026 poster names an insurance company
+// and is kept off the site (copies live in docs/unpublished/). Run
+// `npm run assets -- poster` only for a poster that has been approved.
 async function buildPoster() {
   await copyFile(path.join(REF, 'poster-2026-10-19-original.webp'), p('src/assets/posters/2026-10-19-member-appreciation-breakfast.webp'));
   await sharp(path.join(REF, 'poster-2026-10-19-original.webp'))
@@ -375,7 +378,7 @@ console.log('• line art');
 const mono = await buildLineArt(medallion);
 if (!only || only === 'patterns') { console.log('• patterns'); await buildPatterns(); }
 if (!only || only === 'textures') { console.log('• textures'); await buildTextures(); }
-if (!only || only === 'poster') { console.log('• poster'); await buildPoster(); }
+if (only === 'poster') { console.log('• poster'); await buildPoster(); }
 if (!only || only === 'icons') { console.log('• icons'); await buildIcons(medallion, mono); }
 if (!only || only === 'og') { console.log('• og'); await buildOg(medallion); }
 console.log('done');
