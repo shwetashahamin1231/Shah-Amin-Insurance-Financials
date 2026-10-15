@@ -31,6 +31,8 @@ import ErrorSummary from './ErrorSummary.astro';
 import FormStatus from './FormStatus.astro';
 import Honeypot from './Honeypot.astro';
 import SubmitButton from './SubmitButton.astro';
+import CallToArrange from './CallToArrange.astro';
+import { APPS_SCRIPT } from '../../config/forms';
 
 interface Props {
   events: EventItem[];
@@ -85,8 +87,15 @@ const closedMessage = selectedEvent
   ? `RSVPs for ${selectedEvent.title} are closed.`
   : 'There are no events taking RSVPs right now.';
 const maxGuests = preselected?.maxGuests ?? 6;
+
+/** On the live site, until the RSVPs sheet is connected, show how to call instead of a form that cannot send. */
+const offline = import.meta.env.PROD && !APPS_SCRIPT.rsvps.trim() && !startsClosed;
 ---
 
+{
+  offline ? (
+    <CallToArrange kind="rsvp" eventTitle={selectedEvent?.title} headingLevel={headingLevel} />
+  ) : (
 <div class:list={['rsvp-form', { 'rsvp-form--compact': compact }]} data-rsvp-root data-events={JSON.stringify(clientEvents)} data-selected={selected}>
   <div class="rsvp-form__closed" data-rsvp-closed hidden={!startsClosed}>
     <Icon name="calendar-blank" class="rsvp-form__closed-icon" />
@@ -167,6 +176,8 @@ const maxGuests = preselected?.maxGuests ?? 6;
     <p class="small muted">Need to change anything? Just give us a call.</p>
   </FormStatus>
 </div>
+  )
+}
 
 <script>
   import { createFormEngine } from '../../scripts/forms/engine';

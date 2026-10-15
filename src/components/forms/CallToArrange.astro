@@ -1,0 +1,128 @@
+---
+/**
+ * Shown in place of the booking scheduler or an RSVP form on the live site
+ * while its Google Sheets (Apps Script) URL in src/config/forms.ts is empty —
+ * so visitors never fill in a form that cannot be sent. Disappears by itself
+ * once the URL is added.
+ *
+ *   <CallToArrange kind="booking" />
+ *   <CallToArrange kind="rsvp" eventTitle="Member Appreciation Breakfast" />
+ */
+import Icon from '../ui/Icon.astro';
+import AdvisorAvatar from '../team/AdvisorAvatar.astro';
+import { ADVISOR_LIST, HOURS } from '../../config/site';
+
+interface Props {
+  kind: 'booking' | 'rsvp';
+  eventTitle?: string;
+  headingLevel?: 2 | 3 | 4;
+}
+const { kind, eventTitle, headingLevel = 2 } = Astro.props;
+const Heading = `h${headingLevel}` as 'h2' | 'h3' | 'h4';
+const title = kind === 'booking' ? 'Call us to book your appointment' : 'Call us to reserve your place';
+const lead =
+  kind === 'booking'
+    ? 'Online booking opens soon. Until then, a quick call is all it takes — tell us a day and time that suits you, in person, by phone or by video.'
+    : `Online RSVPs open soon. Until then, please call to let us know you are coming${eventTitle ? ` to the ${eventTitle}` : ''} and how many people will join you.`;
+---
+
+<div class="arrange">
+  <Heading class="arrange__title">{title}</Heading>
+  <p class="arrange__lead">{lead}</p>
+  <ul class="arrange__list" role="list">
+    {
+      ADVISOR_LIST.map((a) => (
+        <li>
+          <a class="arrange__call" href={`tel:${a.phoneHref}`} aria-label={`Call ${a.name}, ${a.phone}`}>
+            <AdvisorAvatar advisor={a} size={56} />
+            <span class="arrange__who">
+              <span class="arrange__name">{a.name}</span>
+              <span class="arrange__phone num">{a.phone}</span>
+            </span>
+            <Icon name="phone" class="arrange__icon" />
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  <p class="arrange__hours">
+    <Icon name="clock" />
+    <span>{HOURS.summary}. {HOURS.holidayNote}.</span>
+  </p>
+</div>
+
+<style>
+  .arrange {
+    display: grid;
+    gap: var(--space-m);
+  }
+  .arrange__title {
+    font-size: var(--fs-h3);
+  }
+  .arrange__lead {
+    max-inline-size: 60ch;
+    color: var(--text-muted);
+  }
+  .arrange__list {
+    display: grid;
+    gap: var(--space-s);
+  }
+  @media (min-width: 40rem) {
+    .arrange__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .arrange__call {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    min-block-size: 5rem;
+    padding: var(--space-s) var(--space-m);
+    text-decoration: none;
+    color: var(--text);
+    background: var(--bg-raised);
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--radius-s);
+    transition:
+      transform var(--dur-hover) var(--ease-out),
+      box-shadow var(--dur-hover) var(--ease-out);
+  }
+  .arrange__call:hover {
+    transform: translateY(calc(-3px * var(--motion)));
+    box-shadow: var(--shadow-m);
+  }
+  .arrange__who {
+    display: grid;
+    flex: 1;
+  }
+  .arrange__name {
+    font-weight: 600;
+  }
+  .arrange__phone {
+    font-family: var(--ff-display);
+    font-size: clamp(1.3rem, 1.1rem + 0.8vw, 1.5rem);
+    white-space: nowrap;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .arrange__call :global(.arrange__icon) {
+    flex: none;
+    color: var(--accent);
+  }
+  /* Small phones: the whole card is the call button, so the icon can go. */
+  @media (max-width: 25rem) {
+    .arrange__call {
+      padding-inline: var(--space-s);
+    }
+    .arrange__call :global(.arrange__icon) {
+      display: none;
+    }
+  }
+  .arrange__hours {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    font-size: 1rem;
+    color: var(--text-muted);
+  }
+</style>

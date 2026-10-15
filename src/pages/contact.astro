@@ -10,6 +10,7 @@ import PageHero from '../components/ui/PageHero.astro';
 import Button from '../components/ui/Button.astro';
 import Icon from '../components/ui/Icon.astro';
 import Ornament from '../components/ui/Ornament.astro';
+import AdvisorAvatar from '../components/team/AdvisorAvatar.astro';
 import { ADVISOR_LIST, HOURS, SITE, formattedAddress, licensedStatesText, mapLinks } from '../config/site';
 
 const address = formattedAddress();
@@ -34,9 +35,7 @@ const maps = mapLinks();
           ADVISOR_LIST.map((a) => (
             <li class="card" data-reveal>
               <div class="card__head">
-                <span class="card__monogram" aria-hidden="true">
-                  {a.initials}
-                </span>
+                <AdvisorAvatar advisor={a} size={76} class="card__monogram" />
                 <div>
                   <h3 class="card__name">{a.name}</h3>
                   <p class="card__title">{a.title}</p>
@@ -184,18 +183,7 @@ const maps = mapLinks();
     align-items: center;
     gap: var(--space-m);
   }
-  .card__monogram {
-    display: grid;
-    place-items: center;
-    flex: none;
-    inline-size: 76px;
-    block-size: 76px;
-    border-radius: 50%;
-    font-family: var(--ff-display);
-    font-size: 1.75rem;
-    font-weight: 600;
-    color: var(--gold-300);
-    background: var(--green-800);
+  .card__head :global(.card__monogram) {
     box-shadow: 0 0 0 1px var(--gold-600), 0 0 0 5px var(--ivory-50), 0 0 0 6px rgb(141 97 39 / 0.4);
   }
   .card__name {
