@@ -25,6 +25,22 @@ export interface GalleryItem {
   event?: string;
 }
 
+const OCT2 = 'october-2-2026';
+
+// Insurance-company names and logos are blurred in every photo (CMS marketing rules).
 export const GALLERY: GalleryItem[] = [
-  // Add photos here.
+  // October 2, 2026 client event (newest event first; add new photos above this group).
+  { file: '2026-10-02-01.jpg', alt: 'Gautam Shah and Shweta Shah Amin smiling beside a banner at the event', caption: 'Gautam Shah & Shweta Shah Amin', event: OCT2 },
+  { file: '2026-10-02-02.jpg', alt: 'A presenter speaking to a full room of guests seated at round tables', caption: 'A full room for the presentation', event: OCT2 },
+  { file: '2026-10-02-03.jpg', alt: 'Guests gathering in the banquet hall with a welcome message on the screen', caption: 'Guests arriving', event: OCT2 },
+  { file: '2026-10-02-04.jpg', alt: 'Guests seated at a blue-draped table chatting with the hosts', caption: 'Around the table', event: OCT2 },
+  { file: '2026-10-02-05.jpg', alt: 'Guests at tables with gold centrepieces beneath a crystal chandelier', caption: 'Good company', event: OCT2 },
+  { file: '2026-10-02-06.jpg', alt: 'Guests seated at their tables, listening to the presentation', caption: 'Listening in', event: OCT2 },
+  { file: '2026-10-02-07.jpg', alt: 'A presenter with a microphone answering questions from the audience', caption: 'Questions from the audience', event: OCT2 },
+  { file: '2026-10-02-08.jpg', alt: 'Guests at round tables in soft pink light', caption: 'Catching up', event: OCT2 },
+  { file: '2026-10-02-09.jpg', alt: 'Guests at their tables turned toward the front of the hall', caption: 'All eyes on the presentation', event: OCT2 },
+  { file: '2026-10-02-10.jpg', alt: 'A wide view of the banquet hall with guests at blue-draped tables', caption: 'The banquet hall', event: OCT2 },
+  { file: '2026-10-02-11.jpg', alt: 'A presenter speaking with a microphone to the seated guests', caption: 'The presentation', event: OCT2 },
+  { file: '2026-10-02-12.jpg', alt: 'Guests seated at round tables with gold tree centrepieces', caption: 'Settling in', event: OCT2 },
+  { file: '2026-10-02-13.jpg', alt: 'Guests talking with one another as the event wraps up', caption: 'Saying goodbye', event: OCT2 },
 ];
