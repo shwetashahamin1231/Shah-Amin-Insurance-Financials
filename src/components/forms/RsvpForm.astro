@@ -131,9 +131,10 @@ const offline = import.meta.env.PROD && !APPS_SCRIPT.rsvps.trim() && !startsClos
         requiredMessage="Please choose an event."
         class="rsvp-form__wide"
       />
-      <TextField id={`${p}-name`} name="name" label="Full name" autocomplete="name" autocapitalize="words" spellcheck={false} validate="name" required />
-      <TextField id={`${p}-email`} name="email" type="email" label="Email" autocomplete="email" inputmode="email" spellcheck={false} validate="email" required hint="We’ll send any event updates here." />
-      <TextField id={`${p}-phone`} name="phone" type="tel" label="Phone" autocomplete="tel" inputmode="tel" validate="phone" format="phone" hint="In case plans change." />
+      <TextField id={`${p}-first`} name="firstName" label="First name" autocomplete="given-name" autocapitalize="words" spellcheck={false} validate="name" required />
+      <TextField id={`${p}-last`} name="lastName" label="Last name" autocomplete="family-name" autocapitalize="words" spellcheck={false} validate="name" required />
+      <TextField id={`${p}-phone`} name="phone" type="tel" label="Phone" autocomplete="tel" inputmode="tel" validate="phone" format="phone" required hint="In case plans change." />
+      <TextField id={`${p}-email`} name="email" type="email" label="Email" autocomplete="email" inputmode="email" spellcheck={false} validate="email" hint="For event updates." />
       <GuestsStepper id={`${p}-guests`} name="guests" label="Number attending (including you)" max={maxGuests} value={1} />
       <Textarea id={`${p}-notes`} name="notes" label="Dietary needs or questions" rows={compact ? 3 : 4} class="rsvp-form__wide" />
     </div>
@@ -296,7 +297,7 @@ const offline = import.meta.env.PROD && !APPS_SCRIPT.rsvps.trim() && !startsClos
       },
       onSuccess(data) {
         const e = current() ?? bySlug(String(data.get('eventSlug') ?? ''));
-        const name = firstName(String(data.get('name') ?? ''));
+        const name = firstName(String(data.get('firstName') ?? ''));
         const count = Number(data.get('guests')) || 1;
         const text = success.querySelector<HTMLElement>('[data-success-text]');
         if (text && e) {

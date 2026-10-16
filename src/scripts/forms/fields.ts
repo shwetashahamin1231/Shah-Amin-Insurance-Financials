@@ -62,7 +62,7 @@ export function checkField(field: HTMLElement, custom: Record<string, CustomVali
     case 'name':
       return validateName(value);
     case 'email':
-      return validateEmail(value);
+      return !required && !value.trim() ? null : validateEmail(value);
     case 'phone':
       return validatePhone(value, { required });
     case 'guests':
