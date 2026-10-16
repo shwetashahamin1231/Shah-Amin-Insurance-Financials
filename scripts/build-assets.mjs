@@ -330,6 +330,8 @@ async function buildIcons(medallionPng, mono) {
   await icon(180, 0.08, 'apple-touch-icon.png');
   await icon(192, 0.1, 'icon-192.png');
   await icon(512, 0.1, 'icon-512.png');
+  // Google Search shows a site icon only at multiples of 48px.
+  for (const n of [48, 96]) await sharp(p('public/icon-512.png')).resize(n, n).png({ compressionLevel: 9 }).toFile(p(`public/favicon-${n}.png`));
   await writeFile(p('public/site.webmanifest'), JSON.stringify({
     name: 'Shah & Amin Financial Services',
     short_name: 'Shah & Amin',
