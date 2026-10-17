@@ -23,6 +23,13 @@ const CALENDAR_NAME = 'Shah & Amin — Appointments';
 /** How long each appointment holds the calendar. Keep in step with blockMinutes in the website's forms.ts. */
 const BLOCK_MINUTES = 120;
 const TIME_ZONE = 'America/New_York';
+/**
+ * Personal calendars that also block booking times (timed events only — all-day entries
+ * such as birthdays don't). 'primary' = the main calendar of the account running this
+ * script (Shweta). Gautam's works once he shares his calendar with that account.
+ * Only start and end times are used; event names and details never reach the website.
+ */
+const ALSO_BLOCK_FROM = ['primary', 'gautampanna.shah@gmail.com'];
 const HEADERS = ['Timestamp', 'Name', 'Email', 'Phone', 'Date', 'Time (ET)', 'Advisor', 'Topic', 'Meeting type', 'Message', 'Page'];
 
 /** The website asks for busy times: returns [[startMs, endMs], …] for today through ~100 days ahead. */
@@ -32,10 +39,7 @@ function doGet() {
     const from = new Date();
     from.setHours(0, 0, 0, 0);
     const to = new Date(from.getTime() + 100 * 24 * 60 * 60 * 1000);
-    const busy = getCalendar_()
-      .getEvents(from, to)
-      .map(ev => [ev.getStartTime().getTime(), ev.getEndTime().getTime()]);
-    result = { ok: true, busy: busy };
+    result = { ok: true, busy: busyBetween_(from, to) };
   } catch (err) {
     result = { ok: false, error: err.message };
   }
@@ -89,7 +93,7 @@ function submitBooking(data) {
   try {
     const cal = getCalendar_();
     // Back-to-back is fine: only a real overlap counts (an event ending at 1:00 doesn't block 1:00).
-    const clash = cal.getEvents(start, end).some(ev => ev.getStartTime() < end && ev.getEndTime() > start);
+    const clash = busyBetween_(start, end).some(([s, e]) => s < end.getTime() && e > start.getTime());
     if (clash) throw new Error('Please choose another time — that one was just booked.');
 
     const sheet = getSheet_();
@@ -140,6 +144,39 @@ function submitBooking(data) {
   return { ok: true, date: date, time: time };
 }
 
+/** Busy [startMs, endMs] pairs between two dates, from the appointments calendar and ALSO_BLOCK_FROM. */
+function busyBetween_(from, to) {
+  const busy = getCalendar_()
+    .getEvents(from, to)
+    .map(ev => [ev.getStartTime().getTime(), ev.getEndTime().getTime()]);
+  for (const id of ALSO_BLOCK_FROM) {
+    const cal = personalCalendar_(id);
+    if (!cal) continue;
+    try {
+      cal.getEvents(from, to)
+        .filter(ev => !ev.isAllDayEvent())
+        .forEach(ev => busy.push([ev.getStartTime().getTime(), ev.getEndTime().getTime()]));
+    } catch (err) {
+      console.warn(`Could not read calendar ${id}: ${err.message}`);
+    }
+  }
+  return busy;
+}
+
+/** A personal calendar by id ('primary' = this account's own), or null if it isn't shared yet. */
+function personalCalendar_(id) {
+  if (id === 'primary') return CalendarApp.getDefaultCalendar();
+  let cal = CalendarApp.getCalendarById(id);
+  if (!cal) {
+    try {
+      cal = CalendarApp.subscribeToCalendar(id, { hidden: true });
+    } catch (err) {
+      return null; // not shared with this account yet
+    }
+  }
+  return cal;
+}
+
 /** The appointments calendar: found by name, created the first time if missing. */
 function getCalendar_() {
   const props = PropertiesService.getScriptProperties();
@@ -173,5 +210,7 @@ function getSheet_() {
 function setup() {
   getSheet_();
   const cal = getCalendar_();
-  MailApp.sendEmail(NOTIFY.join(','), 'Appointment alerts are on', `You will get an email like this for every appointment request from shahandamin.com.\n\nEvery request also goes on the "${cal.getName()}" Google Calendar as a 2-hour block. To block off time, add an event to that calendar.`);
+  const reach = ALSO_BLOCK_FROM.map(id => `${id === 'primary' ? 'Your main calendar' : id}: ${personalCalendar_(id) ? 'connected' : 'NOT shared yet'}`);
+  console.log(reach.join('\n'));
+  MailApp.sendEmail(NOTIFY.join(','), 'Appointment alerts are on', `You will get an email like this for every appointment request from shahandamin.com.\n\nEvery request also goes on the "${cal.getName()}" Google Calendar as a 2-hour block. To block off time, add an event to that calendar.\n\nPersonal calendars that also block times:\n${reach.join('\n')}`);
 }
