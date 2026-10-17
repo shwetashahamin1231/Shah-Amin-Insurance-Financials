@@ -17,9 +17,9 @@
  * ════════════════════════════════════════════════════════════════════
  */
 import { ADVISORS, ADVISOR_LIST, SITE } from '../../config/site';
-import { BOOKING, FORM_MESSAGES } from '../../config/forms';
+import { APPS_SCRIPT, BOOKING, FORM_MESSAGES } from '../../config/forms';
 import { etToUtc, formatDateLong, formatDateNoYear, localSlotTime, localTimeZone } from '../../lib/time';
-import { getAvailableSlots, getDayStatus, groupByPeriod, isSlotBookable } from '../../lib/slots';
+import { getAvailableSlots, getDayStatus, groupByPeriod, isSlotBookable, setBusyTimes } from '../../lib/slots';
 import { buildIcs, downloadIcs, googleCalendarUrl, type CalendarEvent } from '../../lib/ics';
 import { firstName, formatPhone } from '../../lib/validation';
 import { whenActivated } from '../lib/env';
@@ -308,7 +308,8 @@ export function initScheduler(root: HTMLElement): void {
   }
 
   async function finalSubmit() {
-    // The chosen time may have slipped inside the notice period while the page sat open.
+    // Re-check the calendar, then: the chosen time may have been taken, or slipped inside the notice period.
+    await loadBusy();
     if (!isSlotBookable(dateInput!.value, chosenTime())) {
       slotGone = true;
       returnToReview = true;
@@ -395,7 +396,7 @@ export function initScheduler(root: HTMLElement): void {
     set('advisor', advisor);
 
     const start = etToUtc(date, time);
-    const end = new Date(start.getTime() + BOOKING.slotMinutes * 60_000);
+    const end = new Date(start.getTime() + BOOKING.blockMinutes * 60_000);
     const phones = ADVISOR_LIST.map((a) => `${a.firstName} ${a.phone}`).join(' or ');
     const kind = meeting === 'In person' ? 'in-person' : meeting.toLowerCase();
     const entry: CalendarEvent = {
@@ -438,9 +439,31 @@ export function initScheduler(root: HTMLElement): void {
     calendar.refresh();
     renderSlots(dateInput.value, 'refresh');
   };
-  whenActivated(refresh); // the page may have been prerendered in the background
+
+  /**
+   * Busy times from the "Shah & Amin — Appointments" Google Calendar (via the bookings
+   * script's doGet). If it can't be reached, every time stays offered and the script
+   * still refuses a time that is already taken.
+   */
+  async function loadBusy(): Promise<void> {
+    const url = APPS_SCRIPT.bookings.trim();
+    if (!url) return;
+    try {
+      const res = await fetch(`${url}?busy=1`);
+      const data = (await res.json()) as { ok?: boolean; busy?: [number, number][] };
+      if (data.ok && Array.isArray(data.busy)) setBusyTimes(data.busy.filter((b) => Array.isArray(b) && b.length === 2));
+    } catch {
+      /* keep the last known busy times */
+    }
+  }
+  const loadAndRefresh = () => void loadBusy().then(refresh);
+
+  whenActivated(() => {
+    refresh(); // the page may have been prerendered in the background
+    loadAndRefresh();
+  });
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') refresh();
+    if (document.visibilityState === 'visible') loadAndRefresh();
   });
   window.addEventListener('pageshow', (e) => {
     if (e.persisted) refresh();

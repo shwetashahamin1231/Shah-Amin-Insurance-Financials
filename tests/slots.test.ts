@@ -215,3 +215,35 @@ describe('booking form field validation', () => {
     expect(validateText('')).toBeNull();
   });
 });
+
+describe('2-hour appointment blocks from the appointments calendar', () => {
+  // Monday Oct 26, 2026 (EDT). "now" is a week earlier, so notice rules don't interfere.
+  const now = new Date('2026-10-19T12:00:00-04:00');
+  const at = (hhmm: string) => Date.parse(`2026-10-26T${hhmm}:00-04:00`);
+  const times = (busy: [number, number][]) => getAvailableSlots('2026-10-26', now, { ...DEFAULT_RULES, busy }).map((s) => s.time);
+
+  it('offers every time when the calendar is empty', () => {
+    expect(times([])).toContain('13:00');
+    expect(times([])).toHaveLength(16);
+  });
+
+  it('a 1:00 PM booking (1:00–3:00) hides every start whose 2 hours would overlap it', () => {
+    const t = times([[at('13:00'), at('15:00')]]);
+    for (const gone of ['11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30']) expect(t).not.toContain(gone);
+    expect(t).toContain('11:00'); // 11:00–1:00 ends exactly when it starts
+    expect(t).toContain('15:00'); // free again from 3:00
+  });
+
+  it('a time blocked off by hand (3:00–4:00) also blocks the starts that would run into it', () => {
+    const t = times([[at('15:00'), at('16:00')]]);
+    expect(t).not.toContain('13:30');
+    expect(t).toContain('13:00');
+    expect(t).toContain('16:00');
+  });
+
+  it('an all-day block closes the whole day', () => {
+    const busy: [number, number][] = [[Date.parse('2026-10-26T00:00:00-04:00'), Date.parse('2026-10-27T00:00:00-04:00')]];
+    expect(times(busy)).toHaveLength(0);
+    expect(getDayStatus('2026-10-26', now, { ...DEFAULT_RULES, busy }).bookable).toBe(false);
+  });
+});

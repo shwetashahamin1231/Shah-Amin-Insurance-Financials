@@ -1,12 +1,15 @@
 /**
  * ════════════════════════════════════════════════════════════════════
- *  Shah & Amin Financial Services — appointment requests → Google Sheet
+ *  Shah & Amin Financial Services — appointment requests → Google Sheet + Calendar
  * ════════════════════════════════════════════════════════════════════
- *  Receives the website's "Book an Appointment" form and adds one row per
- *  request to the "Bookings" tab of the spreadsheet this script belongs to.
- *  Same structure as your existing registration script.
+ *  For every request from the website's "Book an Appointment" form it:
+ *   1. checks the time is still free on the "Shah & Amin — Appointments" calendar,
+ *   2. adds a row to the "Bookings" tab of this spreadsheet,
+ *   3. puts a 2-hour event on that calendar (so the website stops offering it),
+ *   4. emails everyone in NOTIFY.
+ *  The website also asks this script (doGet) which times are busy. Anything on the
+ *  appointments calendar counts — so to block off time, just add an event there.
  *
- *  Setup, step by step: apps-script/SETUP.md
  *  After changing anything here, publish a new version:
  *    Deploy → Manage deployments → ✎ Edit → Version: New version → Deploy
  *  (that keeps the same /exec web address, so the website needs no change).
@@ -15,7 +18,29 @@
 const SHEET_NAME = 'Bookings';
 /** Who gets an email for every appointment request. */
 const NOTIFY = ['gautampanna.shah@gmail.com', 'shwetashahamin1231@gmail.com'];
+/** The Google Calendar that holds appointments and blocked-off time (made by setup). */
+const CALENDAR_NAME = 'Shah & Amin — Appointments';
+/** How long each appointment holds the calendar. Keep in step with blockMinutes in the website's forms.ts. */
+const BLOCK_MINUTES = 120;
+const TIME_ZONE = 'America/New_York';
 const HEADERS = ['Timestamp', 'Name', 'Email', 'Phone', 'Date', 'Time (ET)', 'Advisor', 'Topic', 'Meeting type', 'Message', 'Page'];
+
+/** The website asks for busy times: returns [[startMs, endMs], …] for today through ~100 days ahead. */
+function doGet() {
+  let result;
+  try {
+    const from = new Date();
+    from.setHours(0, 0, 0, 0);
+    const to = new Date(from.getTime() + 100 * 24 * 60 * 60 * 1000);
+    const busy = getCalendar_()
+      .getEvents(from, to)
+      .map(ev => [ev.getStartTime().getTime(), ev.getEndTime().getTime()]);
+    result = { ok: true, busy: busy };
+  } catch (err) {
+    result = { ok: false, error: err.message };
+  }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
 
 function doPost(e) {
   let result;
@@ -30,10 +55,9 @@ function doPost(e) {
 
 function submitBooking(data) {
   const clean = v => String(v || '').trim().slice(0, 200);
-  const cleanLong = v => String(v || '').trim().slice(0, 1000); // the message box allows up to 1,000 characters
+  const cleanLong = v => String(v || '').trim().slice(0, 1000);
 
   // Spam trap: visitors never see the hidden "website" field, so anything in it means a bot.
-  // Say "ok" without saving anything.
   if (clean(data.website)) return { ok: true };
 
   const name = clean(data.name);
@@ -51,22 +75,46 @@ function submitBooking(data) {
   if (!/^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/.test(email)) throw new Error('Please enter a valid email address.');
   if (phone.replace(/\D/g, '').replace(/^1(?=\d{10}$)/, '').length !== 10) throw new Error('Please enter a 10-digit U.S. phone number.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Please choose a date.');
-  if (!/^\d{1,2}:\d{2} [AP]M ET$/.test(time)) throw new Error('Please choose a time.');
+  const t = time.match(/^(\d{1,2}):(\d{2}) ([AP])M ET$/);
+  if (!t) throw new Error('Please choose a time.');
   if (!topic) throw new Error('Please choose a topic.');
   if (!meetingType) throw new Error('Please choose how you would like to meet.');
 
+  const hour24 = (Number(t[1]) % 12) + (t[3] === 'P' ? 12 : 0);
+  const start = Utilities.parseDate(`${date} ${hour24}:${t[2]}`, TIME_ZONE, 'yyyy-MM-dd H:mm');
+  const end = new Date(start.getTime() + BLOCK_MINUTES * 60 * 1000);
+
   const lock = LockService.getScriptLock();
-  lock.waitLock(10000);
+  lock.waitLock(15000);
   try {
+    const cal = getCalendar_();
+    // Back-to-back is fine: only a real overlap counts (an event ending at 1:00 doesn't block 1:00).
+    const clash = cal.getEvents(start, end).some(ev => ev.getStartTime() < end && ev.getEndTime() > start);
+    if (clash) throw new Error('Please choose another time — that one was just booked.');
+
     const sheet = getSheet_();
     // Stop spreadsheet formulas sneaking in: text starting with = + - @ is stored as plain text.
     const safe = v => (/^[=+\-@]/.test(v) ? "'" + v : v);
     sheet.appendRow([new Date(), safe(name), safe(email), safe(phone), safe(date), safe(time), safe(advisor), safe(topic), safe(meetingType), safe(message), safe(page)]);
+
+    cal.createEvent(`Appointment: ${name} — ${topic}`, start, end, {
+      description: [
+        'Requested on shahandamin.com — not confirmed yet. Please call or email to confirm.',
+        '',
+        `Advisor: ${advisor}`,
+        `Topic: ${topic}`,
+        `Meeting: ${meetingType}`,
+        `Phone: ${phone}`,
+        `Email: ${email}`,
+        `Message: ${message || '(none)'}`,
+      ].join('\n'),
+      location: meetingType === 'In person' ? 'In person — place to be confirmed' : meetingType,
+    });
   } finally {
     lock.releaseLock();
   }
 
-  // Email alert. A problem sending it never loses the request (the row is already saved).
+  // Email alert. A problem sending it never loses the request (the row and event are already saved).
   try {
     MailApp.sendEmail({
       to: NOTIFY.join(','),
@@ -74,7 +122,7 @@ function submitBooking(data) {
       body: [
         `${name} asked for an appointment (not confirmed yet — please call or email them).`,
         '',
-        `When: ${date}, ${time}`,
+        `When: ${date}, ${time} (2 hours are held on the "${CALENDAR_NAME}" calendar)`,
         `Advisor: ${advisor}`,
         `Topic: ${topic}`,
         `Meeting: ${meetingType}`,
@@ -92,6 +140,18 @@ function submitBooking(data) {
   return { ok: true, date: date, time: time };
 }
 
+/** The appointments calendar: found by name, created the first time if missing. */
+function getCalendar_() {
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('CALENDAR_ID');
+  let cal = id ? CalendarApp.getCalendarById(id) : null;
+  if (!cal) {
+    cal = CalendarApp.getCalendarsByName(CALENDAR_NAME)[0] || CalendarApp.createCalendar(CALENDAR_NAME, { color: CalendarApp.Color.GREEN, timeZone: TIME_ZONE });
+    props.setProperty('CALENDAR_ID', cal.getId());
+  }
+  return cal;
+}
+
 function getSheet_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName(SHEET_NAME);
@@ -105,8 +165,13 @@ function getSheet_() {
   return sheet;
 }
 
-/** Run this once from the editor (▶ Run): creates the "Bookings" tab, grants permission to save rows and send email alerts, and sends a test email. */
+/**
+ * Run this once from the editor: choose "setup" in the drop-down next to Debug, then ▶ Run.
+ * It creates the Bookings tab and the "Shah & Amin — Appointments" calendar, asks for
+ * permission (Sheets, Calendar, email), and sends a test email.
+ */
 function setup() {
   getSheet_();
-  MailApp.sendEmail(NOTIFY.join(','), 'Appointment alerts are on', 'You will get an email like this for every appointment request from shahandamin.com.');
+  const cal = getCalendar_();
+  MailApp.sendEmail(NOTIFY.join(','), 'Appointment alerts are on', `You will get an email like this for every appointment request from shahandamin.com.\n\nEvery request also goes on the "${cal.getName()}" Google Calendar as a 2-hour block. To block off time, add an event to that calendar.`);
 }

@@ -80,30 +80,6 @@ export const EVENTS: EventItem[] = [
     detailsComingSoon: true,
   },
   {
-    // Medicare EDUCATIONAL event: it must be advertised as educational, and no specific
-    // plans may be presented, compared or enrolled in (42 CFR 422.2264(c)(1)).
-    slug: 'october-17-2026',
-    title: 'Medicare Educational Seminar',
-    start: '2026-10-17T17:00:00-04:00',
-    end: '2026-10-17T19:00:00-04:00',
-    venue: {
-      name: 'Vadtal Dham',
-      street: '1667 Amwell Rd',
-      city: 'Somerset',
-      state: 'NJ',
-      zip: '08875',
-    },
-    highlight: 'An educational event — no specific plans will be presented',
-    summary: 'An educational evening on how Medicare works, the enrollment dates to know, and your questions answered.',
-    description: [
-      'Join us for an educational seminar about Medicare: how Parts A, B, C and D fit together, the enrollment periods and deadlines to know, and the costs that change each year.',
-      'This is an educational event. No specific plans will be presented and no enrollments will take place. Bring your questions — we will be glad to answer them.',
-      'Please RSVP below, or call us, so we can plan seating.',
-    ],
-    rsvp: true,
-    maxGuests: 6,
-  },
-  {
     slug: 'member-appreciation-breakfast-2026',
     title: 'Member Appreciation Breakfast',
     start: '2026-10-19T10:00:00-04:00',

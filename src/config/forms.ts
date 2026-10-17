@@ -40,9 +40,15 @@ export const APPS_SCRIPT: { bookings: string; rsvps: string } = {
  * Booking calendar rules. Opening hours and holidays come from HOURS in
  * src/config/site.ts; these settings control the appointment slots.
  */
-export const BOOKING: { slotMinutes: number; lastStart: string; minNoticeMinutes: number; horizonDays: number } = {
-  /** Length of each appointment slot, in minutes. */
+export const BOOKING: { slotMinutes: number; blockMinutes: number; lastStart: string; minNoticeMinutes: number; horizonDays: number } = {
+  /** Gap between the start times offered, in minutes (11:00, 11:30, 12:00 …). */
   slotMinutes: 30,
+  /**
+   * How long each appointment holds the calendar, in minutes. A time is offered only
+   * if this whole window is free on the "Shah & Amin — Appointments" Google Calendar
+   * (website bookings and anything Gautam or Shweta add there themselves).
+   */
+  blockMinutes: 120,
   /** Latest start time offered (24-hour clock, Eastern). '18:30' = 6:30 PM. */
   lastStart: '18:30',
   /** How much notice we need: slots sooner than this many minutes from now are hidden. 120 = 2 hours. */

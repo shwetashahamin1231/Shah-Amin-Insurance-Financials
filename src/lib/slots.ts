@@ -41,9 +41,13 @@ export interface BookingRules extends ClosureRules {
   /** Days the office is open: 0 = Sunday … 6 = Saturday. */
   openDays: readonly number[];
   slotMinutes: number;
+  /** How long one appointment occupies the calendar (minutes). */
+  blockMinutes: number;
   lastStart: string;
   minNoticeMinutes: number;
   horizonDays: number;
+  /** Busy times from the appointments calendar, as [start, end) in epoch ms. */
+  busy: ReadonlyArray<readonly [number, number]>;
 }
 
 /** The live rules, assembled from site.ts + forms.ts. */
@@ -55,10 +59,23 @@ export const DEFAULT_RULES: BookingRules = {
   closeOnHoliday: HOURS.closeOnHoliday,
   closeOnObservedDay: HOURS.closeOnObservedDay,
   slotMinutes: BOOKING.slotMinutes,
+  blockMinutes: BOOKING.blockMinutes,
   lastStart: BOOKING.lastStart,
   minNoticeMinutes: BOOKING.minNoticeMinutes,
   horizonDays: BOOKING.horizonDays,
+  busy: [],
 };
+
+/** Replace the busy times the live rules use (fetched from the appointments calendar). */
+export function setBusyTimes(busy: ReadonlyArray<readonly [number, number]>): void {
+  DEFAULT_RULES.busy = busy;
+}
+
+/** Would an appointment starting at `start` (lasting blockMinutes) overlap anything busy? */
+export function overlapsBusy(start: number, rules: BookingRules = DEFAULT_RULES): boolean {
+  const end = start + rules.blockMinutes * MINUTE;
+  return rules.busy.some(([s, e]) => start < e && s < end);
+}
 
 export type DayPeriod = 'morning' | 'afternoon' | 'evening';
 export const PERIOD_LABELS: Record<DayPeriod, string> = { morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening' };
@@ -139,7 +156,7 @@ export function getSlots(date: string, now: Date = new Date(), rules: BookingRul
       start,
       end: new Date(start.getTime() + rules.slotMinutes * MINUTE),
       period: periodOf(time),
-      available: !blocked && start.getTime() >= earliest,
+      available: !blocked && start.getTime() >= earliest && !overlapsBusy(start.getTime(), rules),
     };
   });
 }
@@ -153,7 +170,7 @@ export function getAvailableSlots(date: string, now: Date = new Date(), rules: B
 function hasAvailableSlot(date: string, now: Date, rules: BookingRules): boolean {
   const earliest = new Date(now.getTime() + rules.minNoticeMinutes * MINUTE);
   const earliestDate = zonedParts(earliest, rules.timeZone).date;
-  if (date > earliestDate) return slotTimes(rules).length > 0;
+  if (date > earliestDate && !rules.busy.length) return slotTimes(rules).length > 0;
   if (date < earliestDate) return false;
   return getSlots(date, now, rules).some((s) => s.available);
 }
