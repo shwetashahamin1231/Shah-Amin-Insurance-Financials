@@ -67,7 +67,7 @@ export interface EventItem {
 export const EVENTS: EventItem[] = [
   {
     slug: 'october-2-2026',
-    title: 'Client Event — October 2', // TODO: real title
+    title: 'Client Event', // TODO: real title (the date is added automatically wherever it's shown)
     start: '2026-10-02T10:00:00-04:00', // TODO: real time
     timeTBA: true,
     venue: { name: 'Location to be announced' }, // TODO

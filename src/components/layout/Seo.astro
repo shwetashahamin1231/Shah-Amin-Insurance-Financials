@@ -24,7 +24,11 @@ const { title, description = SITE.description, image, imageAlt, noindex = false,
 const site = Astro.site ?? new URL(SITE.url);
 const abs = (path: string) => new URL(path.startsWith('http') ? path : url(path), site).toString();
 const canonical = new URL(Astro.url.pathname, site).toString();
-const fullTitle = title === SITE.name ? `${SITE.name} — Insurance, Retirement & Medicare Guidance` : `${title} | ${SITE.name}`;
+// Google shows about 60 characters of a title: long page titles get the short brand name.
+const fullTitle =
+  title === SITE.name
+    ? `${SITE.name} | Insurance & Medicare in NJ`
+    : `${title} | ${title.length + SITE.name.length + 3 > 60 ? SITE.shortName : SITE.name}`;
 const ogImage = abs(image ?? '/og/default.jpg');
 const ogAlt = imageAlt ?? `${SITE.name} logo — a green and gold S&A monogram medallion`;
 

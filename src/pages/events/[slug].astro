@@ -85,8 +85,8 @@ const schema = [
 ---
 
 <BaseLayout
-  title={`${event.title} — ${d.weekday}, ${formatEventDate(event).split(', ').slice(1).join(', ')}`}
-  description={event.summary}
+  title={`${event.title} — ${formatEventDate(event).split(', ').slice(1).join(', ')}`}
+  description={`${event.summary} ${formatEventDate(event)}${event.timeTBA ? '' : `, ${formatEventTime(event)}`}${venue && event.venue?.street ? ` at ${venue.name}${event.venue.city ? `, ${event.venue.city}` : ''}` : ''}.`}
   image={event.poster?.download}
   imageAlt={event.poster?.alt}
   schema={schema}
