@@ -5,12 +5,12 @@
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/ui/PageHero.astro';
-import { ADVISOR_LIST, SITE } from '../config/site';
+import { ADVISOR_LIST, ANALYTICS, SITE } from '../config/site';
 import { url } from '../lib/url';
 ---
 
 <BaseLayout title="Privacy Policy" description="How Shah & Amin Financial Services collects, uses and protects the information you share through this website.">
-  <PageHero eyebrow="Privacy" title="Privacy <em>policy</em>" lead="Last updated October 14, 2026." />
+  <PageHero eyebrow="Privacy" title="Privacy <em>policy</em>" lead="Last updated October 17, 2026." />
 
   <section class="section surface-paper">
     <div class="container--narrow prose legal">
@@ -58,9 +58,16 @@ import { url } from '../lib/url';
       <h2>Cookies and similar technology</h2>
       <p>
         This website does not use advertising or tracking cookies. It remembers two display preferences on your own device — whether animations are on and whether the
-        peacock mascot is shown — so the site looks the way you like next time. The map on our <a href={url('/contact/')}>Contact page</a> only loads (and Google may set
-        cookies) if you choose to show it.
+        peacock mascot is shown — so the site looks the way you like next time.
       </p>
+      {
+        ANALYTICS.cloudflareToken && (
+          <p>
+            To understand how the website is used, we use Cloudflare Web Analytics, which counts visits and pages viewed without cookies and without identifying you.
+          </p>
+        )
+      }
+      <p>Using this website is also subject to our <a href={url('/terms/')}>Terms and Conditions</a>.</p>
 
       <h2>Your choices</h2>
       <p>You can ask us at any time to see, correct or delete the information you have sent through this website. Contact us using the details above.</p>

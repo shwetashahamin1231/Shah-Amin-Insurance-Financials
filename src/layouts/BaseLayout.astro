@@ -15,6 +15,7 @@ import Footer from '../components/layout/Footer.astro';
 import MobileMenu from '../components/layout/MobileMenu.astro';
 import CallFab from '../components/layout/CallFab.astro';
 import Peacock from '../components/Peacock.astro';
+import { ANALYTICS } from '../config/site';
 import lineartUrl from '../assets/brand/logo-lineart.svg?url';
 
 interface Props {
@@ -75,6 +76,12 @@ const speculationRules = JSON.stringify({
     <slot name="overlay" />
     <Peacock />
     <div class="grain" aria-hidden="true"></div>
+
+    {
+      ANALYTICS.cloudflareToken && !noindex && (
+        <script is:inline defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={JSON.stringify({ token: ANALYTICS.cloudflareToken })} />
+      )
+    }
 
     <script>
       import '../scripts/main';

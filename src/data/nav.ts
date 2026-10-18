@@ -72,5 +72,6 @@ export const FOOTER_NAV: { title: string; links: NavLink[] }[] = [
 
 export const LEGAL_NAV: NavLink[] = [
   { label: 'Privacy Policy', href: '/privacy/' },
+  { label: 'Terms and Conditions', href: '/terms/' },
   { label: 'Disclaimers & Licenses', href: '/disclaimers/' },
 ];

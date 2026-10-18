@@ -1,0 +1,112 @@
+---
+/**
+ * Terms and Conditions for using the website — plain English. Like the privacy
+ * policy, have your attorney or compliance contact review it (TODO), and
+ * update the date in the hero whenever the wording changes.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/ui/PageHero.astro';
+import { ADVISOR_LIST, COMPLIANCE, SITE, licensedStatesText } from '../config/site';
+import { url } from '../lib/url';
+---
+
+<BaseLayout title="Terms and Conditions" description="The terms for using the Shah & Amin Financial Services website, including appointment requests, event RSVPs and the information we publish.">
+  <PageHero eyebrow="Terms" title="Terms and <em>conditions</em>" lead="Last updated October 17, 2026." />
+
+  <section class="section surface-paper">
+    <div class="container--narrow prose legal">
+      <h2>Using this website</h2>
+      <p>
+        This website, www.shahandamin.com, is operated by {SITE.name} (“we”, “us”). By using it, you agree to these terms. If you do not agree, please do not use
+        the website. Our <a href={url('/privacy/')}>Privacy Policy</a> explains how we handle the information you share with us.
+      </p>
+
+      <h2>Information, not advice</h2>
+      <p>
+        Everything on this website is general information to help you understand your options. It is not tax, legal or investment advice, and it is not a
+        recommendation for any particular product. Your situation is personal, so please speak with us or another qualified professional before making a
+        decision.
+      </p>
+      <p>
+        We are licensed to sell insurance in {licensedStatesText()}. Products, benefits and prices vary by state and insurance company, and not every product is
+        available everywhere.
+      </p>
+
+      <h2>No coverage until a policy is issued</h2>
+      <p>
+        Nothing on this website is an offer of insurance or a promise of coverage. Coverage is available only through an application that the insurance company
+        approves, and it is governed by the terms, conditions and exclusions of the policy it issues. You cannot apply for, start, change or cancel coverage by
+        sending a form, email or voicemail through this website.
+      </p>
+
+      <h2>Medicare</h2>
+      <p>{COMPLIANCE.medicareDisclaimer}</p>
+      <p>{COMPLIANCE.governmentDisclaimer}</p>
+      <p>
+        Medicare amounts shown on this website are labelled with the year they apply to and change every year. Please confirm current figures at Medicare.gov or
+        with us before relying on them.
+      </p>
+
+      <h2>Appointment requests and event RSVPs</h2>
+      <ul>
+        <li>An appointment request is not a confirmed appointment. We will call or email you to confirm, and we may suggest a different time.</li>
+        <li>An event RSVP reserves your place, but events can change or be cancelled. We will let you know using the details you give us.</li>
+        <li>Please give accurate contact details, and only for yourself or people who have agreed to be included.</li>
+        <li>
+          Please do not send Social Security numbers, Medicare numbers, medical details or account numbers through the website. We will collect anything like that
+          securely when we speak with you.
+        </li>
+      </ul>
+
+      <h2>Accuracy of information</h2>
+      <p>
+        We work to keep this website accurate and up to date, but rules, figures and products change, and mistakes can happen. We may update or correct the
+        website at any time without notice.
+      </p>
+
+      <h2>Acceptable use</h2>
+      <p>
+        Please use this website only for lawful purposes. Do not send false or automated submissions, try to interfere with how the website or its forms work, or
+        copy its content for commercial use.
+      </p>
+
+      <h2>Our content</h2>
+      <p>
+        The text, logo, design, photographs and peacock mascot on this website belong to {SITE.name} or are used with permission. You may view and print pages for
+        your own personal use. Please ask us before using anything else.
+      </p>
+
+      <h2>Links to other websites</h2>
+      <p>
+        We link to other websites, such as Medicare.gov and Social Security, for your convenience. We do not control those websites and are not responsible for
+        their content or privacy practices.
+      </p>
+
+      <h2>Limitation of liability</h2>
+      <p>
+        This website is provided “as is”. To the fullest extent the law allows, {SITE.name} is not liable for any loss or damage that results from using, or being
+        unable to use, this website or the information on it. Nothing in these terms limits any rights you have under the law that cannot be limited.
+      </p>
+
+      <h2>Governing law</h2>
+      <p>These terms are governed by the laws of the State of New Jersey.</p>
+
+      <h2>Changes to these terms</h2>
+      <p>If we change these terms, we will update the date at the top of this page. Using the website after a change means you accept the updated terms.</p>
+
+      <h2>Contact us</h2>
+      <p>
+        Questions about these terms? Call {ADVISOR_LIST[0].name} at <a href={`tel:${ADVISOR_LIST[0].phoneHref}`}>{ADVISOR_LIST[0].phone}</a> or email
+        <a href={`mailto:${ADVISOR_LIST[0].email}`}>{ADVISOR_LIST[0].email}</a>, or call {ADVISOR_LIST[1].name} at
+        <a href={`tel:${ADVISOR_LIST[1].phoneHref}`}>{ADVISOR_LIST[1].phone}</a> or email <a href={`mailto:${ADVISOR_LIST[1].email}`}>{ADVISOR_LIST[1].email}</a>.
+        See also our <a href={url('/disclaimers/')}>Disclaimers &amp; Licenses</a>.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .legal {
+    font-size: var(--fs-body);
+  }
+</style>

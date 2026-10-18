@@ -72,6 +72,16 @@ export const SITE = {
   social: [] as { label: string; url: string }[],
 } as const;
 
+/**
+ * Visitor statistics. Cloudflare Web Analytics sets no cookies and collects no
+ * personal data, so no cookie banner is needed. Paste the token from
+ * dash.cloudflare.com → Analytics & Logs → Web Analytics → Add a site
+ * (the value of "token" in the snippet it shows). Empty = off.
+ */
+export const ANALYTICS = {
+  cloudflareToken: '',
+};
+
 /** Both advisors. Phone numbers confirmed from the October 19, 2026 event poster. */
 export const ADVISORS: Record<AdvisorId, Advisor> = {
   gautam: {
