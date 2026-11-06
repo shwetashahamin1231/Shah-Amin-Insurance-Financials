@@ -72,7 +72,7 @@ Repeat **all of Part 1** with these changes:
 2. On the live site, send a test appointment request and a test RSVP, using your own details.
 3. Check that a new row appears in each spreadsheet, then delete the test rows.
 
-**Get an email for every new request (recommended):** in each spreadsheet, click **Tools → Notification settings → Edit notifications**, choose **Any changes are made** and **Email – right away**, then **Save**. The Google Sheets phone app works too.
+**Emails:** the scripts email Gautam and Shweta for every new request (the `NOTIFY` list at the top of each script). The booking script also emails the visitor a copy of their request with a calendar file attached, including the Medicare disclaimer CMS requires in emails. To turn that off, set `SEND_CONFIRMATION = false`. (Google Sheets' own *Notification settings* don't work here: they ignore rows added by a script.)
 
 ---
 
@@ -105,4 +105,4 @@ This keeps **the same /exec address**, so the website doesn't need to change.
 - **Privacy:** these spreadsheets hold visitors' names, emails and phone numbers. Share them only with people who need them.
 - **The /exec address is public.** It's visible in the website's code, which is normal. It can only *add* rows; nobody can read your sheet through it.
 - **Times** are recorded in Eastern Time exactly as the visitor chose them (e.g. "11:30 AM ET"). The *Timestamp* column shows when the request arrived, in your spreadsheet's time zone (**File → Settings**).
-- **Appointment requests aren't confirmed bookings.** The website tells visitors you'll call or email to confirm.
+- **Appointment requests aren't confirmed bookings.** The website and the visitor's email both say you'll call or email to confirm.

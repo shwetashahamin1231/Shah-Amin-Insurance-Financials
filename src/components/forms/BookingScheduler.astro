@@ -149,7 +149,7 @@ const offline = import.meta.env.PROD && !APPS_SCRIPT.bookings.trim();
       </header>
       <div class="details">
         <TextField id={`${p}-name`} name="name" label="Full name" autocomplete="name" autocapitalize="words" spellcheck={false} validate="name" required class="details__wide" />
-        <TextField id={`${p}-email`} name="email" type="email" label="Email" autocomplete="email" inputmode="email" spellcheck={false} validate="email" required hint="We’ll email you to confirm." />
+        <TextField id={`${p}-email`} name="email" type="email" label="Email" autocomplete="email" inputmode="email" spellcheck={false} validate="email" required hint="We’ll email you a copy of your request." />
         <TextField id={`${p}-phone`} name="phone" type="tel" label="Phone" autocomplete="tel" inputmode="tel" validate="phone" format="phone" required hint="We may call to confirm your time." />
         <RadioGroup id={`${p}-advisor`} name="advisor" legend="Who would you like to meet?" options={advisorOptions} value="No preference" required class="details__wide" />
         <Select
@@ -229,6 +229,7 @@ const offline = import.meta.env.PROD && !APPS_SCRIPT.bookings.trim();
   <FormStatus type="success" id={`${p}-done`} title="Request received" headingLevel={2}>
     <p class="confirm__lead" data-confirm="thanks">Thank you. We’ve received your request.</p>
     <p data-confirm="next">We’ll call or email you to confirm.</p>
+    <p data-confirm="emailed" hidden></p>
     <dl class="confirm__details">
       <div><dt>Meeting</dt><dd data-confirm="meeting"></dd></div>
       <div><dt>Topic</dt><dd data-confirm="topic"></dd></div>

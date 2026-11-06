@@ -21,8 +21,14 @@ export function endpointFor(kind: FormKind): string {
   return (kind === 'booking' ? APPS_SCRIPT.bookings : APPS_SCRIPT.rsvps).trim();
 }
 
-/** Send the form. Resolves on success; throws an Error with a reason otherwise. */
-export async function sendForm(form: HTMLFormElement, kind: FormKind): Promise<void> {
+/** The script's reply. `emailed` = the booking script sent the visitor a confirmation email. */
+export interface FormReply {
+  ok: boolean;
+  emailed?: boolean;
+}
+
+/** Send the form. Resolves with the script's reply on success; throws an Error with a reason otherwise. */
+export async function sendForm(form: HTMLFormElement, kind: FormKind): Promise<FormReply> {
   const URL = endpointFor(kind);
 
   if (!URL) {
@@ -30,7 +36,7 @@ export async function sendForm(form: HTMLFormElement, kind: FormKind): Promise<v
       // Local preview only: pretend it worked so the form can be tried out.
       console.info(`[forms] ${kind}: no Apps Script URL in src/config/forms.ts yet — simulating success. Payload:`, Object.fromEntries(new FormData(form)));
       await wait(900);
-      return;
+      return { ok: true };
     }
     throw new NotConnectedError(FORM_MESSAGES.notConnected[kind]);
   }
@@ -40,6 +46,7 @@ export async function sendForm(form: HTMLFormElement, kind: FormKind): Promise<v
   const res = await fetch(URL, { method: 'POST', body: new URLSearchParams(new FormData(form) as unknown as Record<string, string>) });
   const result = await res.json();
   if (!result.ok) throw new Error(result.error);
+  return { ok: true, emailed: result.emailed === true };
 }
 
 /**

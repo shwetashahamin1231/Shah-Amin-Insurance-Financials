@@ -25,6 +25,7 @@ import { firstName, formatPhone } from '../../lib/validation';
 import { whenActivated } from '../lib/env';
 import { createCalendar, type SelectVia } from './calendar';
 import { createFormEngine } from './engine';
+import type { FormReply } from './submit';
 import { animateIn, announce, revealPanel } from './status';
 
 const reducedMotion = () => document.documentElement.classList.contains('reduce-motion');
@@ -374,7 +375,7 @@ export function initScheduler(root: HTMLElement): void {
 
   /* ───────────── Done: confirmation + add to calendar ───────────── */
 
-  function showConfirmation(data: FormData) {
+  function showConfirmation(data: FormData, reply: FormReply) {
     const text = (key: string) => String(data.get(key) ?? '').trim();
     const date = text('date');
     const time = chosenTime();
@@ -394,6 +395,12 @@ export function initScheduler(root: HTMLElement): void {
     set('meeting', meeting);
     set('topic', topic);
     set('advisor', advisor);
+    // Only when the booking script says it actually sent the email.
+    const emailedEl = success!.querySelector<HTMLElement>('[data-confirm="emailed"]');
+    if (emailedEl) {
+      emailedEl.hidden = !reply.emailed;
+      if (reply.emailed) emailedEl.textContent = `We’ve emailed a copy to ${text('email')}. If it isn’t in your inbox in a few minutes, please check your spam or junk folder.`;
+    }
 
     const start = etToUtc(date, time);
     const end = new Date(start.getTime() + BOOKING.blockMinutes * 60_000);

@@ -25,7 +25,7 @@ import { formatPhone, normalizePhone } from '../../lib/validation';
 import { whenActivated } from '../lib/env';
 import { checkField, collectIssues, controlsOf, setFieldError, valueOf, type CustomValidator } from './fields';
 import { hideSummary, pruneSummary, showSummary, wireSummaryLinks } from './summary';
-import { friendlyError, sendForm, type FormKind } from './submit';
+import { friendlyError, sendForm, type FormKind, type FormReply } from './submit';
 import { announce, hidePanel, setBusy, showErrorPanel } from './status';
 
 export interface FormEngineOptions {
@@ -37,8 +37,8 @@ export interface FormEngineOptions {
   prepare?: (form: HTMLFormElement) => void;
   /** A last check right before sending; return a message to stop and show it. */
   beforeSend?: () => string | null;
-  /** Runs after a successful send with everything that was sent. */
-  onSuccess: (data: FormData) => void;
+  /** Runs after a successful send with everything that was sent, and the script's reply. */
+  onSuccess: (data: FormData, reply: FormReply) => void;
   /** Multi-step forms call submit() themselves instead of on the form's submit event. */
   manualSubmit?: boolean;
   /** What "Try again" does (default: submit again). Multi-step forms can re-run their own checks first. */
@@ -150,12 +150,13 @@ export function createFormEngine(form: HTMLFormElement, options: FormEngineOptio
     busy = true;
     if (button) setBusy(button, true);
     announce(live, FORM_MESSAGES.sending);
+    let reply: FormReply = { ok: true };
     try {
       if (looksLikeBot) {
         if (import.meta.env.DEV) console.info('[forms] spam check triggered (honeypot filled or sent within a few seconds) — nothing was sent.');
         await wait(900); // quietly pretend, so bots learn nothing
       } else {
-        await sendForm(form, options.kind);
+        reply = await sendForm(form, options.kind);
       }
     } catch (err) {
       busy = false;
@@ -167,7 +168,7 @@ export function createFormEngine(form: HTMLFormElement, options: FormEngineOptio
     busy = false;
     if (button) setBusy(button, false);
     window.dispatchEvent(new CustomEvent('sa:peacock', { detail: { action: 'celebrate' } }));
-    options.onSuccess(new FormData(form));
+    options.onSuccess(new FormData(form), reply);
   };
 
   form.querySelectorAll<HTMLElement>('[data-retry]').forEach((el) =>
