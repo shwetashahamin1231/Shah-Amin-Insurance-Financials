@@ -87,7 +87,7 @@ Flagship site for a family-owned insurance & financial services practice (founde
 - **No invented reviews, quotes, statistics, client counts or credentials.** Only facts the client provided. Years in business: `yearsInBusiness()`.
 - Compliance-friendly: no guarantees or superlatives ("best", "cheapest", "guaranteed income" without context). Medicare TPMO disclaimer + licenses come from `COMPLIANCE` in `site.ts`. Medicare figures live in `src/data/medicare.ts`, labelled by year with sources.
 - **CMS (Medicare marketing) rules — keep these:**
-  - TPMO disclaimer = exact CY 2027 wording from 42 CFR 422.2267(e)(41) (no SHIP reference); counts come from `MEDICARE_COUNTS`. Never reword it. It shows in the footer (every page), under the Medicare 101 hero, on the booking page and on Medicare service pages.
+  - TPMO disclaimer = CY 2027 wording from 42 CFR 422.2267(e)(41) (no SHIP reference). The "Currently we represent N organizations…" sentence shows only once both `MEDICARE_COUNTS` are filled in — the client chose (Nov 2026) to omit it rather than show [#]; never show [#]. Otherwise never reword it. It shows in the footer (every page), under the Medicare 101 hero, on the booking page and on Medicare service pages.
   - Every Medicare amount carries its own `year`; only official CMS numbers, never projections. `AWAITING` shows the "not yet announced" note.
   - No insurance-company (carrier) names, logos or branded photos anywhere unless the carrier has approved them.
   - Events: no meals for prospective enrollees at marketing events (422.2263(b)(3)); don't invite "guests" to events where plans are presented; educational events must not present specific plans.

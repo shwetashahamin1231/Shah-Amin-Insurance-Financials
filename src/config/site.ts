@@ -135,16 +135,21 @@ export const HOURS = {
 } as const;
 
 /**
- * Medicare plan counts for the required disclaimer below. TODO — needed before
- * the site is promoted: how many insurance companies ("organizations") you
- * represent for Medicare Advantage / Part D, and how many plans ("products")
- * they offer in your area. Replace each null with a number, e.g. organizations: 6.
+ * Medicare plan counts for the CMS disclaimer below: how many insurance companies
+ * ("organizations") you represent for Medicare Advantage / Part D, and how many plans
+ * ("products") they offer in your area. While either is null, the "Currently we
+ * represent …" sentence is left out (the owners' decision, November 2026 — note that
+ * CMS's standard wording includes it). Put both numbers in, e.g. organizations: 6,
+ * and the sentence appears again everywhere automatically.
  */
 export const MEDICARE_COUNTS: { organizations: number | null; products: number | null } = {
   organizations: null,
   products: null,
 };
-const count = (n: number | null) => (n === null ? '[#]' : String(n));
+const countsSentence =
+  MEDICARE_COUNTS.organizations !== null && MEDICARE_COUNTS.products !== null
+    ? ` Currently we represent ${MEDICARE_COUNTS.organizations} organizations which offer ${MEDICARE_COUNTS.products} products in your area.`
+    : '';
 
 /** "Licensed insurance producer · NPN 1234567 · NJ resident license #890" — parts appear once filled in. */
 function producerLine(npn: string, njLicense: string): string {
@@ -165,9 +170,9 @@ export const COMPLIANCE = {
   /**
    * CMS-required Third-Party Marketing Organization (TPMO) disclaimer — standardized
    * wording from 42 CFR 422.2267(e)(41) as revised for contract year 2027 (applies to
-   * marketing from October 1, 2026). Do not reword it; the counts come from MEDICARE_COUNTS.
+   * marketing from October 1, 2026). Do not reword it; the counts sentence comes from MEDICARE_COUNTS.
    */
-  medicareDisclaimer: `We do not offer every plan available in your area. Currently we represent ${count(MEDICARE_COUNTS.organizations)} organizations which offer ${count(MEDICARE_COUNTS.products)} products in your area. Please contact Medicare.gov or 1-800-MEDICARE to get information on all of your options.`,
+  medicareDisclaimer: `We do not offer every plan available in your area.${countsSentence} Please contact Medicare.gov or 1-800-MEDICARE to get information on all of your options.`,
   governmentDisclaimer:
     'Not connected with or endorsed by the United States government or the federal Medicare program.',
   generalDisclaimer:

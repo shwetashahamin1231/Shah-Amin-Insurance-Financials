@@ -76,7 +76,7 @@ Only needed if an original image changes.
 
 - Shweta Shah Amin's biography, and both advisors' official titles
 - NPN and New Jersey resident license number for each advisor (`licenses` in `src/config/site.ts`)
-- **Urgent:** the Medicare disclaimer counts — `MEDICARE_COUNTS` in `src/config/site.ts` (the site shows [#] until filled)
+- The Medicare disclaimer counts — `MEDICARE_COUNTS` in `src/config/site.ts`. Until both numbers are filled in, the "Currently we represent … organizations" sentence is left out (CMS's standard wording includes it). Also add it back in `apps-script/bookings/Code.gs`.
 - Google review link and real client reviews
 - Apps Script web-app URLs for bookings and RSVPs
 - Details for the October 2 and October 17 events
