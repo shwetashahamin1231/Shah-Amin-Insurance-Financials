@@ -365,7 +365,7 @@ export function initScheduler(root: HTMLElement): void {
     set('local', local?.differs ? `That’s ${local.label} your time.` : '');
     form!.querySelector<HTMLElement>('[data-review="local"]')?.toggleAttribute('hidden', !local?.differs);
     set('name', text('name'));
-    set('email', text('email'));
+    set('email', text('email') || 'None');
     set('phone', formatPhone(text('phone')));
     set('advisor', text('advisor') || 'No preference');
     set('topic', text('topic'));
@@ -391,7 +391,7 @@ export function initScheduler(root: HTMLElement): void {
       if (el) el.textContent = value;
     };
     set('thanks', `Thank you${name ? `, ${name}` : ''}. We’ve received your request for ${formatDateLong(date)} at ${text('time')}${local.differs ? ` (${local.label} your time)` : ''}.`);
-    set('next', `It isn’t booked until we confirm it: ${who} will call or email you to confirm${meeting === 'Video' ? ' and send the video link' : ''}.`);
+    set('next', `It isn’t booked until we confirm it: ${who} will ${text('email') ? 'call or email' : 'call'} you to confirm${meeting === 'Video' ? ' and send the video link' : ''}.`);
     set('meeting', meeting);
     set('topic', topic);
     set('advisor', advisor);

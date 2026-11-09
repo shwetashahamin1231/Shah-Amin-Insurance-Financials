@@ -6,7 +6,7 @@
  *   1. checks the time is still free on the "Shah & Amin - Appointments" calendar,
  *   2. adds a row to the "Bookings" tab of this spreadsheet,
  *   3. puts a 2-hour event on that calendar (so the website stops offering it),
- *   4. emails the visitor a copy of their request (with a calendar file),
+ *   4. emails the visitor a copy of their request, if they gave an email (with a calendar file),
  *   5. emails everyone in NOTIFY.
  *  The website also asks this script (doGet) which times are busy. Anything on the
  *  appointments calendar counts - so to block off time, just add an event there.
@@ -103,7 +103,8 @@ function submitBooking(data) {
   const page = clean(data.page);
 
   if (!name) throw new Error('Please enter your name.');
-  if (!/^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/.test(email)) throw new Error('Please enter a valid email address.');
+  // Email is optional; if one is given it must look like an email address.
+  if (email && !/^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/.test(email)) throw new Error('Please enter a valid email address.');
   if (phone.replace(/\D/g, '').replace(/^1(?=\d{10}$)/, '').length !== 10) throw new Error('Please enter a 10-digit U.S. phone number.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Please choose a date.');
   const t = time.match(/^(\d{1,2}):(\d{2}) ([AP])M ET$/);
@@ -136,7 +137,7 @@ function submitBooking(data) {
         `Topic: ${topic}`,
         `Meeting: ${meetingType}`,
         `Phone: ${phone}`,
-        `Email: ${email}`,
+        `Email: ${email || '(none given)'}`,
         `Message: ${message || '(none)'}`,
       ].join('\n'),
       location: meetingType === 'In person' ? 'In person \u2014 place to be confirmed' : meetingType,
@@ -146,9 +147,9 @@ function submitBooking(data) {
   }
 
   // Emails. A problem sending either one never loses the request (the row and event are already saved).
-  let confirmation = 'not sent \u2014 please call or email them yourself';
+  let confirmation = email ? 'not sent \u2014 please call or email them yourself' : 'no email address given \u2014 please call them';
   let emailed = false;
-  if (SEND_CONFIRMATION) {
+  if (SEND_CONFIRMATION && email) {
     try {
       if (mayEmail_(email)) {
         sendConfirmation_({ name, email, start, end, time, advisor, topic, meetingType });
@@ -162,7 +163,7 @@ function submitBooking(data) {
     }
   }
   try {
-    MailApp.sendEmail({
+    const alert = {
       to: NOTIFY.join(','),
       subject: `New appointment request: ${name} \u2014 ${date} ${time}`,
       body: [
@@ -173,14 +174,16 @@ function submitBooking(data) {
         `Topic: ${topic}`,
         `Meeting: ${meetingType}`,
         `Phone: ${phone}`,
-        `Email: ${email}`,
+        `Email: ${email || '(none given)'}`,
         `Message: ${message || '(none)'}`,
         '',
         `Confirmation email to the client: ${confirmation}`,
         `Spreadsheet: ${SpreadsheetApp.getActiveSpreadsheet().getUrl()}`,
       ].join('\n'),
-      replyTo: email,
-    });
+    };
+    // Pressing Reply in the alert writes to the client (when they gave an email).
+    if (email) alert.replyTo = email;
+    MailApp.sendEmail(alert);
   } catch (err) {
     console.warn('Booking email not sent: ' + err.message);
   }
